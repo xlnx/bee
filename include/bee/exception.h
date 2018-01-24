@@ -6,30 +6,36 @@
 namespace bee
 {
 
+namespace exception
+{
+
 struct Fatal: std::exception
 {
-	Fatal(const std::string &str):
-		content(str)
-	{}
-	Fatal(std::string &&str):
-		content(str)
+	Fatal(const std::string &errloc, std::string content = ""):
+		errmsg(errloc + "\t" + content)
 	{}
 	const char *what() const noexcept override
 	{
-		return content.c_str();
+		return errmsg.c_str();
 	}
 protected:
-	std::string content;
+	std::string errmsg;
 };
 
 struct ScriptError: Fatal
 {
-
+	ScriptError(const std::string &errloc):
+		Fatal(errloc)
+	{}
 };
 
 struct ResourceError: Fatal
 {
-
+	ResourceError(const std::string &errloc):
+		Fatal(errloc)
+	{}
 };
+
+}
 
 }

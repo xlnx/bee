@@ -2,8 +2,10 @@
 
 int main()
 {
-	bee::runtime.createWindow("Header");
-	// bee::runtime.shell("nothing");
-	bee::runtime.test();
+	bee::runtime.exec([](){
+		bee::runtime.createWindow("Header");
+		// bee::runtime.shell("nothing");
+		bee::runtime.test();
+	});
 	return 0;
 }

@@ -13,7 +13,7 @@ Runtime::Runtime()
 {
 	if (haveInstance)
 	{
-		throw Fatal("Could not instantiate SINGLETON class 'bee::Runtime'.");
+		BEE_RAISE(Fatal, "Could not instantiate SINGLETON class 'bee::Runtime'.");
 	}
 	else
 	{
@@ -31,7 +31,7 @@ void Runtime::createWindow(const std::string &title, bool fullscreen, unsigned w
 {
 	if (window)
 	{
-		throw Fatal("Could not instantiate SINGLETON object 'bee::runtime::window'.");
+		BEE_RAISE(Fatal, "Could not instantiate SINGLETON object 'bee::runtime::window'.");
 	}
 	else
 	{
@@ -68,7 +68,7 @@ std::string Runtime::genTimeStamp()
 	time_t timep;
 	char tmp[128];
 	time(&timep);
-	strftime(tmp, sizeof(tmp), "%Y-%m-%d.%H-%M-%S", localtime(&timep));
+	strftime(tmp, sizeof(tmp), "%Y-%m-%d %H-%M-%S", localtime(&timep));
 	return tmp;
 }
 
@@ -104,24 +104,29 @@ void Runtime::coreDump(std::string logFileName)
 
 void Runtime::test()
 {
+	while (!glfwWindowShouldClose(window)) {
+		double currentFrame = glfwGetTime();
+		// Utility::deltaTime = currentFrame - lastFrame;
+		// lastFrame = currentFrame;
+		// Input::processClick();
+
+		// getScene()->update();
+
+		// graphicsRuntime.update(getScene());
+		BEE_LOG("this is a custom log");
+		BEE_RAISE(ScriptError);
+		glfwSwapBuffers(window);
+		glfwPollEvents();
+	}
+}
+
+void Runtime::exec(const std::function<void()> &fn)
+{
 	try
 	{
-		while (!glfwWindowShouldClose(window)) {
-			double currentFrame = glfwGetTime();
-			// Utility::deltaTime = currentFrame - lastFrame;
-			// lastFrame = currentFrame;
-			// Input::processClick();
-
-			// getScene()->update();
-
-			// graphicsRuntime.update(getScene());
-			BEE_LOG(123, "shit");
-			throw Fatal("test");
-			glfwSwapBuffers(window);
-			glfwPollEvents();
-		}
+		fn();
 	}
-	catch (Fatal &e)
+	catch (exception::Fatal &e)
 	{
 		log(e.what());
 		coreDump();
