@@ -77,6 +77,7 @@ class parser
 				}
 			}
 		}
+		return nullptr;
 	}
 	void register_sub(long long sign, const parser_rule<AstTy>* rule_ptr, std::size_t state)
 	{
@@ -414,6 +415,7 @@ public:
 										ACTION[state][sign].rule = rule_ptr;
 										//std::cout << state << " " << sign << std::endl;
 									}
+									default:;
 									}
 								}
 							}
