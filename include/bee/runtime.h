@@ -3,8 +3,8 @@
 #include "exception.h"
 #include "util.h"
 #include <sstream>
-#include <fstream>
 #include <iostream>
+#include <fstream>
 #include <functional>
 
 namespace bee
@@ -66,7 +66,7 @@ private:
 			std::cerr << std::forward<T>(message);
 			dumpWriter << std::forward<T>(message);
 		}
-	void dumpUtil(std::ofstream &of);
+	std::ofstream getDumpStream(const std::string &logFileName);
 public:
 	GLFWwindow *window = nullptr;
 private:

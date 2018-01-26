@@ -1,6 +1,12 @@
 #include <ctime>
 #include "bee/runtime.h"
 #include "new_parser/parser.h"
+#ifdef WIN32
+#	include <io.h>
+#	include <direct.h>
+#else
+#	include <unistd.h>
+#endif
 
 namespace bee
 {
@@ -81,24 +87,16 @@ std::string Runtime::genTimeStamp()
 
 void Runtime::dump(std::string logFileName)
 {
-	if (logFileName == "")
-	{
-		logFileName = genTimeStamp() + ".log";
-	}
-	std::ofstream fout(logFileName);
-	dumpUtil(fout);
+	auto writer(getDumpStream(logFileName));
+	writer << dumpWriter.str() << std::endl;
 }
 
 void Runtime::coreDump(std::string logFileName)
 {
-	if (logFileName == "")
-	{
-		logFileName = genTimeStamp() + ".log";
-	}
-	std::ofstream fout(logFileName);
-	fout << "**bee** built " << __DATE__ << " " << __TIME__ << std::endl;
-	dumpUtil(fout);
-	fout.close();
+	auto writer(getDumpStream(logFileName));
+	writer << "**bee** built " << __DATE__ << " " << __TIME__ << std::endl;
+	writer << dumpWriter.str() << std::endl;
+	writer.close();
 	std::terminate();
 }
 
@@ -154,9 +152,20 @@ void Runtime::finalizeGraphics()
 	glfwTerminate();
 }
 
-void Runtime::dumpUtil(std::ofstream &of)
+std::ofstream Runtime::getDumpStream(const std::string &logFileName)
 {
-	of << dumpWriter.str();
+#	ifdef WIN32
+	if (access("log/", 02))
+	{
+		mkdir("log");
+	}
+#	else
+#	endif
+	if (logFileName == "")
+	{
+		return std::ofstream("log/" + genTimeStamp() + ".log");
+	}
+	return std::ofstream("log/" + logFileName);
 }
 
 }
