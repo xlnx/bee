@@ -15,7 +15,7 @@ int main()
 	bee::runtime.createWindow("Header");
 	// bee::runtime.shell("nothing");
 	// std::cout << 1 / 0 << std::endl;
-	badfather();
+	// badfather();
 	bee::runtime.test();
 	return 0;
 }

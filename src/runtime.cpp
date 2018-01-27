@@ -92,6 +92,7 @@ Runtime::Runtime()
 		"Single step";
 	errorLookup[EXCEPTION_STACK_OVERFLOW & 0x3F] = 
 		"Stack overflow";
+	AddVectoredExceptionHandler(1, exception::veh);
 	SetUnhandledExceptionFilter(handleException);
 #	else
 #		warn Coredump not fully supported on this platform.
@@ -160,13 +161,20 @@ void Runtime::dump(std::string logFileName) noexcept
 void Runtime::coredump(std::string logFileName) noexcept
 {
 	auto writer(getDumpStream(logFileName));
-	writer << "**bee** built " << __DATE__ << " " << __TIME__ << std::endl;
+	writer << "**bee** built " << __DATE__ << " " << __TIME__ << std::endl << std::endl;
 	writer << dumpWriter.str() << std::endl;
-	stackTrace(writer, BEE_EXCEPTION_TRACE_DEPTH, 
-#	ifdef WIN32
-		exceptionContext
-#	endif
-	);
+	if (traceBack != "")
+	{
+		writer << traceBack;
+	}
+	else
+	{
+		stackTrace(writer, BEE_EXCEPTION_TRACE_DEPTH, 
+#		ifdef WIN32
+			exceptionContext
+#		endif
+		);
+	}
 	writer.close();
 	std::terminate();
 }

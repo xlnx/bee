@@ -7,6 +7,9 @@
 #include <string>
 #include <sstream>
 #include <exception>
+#ifdef WIN32
+#	include <windows.h>
+#endif
 #include "stackTrace.h"
 #include "runtime.h"
 
@@ -18,6 +21,12 @@ class Runtime;
 namespace exception
 {
 
+#ifdef WIN32
+
+LONG CALLBACK veh(PEXCEPTION_POINTERS ep);
+
+#endif
+
 struct Fatal: std::exception
 {
 	Fatal(const std::string &errloc, std::string content = "");
@@ -25,10 +34,8 @@ struct Fatal: std::exception
 	{
 		return errmsg.c_str();
 	}
-	friend class bee::Runtime;
 protected:
 	std::string errmsg;
-	std::ostringstream stackWriter;
 };
 
 struct ScriptError: Fatal

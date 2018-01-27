@@ -23,8 +23,14 @@ namespace bee
 	std::string("<" BEE_STRINGLIFY(Type) "> ") + bee::shortenFileName(__FILE__) + \
 	":" BEE_STRINGLIFY(__LINE__) "::" + __func__ + "()", ##__VA_ARGS__);
 
+namespace exception
+{
+class Fatal;
+}
+
 class Runtime final
 {
+	friend class exception::Fatal;
 public:
 	Runtime();
 	~Runtime();
@@ -71,6 +77,7 @@ public:
 	GLFWwindow *window = nullptr;
 private:
 	std::ostringstream dumpWriter;
+	std::string traceBack;
 	static bool haveInstance;
 };
 
