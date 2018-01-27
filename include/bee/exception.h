@@ -1,25 +1,34 @@
-#pragma once
+#ifndef BEE_EXCEPTION_H
+#define BEE_EXCEPTION_H
 
-#include <exception>
+#ifdef WIN32
+#include <windows.h>
+#endif
 #include <string>
+#include <sstream>
+#include <exception>
+#include "stackTrace.h"
+#include "runtime.h"
 
 namespace bee
 {
+
+class Runtime;
 
 namespace exception
 {
 
 struct Fatal: std::exception
 {
-	Fatal(const std::string &errloc, std::string content = ""):
-		errmsg(errloc + "\t" + content)
-	{}
+	Fatal(const std::string &errloc, std::string content = "");
 	const char *what() const noexcept override
 	{
 		return errmsg.c_str();
 	}
+	friend class bee::Runtime;
 protected:
 	std::string errmsg;
+	std::ostringstream stackWriter;
 };
 
 struct ScriptError: Fatal
@@ -39,3 +48,5 @@ struct ResourceError: Fatal
 }
 
 }
+
+#endif

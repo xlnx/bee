@@ -1,11 +1,12 @@
 #pragma once
 
-#include "exception.h"
-#include "util.h"
+#include <ctime>
 #include <sstream>
 #include <iostream>
 #include <fstream>
 #include <functional>
+#include "util.h"
+#include "exception.h"
 
 namespace bee
 {
@@ -34,37 +35,36 @@ public:
 			unsigned height = 768);
 	void shell(const std::string &script);
 	template <typename ... Types>
-		void log(Types... messages)
+		void log(Types... messages) noexcept
 		{
 			auto s = genTimeStamp();
-			std::cerr << "[" << s << "] ";
-			dumpWriter << "[" << s << "] ";
+			std::cerr << "[" << s << "] "; dumpWriter << "[" << s << "] ";
 			logUtil(messages...);
-			std::cerr << std::endl;
-			dumpWriter << std::endl;
+			std::cerr << std::endl; dumpWriter << std::endl;
 		}
-	// void log(const std::string &message);
-	void dump(std::string logFileName = "");
-	void coreDump(std::string logFileName = "");
+	void dump(std::string logFileName = "") noexcept;
+	void coredump(std::string logFileName = "") noexcept;
 	// 
 	void test();
-	void exec(const std::function<void()> &fn);
 private:
 	void initializeGraphics();
 	void finalizeGraphics();
-	std::string genTimeStamp();
+	std::string genTimeStamp() noexcept
+	{
+		time_t timep; time(&timep); char tmp[128];
+		strftime(tmp, sizeof(tmp), "%Y-%m-%d %H-%M-%S", localtime(&timep));
+		return tmp;
+	}
 	template <typename T, typename ... Types>
-		void logUtil(T &&message, Types... other)
+		void logUtil(T &&message, Types... other) noexcept
 		{
-			std::cerr << std::forward<T>(message);
-			dumpWriter << std::forward<T>(message);
+			std::cerr << std::forward<T>(message); dumpWriter << std::forward<T>(message);
 			logUtil(other...);
 		}
 	template <typename T>
-		void logUtil(T &&message)
+		void logUtil(T &&message) noexcept
 		{
-			std::cerr << std::forward<T>(message);
-			dumpWriter << std::forward<T>(message);
+			std::cerr << std::forward<T>(message); dumpWriter << std::forward<T>(message);
 		}
 	std::ofstream getDumpStream(const std::string &logFileName);
 public:
@@ -76,7 +76,7 @@ private:
 
 extern Runtime runtime;
 
-constexpr const char *shortenFileName(const char str[])
+constexpr inline const char *shortenFileName(const char str[])
 {
 	const char *q = str;
 	for (auto p = str; *p != 0; ++p)
