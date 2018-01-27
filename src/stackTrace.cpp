@@ -34,31 +34,22 @@ static const char *const bfd_errors[] = {
 };
 
 struct bfd_ctx {
-	bfd * handle;
-	asymbol ** symbol;
-	bfd_ctx():
-		handle(nullptr), symbol(nullptr)
-	{}
+	bfd * handle = 0;
+	asymbol ** symbol = 0;
 };
 
 struct bfd_set {
-	char * name;
-	bfd_ctx * bc;
-	bfd_set *next;
-	bfd_set(): 
-		name(nullptr), bc(nullptr), next(nullptr)
-	{}
+	char * name = 0;
+	bfd_ctx * bc = 0;
+	bfd_set *next = 0;
 };
 
 struct find_info {
-	asymbol **symbol;
-	bfd_vma counter;
-	const char *file;
-	const char *func;
-	unsigned line;
-	find_info():
-		symbol(nullptr), counter(0), file(nullptr), func(nullptr), line(0)
-	{}
+	asymbol **symbol = 0;
+	bfd_vma counter = 0;
+	const char *file = 0;
+	const char *func = 0;
+	unsigned line = 0;
 };
 
 static void lookup_section(bfd *abfd, asection *sec, void *opaque_data)

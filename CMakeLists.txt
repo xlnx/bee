@@ -19,7 +19,7 @@ ENDIF ()
 set(SOURCE_FILES
 	src/util.cpp
 	src/runtime.cpp
-	src/exception.cpp
+	src/runtimeBase.cpp
 	src/stackTrace.cpp
 	test/testRuntime.cpp
 )
