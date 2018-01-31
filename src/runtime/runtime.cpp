@@ -1,0 +1,218 @@
+#include "runtime.h"
+#include "stackTrace.h"
+#ifdef WIN32
+#	include <io.h>
+#	include <direct.h>
+#else
+#	include <unistd.h>
+#endif
+
+namespace bee
+{
+
+std::ostringstream Runtime::dumpWriter;
+std::string Runtime::traceBack;
+int Runtime::execDepth;
+std::stack<std::function<void() noexcept>> Runtime::dumpCallback;
+bool Runtime::haveInstance;
+
+static Runtime runtime;
+
+// Runtime Startup
+
+#ifdef WIN32
+
+static const char *errorLookup[0x40];
+
+static LPCONTEXT exceptionContext = nullptr;
+
+LONG WINAPI handleException(LPEXCEPTION_POINTERS info)
+{
+	if (runtime.execDepth > 0)
+	{
+		BEE_LOG("<", errorLookup[info->ExceptionRecord->ExceptionCode & 0x3F], "> Exception code:",
+			std::hex, info->ExceptionRecord->ExceptionCode, std::dec);
+		bee::exceptionContext = info->ContextRecord;
+		runtime.coredump();
+	}
+	return EXCEPTION_CONTINUE_SEARCH;
+}
+
+#endif
+
+namespace exception
+{
+
+#ifdef WIN32
+
+#define BEE_VEH_CODE 0x0f728f38 // random generated code, pls don't collide XD
+
+static LPCONTEXT contextPtr = nullptr;
+
+static LONG CALLBACK veh(PEXCEPTION_POINTERS ep)
+{
+	if (ep->ExceptionRecord->ExceptionCode == BEE_VEH_CODE)
+	{
+		contextPtr = new CONTEXT(*ep->ContextRecord);
+		return EXCEPTION_CONTINUE_EXECUTION;
+	}
+	return EXCEPTION_CONTINUE_SEARCH;
+}
+
+#endif
+
+Fatal::Fatal(std::string content):
+	errmsg(content)
+{
+#	ifdef WIN32
+	RaiseException(BEE_VEH_CODE, 0, 0, nullptr);
+#	endif
+	std::ostringstream ss;
+	bee::stackTrace(ss, BEE_EXCEPTION_TRACE_DEPTH
+#	ifdef WIN32
+		, contextPtr
+#	endif
+	);
+	delete contextPtr;
+	contextPtr = nullptr;
+	runtime.traceBack = ss.str();
+}
+
+}
+
+Runtime::Runtime()
+{
+#	ifdef WIN32
+	errorLookup[EXCEPTION_ACCESS_VIOLATION & 0x3F] = 
+		"Access violation";
+	errorLookup[EXCEPTION_ARRAY_BOUNDS_EXCEEDED & 0x3F] = 
+		"Array bounds exceeded";
+	errorLookup[EXCEPTION_BREAKPOINT & 0x3F] = 
+		"Breakpoint";
+	errorLookup[EXCEPTION_DATATYPE_MISALIGNMENT & 0x3F] = 
+		"Datatype misalignment";
+	errorLookup[EXCEPTION_FLT_DENORMAL_OPERAND & 0x3F] = 
+		"Float denormal operand";
+	errorLookup[EXCEPTION_FLT_DIVIDE_BY_ZERO & 0x3F] = 
+		"Float divide by zero";
+	errorLookup[EXCEPTION_FLT_INEXACT_RESULT & 0x3F] = 
+		"Float inexact result";
+	errorLookup[EXCEPTION_FLT_INVALID_OPERATION & 0x3F] = 
+		"FLoat invalid operation";
+	errorLookup[EXCEPTION_FLT_OVERFLOW & 0x3F] = 
+		"Float overflow";
+	errorLookup[EXCEPTION_FLT_STACK_CHECK & 0x3F] = 
+		"Float stack check";
+	errorLookup[EXCEPTION_FLT_UNDERFLOW & 0x3F] = 
+		"Float underflow";
+	errorLookup[EXCEPTION_ILLEGAL_INSTRUCTION & 0x3F] = 
+		"Illegal instruction";
+	errorLookup[EXCEPTION_IN_PAGE_ERROR & 0x3F] = 
+		"In page error";
+	errorLookup[EXCEPTION_INT_DIVIDE_BY_ZERO & 0x3F] = 
+		"Integer divide by zero";
+	errorLookup[EXCEPTION_INT_OVERFLOW & 0x3F] = 
+		"Integer overflow";
+	errorLookup[EXCEPTION_INVALID_DISPOSITION & 0x3F] = 
+		"Invalid disposition";
+	errorLookup[EXCEPTION_NONCONTINUABLE_EXCEPTION & 0x3F] = 
+		"Noncontinuable exception";
+	errorLookup[EXCEPTION_PRIV_INSTRUCTION & 0x3F] = 
+		"Privilege instruction";
+	errorLookup[EXCEPTION_SINGLE_STEP & 0x3F] = 
+		"Single step";
+	errorLookup[EXCEPTION_STACK_OVERFLOW & 0x3F] = 
+		"Stack overflow";
+	AddVectoredExceptionHandler(1, exception::veh);
+	SetUnhandledExceptionFilter(handleException);
+#	else
+#		warn Coredump not fully supported on this platform.
+#	endif
+	if (Runtime::haveInstance)
+	{
+		BEE_RAISE(Fatal, "Could not instantiate SINGLETON class 'bee::Runtime'.");
+	}
+	else
+	{
+		Runtime::haveInstance = true;
+	}
+}
+
+Runtime::~Runtime()
+{
+}
+
+void Runtime::dump(std::string logFileName) noexcept
+{
+	auto writer(getDumpStream(logFileName));
+	writer << dumpWriter.str() << std::endl;
+}
+
+void Runtime::coredump(std::string logFileName) noexcept
+{
+	while (!dumpCallback.empty())
+	{
+		dumpCallback.top()();
+		dumpCallback.pop();
+	}
+	auto writer(getDumpStream(logFileName));
+	writer << "**bee** built " << __DATE__ << " " << __TIME__ << std::endl << std::endl;
+	writer << dumpWriter.str() << std::endl;
+	if (traceBack != "")
+	{
+		writer << traceBack;
+	}
+	else
+	{
+		stackTrace(writer, BEE_EXCEPTION_TRACE_DEPTH, 
+#		ifdef WIN32
+			exceptionContext
+#		endif
+		);
+	}
+	writer.close();
+	std::terminate();
+}
+
+std::ofstream Runtime::getDumpStream(const std::string &logFileName)
+{
+#	ifdef WIN32
+	if (access("log/", 02))
+	{
+		mkdir("log");
+	}
+#	else
+#	endif
+	if (logFileName == "")
+	{
+		return std::ofstream("log/" + genTimeStamp() + ".log");
+	}
+	return std::ofstream("log/" + logFileName);
+}
+
+void Runtime::onCoredump(std::function<void() noexcept> callback)
+{
+	dumpCallback.emplace(callback);
+}
+
+void Runtime::exec(std::function<void()> target) noexcept
+{
+	execDepth++;
+	try 
+	{
+		target();
+	}
+	catch (::bee::exception::Fatal &e)
+	{
+		log(e.what());
+		coredump();
+	}
+	catch (...)
+	{
+		log("This application has been trapped in an unexpected condition.");
+		coredump();
+	}
+	execDepth--;
+}
+
+}

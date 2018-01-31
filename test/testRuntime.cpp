@@ -1,4 +1,4 @@
-#include "bee/runtime.h" 
+#include "runtime.h" 
 
 void badboy()
 {
@@ -12,10 +12,7 @@ void badfather()
 
 int main()
 {
-	bee::runtime.createWindow("Header");
-	// bee::runtime.shell("nothing");
 	// std::cout << 1 / 0 << std::endl;
-	// badfather();
-	bee::runtime.test();
+	badfather();
 	return 0;
 }
