@@ -1,4 +1,5 @@
 #include "runtime.h" 
+#include <cassert>
 
 void badboy()
 {
@@ -13,6 +14,7 @@ void badfather()
 int Main(int argc, char **argv)
 {
 	// std::cout << 1 / 0 << std::endl;
+	// assert(false);
 	badfather();
 	return 0;
 }

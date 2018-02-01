@@ -91,8 +91,6 @@ namespace glm
 
 		GLM_FUNC_DECL GLM_CONSTEXPR_SIMD tvec4() GLM_DEFAULT_CTOR;
 		GLM_FUNC_DECL GLM_CONSTEXPR_SIMD tvec4(tvec4<T, P> const& v) GLM_DEFAULT;
-		// mod initializer list
-		GLM_FUNC_DECL GLM_CONSTEXPR_SIMD tvec4(::std::initializer_list<T> l);
 		template <precision Q>
 		GLM_FUNC_DECL GLM_CONSTEXPR_SIMD tvec4(tvec4<T, Q> const& v);
 

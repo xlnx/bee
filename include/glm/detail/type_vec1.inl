@@ -21,12 +21,6 @@ namespace glm
 		{}
 #	endif//!GLM_HAS_DEFAULTED_FUNCTIONS
 
-	// mod initializer list
-	template <typename T, precision P>
-	GLM_FUNC_QUALIFIER GLM_CONSTEXPR_CTOR tvec1<T, P>::tvec1(::std::initializer_list<T> l)
-		: tvec1(*(l.begin() + 0))
-	{}
-
 	template <typename T, precision P>
 	template <precision Q>
 	GLM_FUNC_QUALIFIER GLM_CONSTEXPR_CTOR tvec1<T, P>::tvec1(tvec1<T, Q> const & v)

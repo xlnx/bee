@@ -170,12 +170,6 @@ namespace detail
 		{}
 #	endif//!GLM_HAS_DEFAULTED_FUNCTIONS
 
-	// mod initializer list
-	template <typename T, precision P>
-	GLM_FUNC_QUALIFIER GLM_CONSTEXPR_SIMD tvec4<T, P>::tvec4(::std::initializer_list<T> l)
-		: tvec4(*(l.begin() + 0), *(l.begin() + 1), *(l.begin() + 2), *(l.begin() + 3))
-	{}
-
 	template <typename T, precision P>
 	template <precision Q>
 	GLM_FUNC_QUALIFIER GLM_CONSTEXPR_SIMD tvec4<T, P>::tvec4(tvec4<T, Q> const & v)

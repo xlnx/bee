@@ -5,8 +5,6 @@
 
 #include "precision.hpp"
 #include "type_int.hpp"
-// mod initailizer list
-#include <initializer_list>
 
 namespace glm{
 namespace detail
