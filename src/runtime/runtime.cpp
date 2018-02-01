@@ -12,7 +12,9 @@ namespace bee
 
 std::ostringstream Runtime::dumpWriter;
 std::string Runtime::traceBack;
+#ifndef BEE_RUNTIME_INTRUSIVE
 int Runtime::execDepth;
+#endif
 std::stack<std::function<void() noexcept>> Runtime::dumpCallback;
 bool Runtime::haveInstance;
 
@@ -28,13 +30,17 @@ static LPCONTEXT exceptionContext = nullptr;
 
 LONG WINAPI handleException(LPEXCEPTION_POINTERS info)
 {
+#	ifndef BEE_RUNTIME_INTRUSIVE
 	if (runtime.execDepth > 0)
 	{
+#	endif
 		BEE_LOG("<", errorLookup[info->ExceptionRecord->ExceptionCode & 0x3F], "> Exception code:",
 			std::hex, info->ExceptionRecord->ExceptionCode, std::dec);
 		bee::exceptionContext = info->ContextRecord;
 		runtime.coredump();
+#	ifndef BEE_RUNTIME_INTRUSIVE
 	}
+#	endif
 	return EXCEPTION_CONTINUE_SEARCH;
 }
 
@@ -195,24 +201,44 @@ void Runtime::onCoredump(std::function<void() noexcept> callback)
 	dumpCallback.emplace(callback);
 }
 
+#ifdef BEE_RUNTIME_INTRUSIVE
+}
+
+int main(int argc, char **argv)
+#else
 void Runtime::exec(std::function<void()> target) noexcept
+#endif
 {
+#	ifndef BEE_RUNTIME_INTRUSIVE
 	execDepth++;
+#	endif
 	try 
 	{
+#		ifdef BEE_RUNTIME_INTRUSIVE
+		int Main(int argc, char **argv);
+		// int Main(int argc, char **argv);
+		return Main(argc, argv);		
+#		else
 		target();
+#		endif
 	}
 	catch (::bee::exception::Fatal &e)
 	{
-		log(e.what());
-		coredump();
+		::bee::Runtime::log(e.what());
+		::bee::Runtime::coredump();
 	}
 	catch (...)
 	{
-		log("This application has been trapped in an unexpected condition.");
-		coredump();
+		::bee::Runtime::log("This application has been trapped in an unexpected condition.");
+		::bee::Runtime::coredump();
 	}
+#	ifndef BEE_RUNTIME_INTRUSIVE
 	execDepth--;
+#	else
+	return 1;
+#	endif
 }
 
+#ifndef BEE_RUNTIME_INTRUSIVE
 }
+#endif

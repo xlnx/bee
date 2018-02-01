@@ -10,7 +10,7 @@ void badfather()
 	badboy();
 }
 
-int main()
+int Main(int argc, char **argv)
 {
 	// std::cout << 1 / 0 << std::endl;
 	badfather();

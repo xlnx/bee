@@ -4,8 +4,14 @@ set(CMAKE_CXX_STANDARD 14)
 
 option(BUILD_TESTS "Build tests." TRUE)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-parentheses")
+add_definitions(
+	-DBEE_RUNTIME_INTRUSIVE
+)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-parentheses")
+# if (BEE_RUNTIME_NO_CONSOLE)
+	# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mwindows")
+# endif ()
 if (WIN32)
 	find_package(OpenGL REQUIRED)
 	link_libraries(glew32.lib glfw3.dll ${OPENGL_LIBRARIES})

@@ -11,6 +11,10 @@
 #	include <windows.h>
 #endif
 
+#ifdef BEE_RUNTIME_INTRUSIVE
+int main(int argc, char **argv);
+#endif
+
 namespace bee
 {
 
@@ -53,6 +57,9 @@ class Runtime final
 #	ifdef WIN32
 	friend LONG WINAPI handleException(LPEXCEPTION_POINTERS info);
 #	endif
+#	ifdef BEE_RUNTIME_INTRUSIVE
+	friend int ::main(int argc, char **argv);
+#	endif
 public:
 	Runtime();
 	~Runtime();
@@ -66,7 +73,9 @@ public:
 			std::cerr << std::endl; dumpWriter << std::endl;
 		}
 	static void dump(std::string logFileName = "") noexcept;
+#	ifndef BEE_RUNTIME_INTRUSIVE
 	static void exec(std::function<void()> target) noexcept;
+#	endif
 	static void onCoredump(std::function<void() noexcept> callback);
 private:
 	static std::string genTimeStamp() noexcept
@@ -91,7 +100,9 @@ private:
 private:
 	static std::ostringstream dumpWriter;
 	static std::string traceBack;
+#	ifndef BEE_RUNTIME_INTRUSIVE
 	static int execDepth;
+#	endif
 	static std::stack<std::function<void() noexcept>> dumpCallback;
 	static bool haveInstance;
 };
