@@ -111,18 +111,6 @@ template <typename A, typename ...Attrs>
 struct IndexOfAttr: IndexOfAttrAux<0, A, Attrs...>
 {};
 
-template <typename ...Types>
-constexpr void dummyExpand(Types ...)
-{
-}
-template <::std::size_t N, typename A>
-	int dummyExpandAux()
-{
-	glVertexAttribPointer(A::type, A::size, 
- 		VertexAttrSignature<typename A::elemType>::value, GL_FALSE, N, nullptr);
-	return 0;
-}
-
 template <bool X, typename TrueType, typename FalseType>
 struct IfTypeAux
 { using type = TrueType; };
@@ -165,7 +153,8 @@ struct VertexAttr
 	template <typename A>
 	constexpr const typename VertexAttrStorage<A>::type &get() const noexcept;
 
-	::std::tuple<typename VertexAttrStorage<Attrs>::type...> data;
+	using value_type = ::std::tuple<typename VertexAttrStorage<Attrs>::type...>;
+	value_type data;
 };
 
 template <typename ...Attrs>
@@ -200,24 +189,24 @@ template <typename A>
 	return ::std::get<IndexOfAttr<A, Attrs...>::value>(data);
 }
 
-template <typename ...Attrs>
-struct VertexAttrs
+template <typename T>
+struct ArrayMemoryManager
 {
-	using elemType = VertexAttr<Attrs...>;
-	constexpr VertexAttrs(const ::std::initializer_list<elemType> &l):
+	using elemType = T;
+	constexpr ArrayMemoryManager(const ::std::initializer_list<elemType> &l):
 		num(l.size()), dataptr(new elemType[l.size()])
-	{ ::memcpy(dataptr, l.begin(), sizeof(elemType) * (l.end() - l.begin())); }
-	constexpr VertexAttrs(::std::size_t size):
+	{ ::memcpy(dataptr, l.begin(), sizeof(elemType) * num); }
+	constexpr ArrayMemoryManager(::std::size_t size):
 		num(size), dataptr(new elemType[size])
 	{}
-	constexpr VertexAttrs(const VertexAttrs &other):
+	constexpr ArrayMemoryManager(const ArrayMemoryManager &other):
 		num(other.num), dataptr(new elemType[other.num])
 	{ ::memcpy(dataptr, other.dataptr, sizeof(elemType) * num); }
-	constexpr VertexAttrs(VertexAttrs &&other):
+	constexpr ArrayMemoryManager(ArrayMemoryManager &&other):
 		num(other.num), dataptr(other.dataptr)
 	{ other.dataptr = nullptr; }
-	VertexAttrs &operator = (const VertexAttrs &other) = delete;
-	~VertexAttrs()
+	ArrayMemoryManager &operator = (const ArrayMemoryManager &other) = delete;
+	~ArrayMemoryManager()
 	{ delete [] dataptr; }
 
 	constexpr ::std::size_t size() const noexcept
@@ -230,17 +219,42 @@ struct VertexAttrs
 	{ return dataptr; }
 	constexpr const elemType *data() const noexcept
 	{ return dataptr; }
-	constexpr static void use()
-	{ dummyExpand(dummyExpandAux<sizeof(VertexAttr<Attrs...>), Attrs>()...); }
-private:
+protected:
 	const ::std::size_t num;
 	elemType *dataptr;
+};
+
+template <typename ...Types>
+constexpr void dummyExpand(Types ...)
+{
+}
+template <typename A, typename E>
+	int dummyExpandAux()
+{
+	static constexpr auto Ty = A::type;
+	glVertexAttribPointer(A::type, A::size, 
+ 		VertexAttrSignature<typename A::elemType>::value, GL_FALSE, sizeof(E), 
+		 	(void*)&((E*)nullptr)->template get<Ty>());
+	return 0;
+}
+
+template <typename ...Attrs>
+struct VertexAttrs: public ArrayMemoryManager<VertexAttr<Attrs...>>
+{
+	using Super = ArrayMemoryManager<VertexAttr<Attrs...>>;
+	using elemType = typename Super::elemType;
+	// typename elemType::value_type
+	constexpr VertexAttrs(const ::std::initializer_list<typename elemType::value_type> &l):
+		Super(reinterpret_cast<const ::std::initializer_list<elemType>&>(l))
+	{}
+	constexpr static void use()
+	{ dummyExpand(dummyExpandAux<Attrs, elemType>()...); }
 };
 
 template <typename ...Attrs>
 	void use()
 {
-	dummyExpand(dummyExpandAux<sizeof(VertexAttr<Attrs...>), Attrs>()...);
+	dummyExpand(dummyExpandAux<Attrs, VertexAttr<Attrs...>>()...);
 }
 
 }
