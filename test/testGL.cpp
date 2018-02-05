@@ -70,9 +70,7 @@ void render()
 	// 	GL_FLOAT/*elemType*/, GL_FALSE, 7 * sizeof(float)/*vectorSize*/, nullptr);
 
 	::bee::gl::use<::bee::gl::color3, ::bee::gl::pos3>();
-	glEnableVertexAttribArray(0);
-		prim.draw();
-	glDisableVertexAttribArray(0);
+	prim.draw();
 
 	glfwSwapBuffers(window);
 	glfwPollEvents();
@@ -113,6 +111,7 @@ void init()
 	};
 	// prim = Primitive(vertices); 
 	prim = ::bee::gl::IBOPrimitive(vertices, indices);
+	auto prim2 = ::bee::gl::IBOPrimitive(vertices, indices);
 	vertices.use();
 	// TODO: Perform more shader Usage
 	::bee::gl::Shader shader{

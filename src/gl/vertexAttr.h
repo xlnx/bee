@@ -20,6 +20,15 @@ struct VertexAttrs;
 
 enum VertexAttrType { position = 0, color = 1 };
 
+constexpr unsigned vertexAttrTypeBegin = position;
+constexpr unsigned vertexAttrTypeEnd = color + 1;
+
+// template <VertexAttrType Type>
+// struct IsEnabled
+// { static bool value; };
+// template <VertexAttrType Type>
+// bool IsEnabled<T>::value = false;
+
 template <typename V>
 struct GlmVectorInfo;
 template <typename T, ::glm::precision P>
@@ -231,10 +240,10 @@ constexpr void dummyExpand(Types ...)
 template <typename A, typename E>
 	int dummyExpandAux()
 {
-	static constexpr auto Ty = A::type;
+	glEnableVertexAttribArray(A::type);
 	glVertexAttribPointer(A::type, A::size, 
  		VertexAttrSignature<typename A::elemType>::value, GL_FALSE, sizeof(E), 
-		 	(void*)&((E*)nullptr)->template get<Ty>());
+		 	(void*)&((E*)nullptr)->template get<A::type>());
 	return 0;
 }
 
@@ -248,12 +257,14 @@ struct VertexAttrs: public ArrayMemoryManager<VertexAttr<Attrs...>>
 		Super(reinterpret_cast<const ::std::initializer_list<elemType>&>(l))
 	{}
 	constexpr static void use()
-	{ dummyExpand(dummyExpandAux<Attrs, elemType>()...); }
+	{ for (int v = vertexAttrTypeBegin; v != vertexAttrTypeEnd; ++v) glDisableVertexAttribArray(v);
+		dummyExpand(dummyExpandAux<Attrs, elemType>()...); }
 };
 
 template <typename ...Attrs>
 	void use()
 {
+	for (int v = vertexAttrTypeBegin; v != vertexAttrTypeEnd; ++v) glDisableVertexAttribArray(v);
 	dummyExpand(dummyExpandAux<Attrs, VertexAttr<Attrs...>>()...);
 }
 
