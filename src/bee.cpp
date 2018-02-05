@@ -1,11 +1,14 @@
 #include "runtime.h"
 #include "gl.h"
 
+using namespace ::bee;
+using namespace ::bee::gl;
+
 int Main(int argc, char **argv)
 {
 	// -DBEE_RUNTIME_INTRUSIVE
 	// ::bee::Runtime::exec([](){
-	::bee::gl::Window window("Header");
+	Window window("Header");
 
 	
 	// bee::Runtime::shell("nothing");
