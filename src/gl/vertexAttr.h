@@ -4,6 +4,8 @@
 #include <cstdlib>
 #include <tuple>
 #include <initializer_list>
+#include <array>
+#include <vector>
 
 namespace bee
 {
@@ -18,10 +20,12 @@ template <typename ...Attrs>
 struct VertexAttrs;
 
 
-enum VertexAttrType { position = 0, color = 1 };
+enum VertexAttrType { 
+	position = 0, color = 1, normal = 2, tangent = 3, 
+	bitangent = 4, textureCoord = 5 };
 
 constexpr GLenum vertexAttrTypeBegin = position; 
-constexpr GLenum vertexAttrTypeEnd = color + 1; 
+constexpr GLenum vertexAttrTypeEnd = textureCoord + 1; 
 
 template <typename V>
 struct GlmVectorInfo;
@@ -62,10 +66,19 @@ private:
 	VertexAttrElem() = default;
 };
 
+using any = void;
 using pos3 = VertexAttrElem<position, ::glm::vec3>;
 using pos4 = VertexAttrElem<position, ::glm::vec4>;
 using color3 = VertexAttrElem<color, ::glm::vec3>;
 using color4 = VertexAttrElem<color, ::glm::vec4>;
+using norm3 = VertexAttrElem<normal, ::glm::vec3>;
+using norm4 = VertexAttrElem<normal, ::glm::vec4>;
+using tg3 = VertexAttrElem<tangent, ::glm::vec3>;
+using tg4 = VertexAttrElem<tangent, ::glm::vec4>;
+using bitg3 = VertexAttrElem<bitangent, ::glm::vec3>;
+using bitg4 = VertexAttrElem<bitangent, ::glm::vec4>;
+using tex3 = VertexAttrElem<textureCoord, ::glm::vec3>;
+using tex4 = VertexAttrElem<textureCoord, ::glm::vec4>;
 
 
 template <VertexAttrType T, VertexAttrType Y, VertexAttrType ...Types>
@@ -237,10 +250,12 @@ struct ArrayMemoryManager
 	{ return dataptr[index]; }
 	constexpr const elemType &operator [] (::std::size_t index) const noexcept
 	{ return dataptr[index]; }
-	constexpr elemType *data() noexcept
+	constexpr elemType *begin() const noexcept
 	{ return dataptr; }
-	constexpr const elemType *data() const noexcept
-	{ return dataptr; }
+	constexpr elemType *end() const noexcept
+	{ return dataptr + num; }
+
+	constexpr static ::std::size_t elemSize = sizeof(elemType);
 protected:
 	const ::std::size_t num;
 	elemType *dataptr;
@@ -261,19 +276,57 @@ template <typename A, typename E>
 	return 0;
 }
 
+struct VertexAttrTypeDyn
+{
+	VertexAttrType type;
+	::std::size_t size;
+	GLenum elemType;
+	char *offset;
+};
+
+template <typename ...>
+struct VertexAttrs;
+
 struct VertexAttrEnabledInfo
 {
+	friend class VertexAttrs<any>;
+	VertexAttrEnabledInfo():
+		v{false}, dynamic(true)
+	{}
 	constexpr VertexAttrEnabledInfo(const ::std::initializer_list<VertexAttrType> &l):
-		l(l)
+		l(l), v{false}, dynamic(false)
 	{}
 	void invoke() const
 	{
-		for (auto i = vertexAttrTypeBegin; i != vertexAttrTypeEnd; ++i)
-			glDisableVertexAttribArray(i);
-		for (auto type: l) glEnableVertexAttribArray(type);
+		if (!dynamic)
+		{
+			for (auto i = vertexAttrTypeBegin; i != vertexAttrTypeEnd; ++i)
+				glDisableVertexAttribArray(i);
+			for (auto type: l) glEnableVertexAttribArray(type);
+		}
+		else
+		{
+			for (auto i = vertexAttrTypeBegin; i != vertexAttrTypeEnd; ++i)
+			{
+				if (!v[i])
+				{
+					glDisableVertexAttribArray(i);
+				}
+				else
+				{
+					glEnableVertexAttribArray(i);
+				}
+			}
+		}
+	}
+	void push(VertexAttrType type)
+	{
+		v[type] = true;
 	}
 private:
-	const ::std::initializer_list<VertexAttrType> l;
+	::std::initializer_list<VertexAttrType> l;
+	::std::array<bool, vertexAttrTypeEnd> v;
+	bool dynamic;
 };
 
 template <typename ...Attrs>
@@ -285,9 +338,100 @@ struct VertexAttrs: public ArrayMemoryManager<VertexAttr<Attrs...>>
 	constexpr VertexAttrs(const ::std::initializer_list<typename elemType::value_type> &l):
 		Super(reinterpret_cast<const ::std::initializer_list<elemType>&>(l))
 	{}
+	constexpr VertexAttrs(::std::size_t size):
+		Super(size)
+	{}
 	constexpr static void setVertexAttribute()
 	{ dummyExpand(dummyExpandAux<Attrs, elemType>()...); }
 	constexpr static VertexAttrEnabledInfo info = {Attrs::type...};
+};
+
+template <>
+struct VertexAttrs<any>
+{
+	using Super = void;
+	// using elemType = VertexAttr<any>;
+
+	VertexAttrs(::std::size_t size):
+		elemSize(0), dataptr(nullptr), num(size)
+	{}
+	VertexAttrs(const VertexAttrs &other):
+		elemSize(other.elemSize),
+		dataptr(new char [other.num * other.elemSize]),
+		num(other.num),
+		dyninfo(other.dyninfo)
+	{
+		::memcpy(dataptr, other.dataptr, num * elemSize);
+	}
+	VertexAttrs(VertexAttrs &&other):
+		elemSize(other.elemSize),
+		dataptr(other.dataptr),
+		num(other.num),
+		dyninfo(other.dyninfo)
+	{
+		other.dataptr = nullptr;
+	}
+	VertexAttrs &operator = (const VertexAttrs &other) = delete;
+	~VertexAttrs()
+	{
+		delete [] dataptr;
+	}
+
+	template <typename A>
+	bool invoke(bool enable = true)
+	{
+		if (enable)
+		{
+			dyninfo[A::type] = {
+				A::type, A::size, 
+				VertexAttrSignature<typename A::elemType>::value,
+				(char*)nullptr + elemSize
+			};
+			info.push(A::type);
+			elemSize += sizeof(typename VertexAttrStorage<A>::type);
+		}
+		return enable;
+	}
+	template <typename A>
+	typename VertexAttrStorage<A>::type &get(::std::size_t index) noexcept
+	{
+		return *reinterpret_cast<typename VertexAttrStorage<A>::type*>(
+			dataptr + index * elemSize + (dyninfo[A::type].offset - (char*)nullptr) );
+	}
+	void alloc()
+	{
+		delete [] dataptr;
+		dataptr = new char[num * elemSize];
+	}
+	::std::size_t size() const
+	{ return num; }
+	// elemType &operator [] (::std::size_t index) noexcept;
+	// { return *reinterpret_cast<elemType*>(dataptr + index * elemSize); }
+	// const elemType &operator [] (::std::size_t index) const noexcept;
+	// { return *reinterpret_cast<const elemType*>(dataptr + index * elemSize); }
+	char *begin() const noexcept
+	{ return dataptr; }
+	// const elemType *begin() const noexcept
+	// { return dataptr; }
+	// elemType *end() noexcept
+	// { return dataptr + num * elemSize; }
+	// const elemType *end() const noexcept
+	// { return dataptr + num * elemSize; }
+	void setVertexAttribute() const
+	{
+		for (auto &a: dyninfo)
+		{
+			glEnableVertexAttribArray(a.type);
+			glVertexAttribPointer(a.type, a.size, a.elemType, GL_FALSE, elemSize, (void*)a.offset);
+			glDisableVertexAttribArray(a.type);
+		}
+	}
+	VertexAttrEnabledInfo info;
+	::std::size_t elemSize;
+private:
+	char *dataptr;
+	::std::size_t num;
+	::std::array<VertexAttrTypeDyn, vertexAttrTypeEnd> dyninfo;
 };
 
 // template <typename ...Attrs>

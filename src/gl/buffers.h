@@ -9,7 +9,7 @@ namespace bee
 namespace gl
 {
 
-using Indices = ArrayMemoryManager<::glm::uvec3>;
+using Faces = ArrayMemoryManager<::glm::uvec3>;
 
 template <GLenum target>
 class BufferObject;
@@ -127,9 +127,9 @@ public:
 	{}
 	operator GLuint () const noexcept
 	{ return handle; }
-	void bind() const noexcept
+	void bind() noexcept
 	{ glBindBuffer(target, handle); }
-	void data(GLsizeiptr size, const void *ptr) const noexcept
+	void data(GLsizeiptr size, const void *ptr) noexcept
 	{ glBufferData(target, size, ptr, GL_STATIC_DRAW); }
 private:
 	GLuint handle;
@@ -139,13 +139,13 @@ class VAO
 {
 public:
 	template <typename ...Attrs>
-	VAO(const VertexAttrs<Attrs...> &vertices, const Indices &indices):
-		handle(VertexArrayGenerator::gen()), indicesCount(indices.size() * 3), info(vertices.info)
+	VAO(const VertexAttrs<Attrs...> &vertices, const Faces &faces):
+		handle(VertexArrayGenerator::gen()), indicesCount(faces.size() * 3), info(vertices.info)
 	{
 		VBO vbo; EBO ebo;
 		glBindVertexArray(handle);
-			vbo.bind(); vbo.data(vertices.size() * sizeof(vertices[0]), vertices.data());
-			ebo.bind(); ebo.data(indices.size() * sizeof(indices[0]), indices.data());
+			vbo.bind(); vbo.data(vertices.size() * vertices.elemSize, vertices.begin());
+			ebo.bind(); ebo.data(faces.size() * faces.elemSize, faces.begin());
 			vertices.setVertexAttribute();
 		glBindVertexArray(0);
 	}

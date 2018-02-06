@@ -23,7 +23,7 @@ const ::bee::gl::VertexAttrs<::bee::gl::color3, ::bee::gl::pos3> vertices = {
 	{ {1, 2, 3}, {1, -1, 0} },
 	{ {1, 2, 3}, {0, 1, 0} },
 };
-const ::bee::gl::Indices indices = {
+const ::bee::gl::Faces faces = {
 	{ 0, 3, 1 },
 	{ 1, 3, 2 },
 	{ 0, 3, 2 },
@@ -76,7 +76,7 @@ void render()
 	};
 	world = rotatey; // * rotatex; // * scale;
 
-	static ::bee::gl::Mesh mesh(vertices, indices);
+	static ::bee::gl::StaticMesh mesh(vertices, faces);
 
 	mesh.render();
 
