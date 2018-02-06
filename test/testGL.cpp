@@ -17,12 +17,22 @@ public:
 	}
 };
 
+const ::bee::gl::VertexAttrs<::bee::gl::color3, ::bee::gl::pos3> vertices = {
+	{ {1, 2, 3}, {-1, -1, 0} },
+	{ {1, 2, 3}, {0, -1, 1} },
+	{ {1, 2, 3}, {1, -1, 0} },
+	{ {1, 2, 3}, {0, 1, 0} },
+};
+const ::bee::gl::Indices indices = {
+	{ 0, 3, 1 },
+	{ 1, 3, 2 },
+	{ 0, 3, 2 },
+	{ 0, 1, 2 }
+};
+
 MyWindow window("testGL", false, 512, 256);
 
 ::bee::gl::UniformRef<::glm::mat4> world;
-
-::bee::gl::IBOPrimitive prim;
-// Primitive prim;
 
 void render()
 {
@@ -66,11 +76,9 @@ void render()
 	};
 	world = rotatey; // * rotatex; // * scale;
 
-	// glVertexAttribPointer(0/*floatType*/, 3/*3 elements*/,  
-	// 	GL_FLOAT/*elemType*/, GL_FALSE, 7 * sizeof(float)/*vectorSize*/, nullptr);
+	static ::bee::gl::Mesh mesh(vertices, indices);
 
-	::bee::gl::use<::bee::gl::color3, ::bee::gl::pos3>();
-	prim.draw();
+	mesh.render();
 
 	glfwSwapBuffers(window);
 	glfwPollEvents();
@@ -78,41 +86,6 @@ void render()
 
 void init()
 {
-	const ::bee::gl::VertexAttrs<::bee::gl::color3, ::bee::gl::pos3> vertices = {
-		{ {1, 2, 3}, {-1, -1, 0} },
-		{ {1, 2, 3}, {0, -1, 1} },
-		{ {1, 2, 3}, {1, -1, 0} },
-		{ {1, 2, 3}, {0, 1, 0} },
-	};
-	// const ::bee::gl::VertexAttrs<::bee::gl::color3, ::bee::gl::pos3> vertices = {
-	// 	{ {}, {-1, -1, 0} },
-	// 	{ {}, {0, 1, 0} },
-	// 	{ {}, {0, -1, 1} },
-		
-	// 	{ {}, {0, -1, 1} },
-	// 	{ {}, {0, 1, 0} },
-	// 	{ {}, {1, -1, 0} },
-
-	// 	{ {}, {-1, -1, 0} },
-	// 	{ {}, {0, 1, 0} },
-	// 	{ {}, {1, -1, 0} },
-
-	// 	{ {}, {-1, -1, 0} },
-	// 	{ {}, {0, -1, 1} },
-	// 	{ {}, {1, -1, 0} },
-	// };
-	// vertices[0].get<::bee::gl::pos3>() = {-1, -1, -1};
-	BEE_LOG(vertices[0].get<::bee::gl::position>()[1]);
-	::bee::gl::Indices indices = {
-		{ 0, 3, 1 },
-		{ 1, 3, 2 },
-		{ 0, 3, 2 },
-		{ 0, 1, 2 }
-	};
-	// prim = Primitive(vertices); 
-	prim = ::bee::gl::IBOPrimitive(vertices, indices);
-	auto prim2 = ::bee::gl::IBOPrimitive(vertices, indices);
-	vertices.use();
 	// TODO: Perform more shader Usage
 	::bee::gl::Shader shader{
 		::bee::gl::VertexShader("test.vert"),
@@ -125,14 +98,10 @@ void init()
 
 int Main(int argc, char **argv)
 {
-	// -DBEE_RUNTIME_INTRUSIVE
-	// ::bee::Runtime::exec([]()
-	// {
 	init();
 	while (!glfwWindowShouldClose(window))
 	{
 		bee::gl::exec(render);
 	}
-	// });
 	return 0;
 }

@@ -20,14 +20,8 @@ struct VertexAttrs;
 
 enum VertexAttrType { position = 0, color = 1 };
 
-constexpr unsigned vertexAttrTypeBegin = position;
-constexpr unsigned vertexAttrTypeEnd = color + 1;
-
-// template <VertexAttrType Type>
-// struct IsEnabled
-// { static bool value; };
-// template <VertexAttrType Type>
-// bool IsEnabled<T>::value = false;
+constexpr GLenum vertexAttrTypeBegin = position; 
+constexpr GLenum vertexAttrTypeEnd = color + 1; 
 
 template <typename V>
 struct GlmVectorInfo;
@@ -74,6 +68,24 @@ using color3 = VertexAttrElem<color, ::glm::vec3>;
 using color4 = VertexAttrElem<color, ::glm::vec4>;
 
 
+template <VertexAttrType T, VertexAttrType Y, VertexAttrType ...Types>
+struct TypeContains
+{ static constexpr bool value = TypeContains<T, Types...>::value; };
+template <VertexAttrType T, VertexAttrType ...Types>
+struct TypeContains<T, T, Types...>
+{ static constexpr bool value = true; };
+template <VertexAttrType T, VertexAttrType Y>
+struct TypeContains<T, Y>
+{ static constexpr bool value = false; };
+template <VertexAttrType T>
+struct TypeContains<T, T>
+{ static constexpr bool value = true; };
+template <VertexAttrType T, VertexAttrType ...Types>
+struct AreDifferent
+{ static constexpr bool value = AreDifferent<Types...>::value && !TypeContains<T, Types...>::value; };
+template <VertexAttrType T>
+struct AreDifferent<T>
+{ static constexpr bool value = true; };
 
 template <::std::size_t N, typename T, ::glm::precision P>
 struct VertexAttrStorageAux;
@@ -153,6 +165,7 @@ struct VertexAttrStorageByType<Ty, A>
 template <typename ...Attrs>
 struct VertexAttr
 {
+	static_assert(AreDifferent<Attrs::type...>::value, "All the components of VertexAttr object must have different types.");
 	template <VertexAttrType Ty>
 	constexpr typename VertexAttrStorageByType<Ty, Attrs...>::type &get() noexcept;
 	template <VertexAttrType Ty>
@@ -244,8 +257,24 @@ template <typename A, typename E>
 	glVertexAttribPointer(A::type, A::size, 
  		VertexAttrSignature<typename A::elemType>::value, GL_FALSE, sizeof(E), 
 		 	(void*)&((E*)nullptr)->template get<A::type>());
+	glDisableVertexAttribArray(A::type);
 	return 0;
 }
+
+struct VertexAttrEnabledInfo
+{
+	constexpr VertexAttrEnabledInfo(const ::std::initializer_list<VertexAttrType> &l):
+		l(l)
+	{}
+	void invoke() const
+	{
+		for (auto i = vertexAttrTypeBegin; i != vertexAttrTypeEnd; ++i)
+			glDisableVertexAttribArray(i);
+		for (auto type: l) glEnableVertexAttribArray(type);
+	}
+private:
+	const ::std::initializer_list<VertexAttrType> l;
+};
 
 template <typename ...Attrs>
 struct VertexAttrs: public ArrayMemoryManager<VertexAttr<Attrs...>>
@@ -256,17 +285,16 @@ struct VertexAttrs: public ArrayMemoryManager<VertexAttr<Attrs...>>
 	constexpr VertexAttrs(const ::std::initializer_list<typename elemType::value_type> &l):
 		Super(reinterpret_cast<const ::std::initializer_list<elemType>&>(l))
 	{}
-	constexpr static void use()
-	{ for (int v = vertexAttrTypeBegin; v != vertexAttrTypeEnd; ++v) glDisableVertexAttribArray(v);
-		dummyExpand(dummyExpandAux<Attrs, elemType>()...); }
+	constexpr static void setVertexAttribute()
+	{ dummyExpand(dummyExpandAux<Attrs, elemType>()...); }
+	constexpr static VertexAttrEnabledInfo info = {Attrs::type...};
 };
 
-template <typename ...Attrs>
-	void use()
-{
-	for (int v = vertexAttrTypeBegin; v != vertexAttrTypeEnd; ++v) glDisableVertexAttribArray(v);
-	dummyExpand(dummyExpandAux<Attrs, VertexAttr<Attrs...>>()...);
-}
+// template <typename ...Attrs>
+// 	void use()
+// {
+// 	dummyExpand(dummyExpandAux<Attrs, VertexAttr<Attrs...>>()...);
+// }
 
 }
 

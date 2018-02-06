@@ -4,4 +4,5 @@
 #include "window.h"
 #include "shader.h"
 #include "vertexAttr.h"
-#include "primitive.h"
+#include "buffers.h"
+#include "mesh.h"
