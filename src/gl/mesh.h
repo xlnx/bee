@@ -78,11 +78,11 @@ public:
 	{
 		VertexAttrs<any> vertices(mesh->mNumVertices);
 		bool pos = vertices.template invoke<pos3>(mesh->HasPositions());
-		// bool color = vertices.template invoke<color4>(mesh->HasVertexColors());
+		bool color = vertices.template invoke<color4>(mesh->HasVertexColors(0));
 		bool norm = vertices.template invoke<norm3>(mesh->HasNormals());
 		bool tg = vertices.template invoke<tg3>(mesh->HasTangentsAndBitangents());
 		bool bitg = vertices.template invoke<bitg3>(mesh->HasTangentsAndBitangents());
-		// bool tex = vertices.template invoke<tex3>(mesh->HasTextureCoords());
+		bool tex = vertices.template invoke<tex3>(mesh->HasTextureCoords(0));
 		vertices.alloc();
 		if (pos)
 		{
@@ -93,15 +93,15 @@ public:
 				vec = *reinterpret_cast<typename ::std::remove_reference<decltype(vec)>::type*>(fp++);
 			}
 		}
-		// if (color)
-		// {
-		// 	auto fp = mesh->mColors;
-		// 	for (auto i = 0u; i != mesh->mNumVertices; ++i)
-		// 	{
-		// 		auto &vec = vertices.template get<color4>(i);
-		// 		vec = *reinterpret_cast<decltype(vec)*>(fp++);
-		// 	}
-		// }
+		if (color)
+		{
+			auto fp = mesh->mColors[0];
+			for (auto i = 0u; i != mesh->mNumVertices; ++i)
+			{
+				auto &vec = vertices.template get<color4>(i);
+				vec = *reinterpret_cast<typename ::std::remove_reference<decltype(vec)>::type*>(fp++);
+			}
+		}
 		if (norm)
 		{
 			auto fp = mesh->mNormals;
@@ -129,15 +129,15 @@ public:
 				vec = *reinterpret_cast<typename ::std::remove_reference<decltype(vec)>::type*>(fp++);
 			}
 		}
-		// if (tex)
-		// {
-		// 	auto fp = mesh->mTextureCoords;
-		// 	for (auto i = 0u; i != mesh->mNumVertices; ++i)
-		// 	{
-		// 		auto &vec = vertices.template get<tex3>(i);
-		// 		vec = *reinterpret_cast<decltype(vec)*>(fp++);
-		// 	}
-		// }
+		if (tex)
+		{
+			auto fp = mesh->mTextureCoords[0];
+			for (auto i = 0u; i != mesh->mNumVertices; ++i)
+			{
+				auto &vec = vertices.template get<tex3>(i);
+				vec = *reinterpret_cast<typename ::std::remove_reference<decltype(vec)>::type*>(fp++);
+			}
+		}
 		Faces faces(mesh->mNumFaces);
 		auto fp = mesh->mFaces;
 		for (auto &vec: faces)
