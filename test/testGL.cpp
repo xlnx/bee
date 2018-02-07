@@ -76,7 +76,7 @@ void render()
 	};
 	world = rotatey; // * rotatex; // * scale;
 
-	static ::bee::gl::StaticMesh mesh(vertices, faces);
+	static ::bee::gl::Mesh mesh(vertices, faces);
 
 	mesh.render();
 

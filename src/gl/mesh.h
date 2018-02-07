@@ -37,6 +37,7 @@ public:
 	}
 	MeshBase &operator = (MeshBase &&other)
 	{
+		delete vao;
 		vao = other.vao;
 		other.vao = nullptr;
 		return *this;
@@ -61,30 +62,25 @@ private:
 	VAO *vao;
 };
 
-class StaticMesh: public MeshBase
-{
-public:
-	template <typename ...Attrs>
-	StaticMesh(const VertexAttrs<Attrs...> &vertices, const Faces &faces)
-	{
-		MeshBase::initVAO(vertices, faces);
-	}
-};
-
 class Mesh: private MeshBase
 {
 public:
+	template <typename ...Attrs>
+	Mesh(const VertexAttrs<Attrs...> &vertices, const Faces &faces)
+	{
+		MeshBase::initVAO(vertices, faces);
+	}
 	Mesh(aiMesh *mesh)
 	{
 		VertexAttrs<any> vertices(mesh->mNumVertices);
-		bool pos = vertices.template invoke<pos3>(mesh->HasPositions());
-		bool color = vertices.template invoke<color4>(mesh->HasVertexColors(0));
-		bool norm = vertices.template invoke<norm3>(mesh->HasNormals());
-		bool tg = vertices.template invoke<tg3>(mesh->HasTangentsAndBitangents());
-		bool bitg = vertices.template invoke<bitg3>(mesh->HasTangentsAndBitangents());
-		bool tex = vertices.template invoke<tex3>(mesh->HasTextureCoords(0));
+		vertices.template invoke<pos3>(mesh->HasPositions());
+		vertices.template invoke<color4>(mesh->HasVertexColors(0));
+		vertices.template invoke<norm3>(mesh->HasNormals());
+		vertices.template invoke<tg3>(mesh->HasTangentsAndBitangents());
+		vertices.template invoke<bitg3>(mesh->HasTangentsAndBitangents());
+		vertices.template invoke<tex3>(mesh->HasTextureCoords(0));
 		vertices.alloc();
-		if (pos)
+		if (mesh->HasPositions())
 		{
 			auto fp = mesh->mVertices;
 			for (auto i = 0u; i != mesh->mNumVertices; ++i)
@@ -93,7 +89,7 @@ public:
 				vec = *reinterpret_cast<typename ::std::remove_reference<decltype(vec)>::type*>(fp++);
 			}
 		}
-		if (color)
+		if (mesh->HasVertexColors(0))
 		{
 			auto fp = mesh->mColors[0];
 			for (auto i = 0u; i != mesh->mNumVertices; ++i)
@@ -102,7 +98,7 @@ public:
 				vec = *reinterpret_cast<typename ::std::remove_reference<decltype(vec)>::type*>(fp++);
 			}
 		}
-		if (norm)
+		if (mesh->HasNormals())
 		{
 			auto fp = mesh->mNormals;
 			for (auto i = 0u; i != mesh->mNumVertices; ++i)
@@ -111,7 +107,7 @@ public:
 				vec = *reinterpret_cast<typename ::std::remove_reference<decltype(vec)>::type*>(fp++);
 			}
 		}
-		if (tg)
+		if (mesh->HasTangentsAndBitangents())
 		{
 			auto fp = mesh->mTangents;
 			for (auto i = 0u; i != mesh->mNumVertices; ++i)
@@ -120,7 +116,7 @@ public:
 				vec = *reinterpret_cast<typename ::std::remove_reference<decltype(vec)>::type*>(fp++);
 			}
 		}
-		if (bitg)
+		if (mesh->HasTangentsAndBitangents())
 		{
 			auto fp = mesh->mBitangents;
 			for (auto i = 0u; i != mesh->mNumVertices; ++i)
@@ -129,7 +125,7 @@ public:
 				vec = *reinterpret_cast<typename ::std::remove_reference<decltype(vec)>::type*>(fp++);
 			}
 		}
-		if (tex)
+		if (mesh->HasTextureCoords(0))
 		{
 			auto fp = mesh->mTextureCoords[0];
 			for (auto i = 0u; i != mesh->mNumVertices; ++i)
@@ -138,13 +134,20 @@ public:
 				vec = *reinterpret_cast<typename ::std::remove_reference<decltype(vec)>::type*>(fp++);
 			}
 		}
-		Faces faces(mesh->mNumFaces);
-		auto fp = mesh->mFaces;
-		for (auto &vec: faces)
+		if (mesh->HasFaces())
 		{
-			vec = *reinterpret_cast<typename ::std::remove_reference<decltype(vec)>::type*>(fp++->mIndices);
+			Faces faces(mesh->mNumFaces);
+			auto fp = mesh->mFaces;
+			for (auto &vec: faces)
+			{
+				vec = *reinterpret_cast<typename ::std::remove_reference<decltype(vec)>::type*>(fp++->mIndices);
+			}
+			initVAO(vertices, faces);
 		}
-		initVAO(vertices, faces);
+		else
+		{
+			BEE_RAISE(GLFatal, "The mesh object has no faces info.");
+		}
 	}
 	void render() const override
 	{

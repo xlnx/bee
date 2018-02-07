@@ -378,19 +378,28 @@ struct VertexAttrs<any>
 	}
 
 	template <typename A>
-	bool invoke(bool enable = true)
+	void invoke(bool enable = true)
 	{
 		if (enable)
 		{
-			dyninfo[A::type] = {
-				A::type, A::size, 
-				VertexAttrSignature<typename A::elemType>::value,
-				(char*)nullptr + elemSize
-			};
-			info.push(A::type);
-			elemSize += sizeof(typename VertexAttrStorage<A>::type);
+			if (!info.v[A::type])
+			{
+				dyninfo[A::type] = {
+					A::type, A::size, 
+					VertexAttrSignature<typename A::elemType>::value,
+					(char*)nullptr + elemSize
+				};
+				info.push(A::type);
+				elemSize += sizeof(typename VertexAttrStorage<A>::type);
+			}
 		}
-		return enable;
+		else
+		{
+			if (info.v[A::type])
+			{
+				BEE_RAISE(GLFatal, "Cannot cancel previous vertex info selector.");
+			}
+		}
 	}
 	template <typename A>
 	typename VertexAttrStorage<A>::type &get(::std::size_t index) noexcept
