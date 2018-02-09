@@ -428,11 +428,15 @@ struct VertexAttrs<any>
 	// { return dataptr + num * elemSize; }
 	void setVertexAttribute() const
 	{
-		for (auto &a: dyninfo)
+		for (auto i = vertexAttrTypeBegin; i != vertexAttrTypeEnd; ++i)
 		{
-			glEnableVertexAttribArray(a.type);
-			glVertexAttribPointer(a.type, a.size, a.elemType, GL_FALSE, elemSize, (void*)a.offset);
-			glDisableVertexAttribArray(a.type);
+			auto &a = dyninfo[i];
+			if (info.v[i])
+			{
+				glEnableVertexAttribArray(a.type);
+				glVertexAttribPointer(a.type, a.size, a.elemType, GL_FALSE, elemSize, (void*)a.offset);
+				glDisableVertexAttribArray(a.type);
+			}
 		}
 	}
 	VertexAttrEnabledInfo info;

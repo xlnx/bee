@@ -6,3 +6,4 @@
 #include "vertexAttr.h"
 #include "buffers.h"
 #include "mesh.h"
+#include "model.h"

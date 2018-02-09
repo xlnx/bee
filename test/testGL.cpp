@@ -1,22 +1,6 @@
 #include "runtime.h"
 #include "gl.h"
 
-struct MyWindow: ::bee::gl::Window
-{
-public:
-	template <typename ...Types>
-		MyWindow(Types &&...args):
-			::bee::gl::Window(std::forward<Types>(args)...)
-	{
-		// Specify OpenGL Version
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-		// glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-		// glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-		glClearColor(0.f, 0.f, 0.f, 0.f);
-	}
-};
-
 const ::bee::gl::VertexAttrs<::bee::gl::color3, ::bee::gl::pos3> vertices = {
 	{ {1, 2, 3}, {-1, -1, 0} },
 	{ {1, 2, 3}, {0, -1, 1} },
@@ -30,7 +14,7 @@ const ::bee::gl::Faces faces = {
 	{ 0, 1, 2 }
 };
 
-MyWindow window("testGL", false, 512, 256);
+::bee::gl::Window window("testGL", false, 512, 256);
 
 ::bee::gl::UniformRef<::glm::mat4> world;
 
@@ -99,9 +83,10 @@ void init()
 int Main(int argc, char **argv)
 {
 	init();
-	while (!glfwWindowShouldClose(window))
+	while (!window.closed())
 	{
-		bee::gl::exec(render);
+		render();
+		::bee::gl::checkError();
 	}
 	return 0;
 }

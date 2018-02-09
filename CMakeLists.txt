@@ -20,6 +20,8 @@ if (WIN32)
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3 -mwindows")
 endif ()
 
+link_libraries(assimp)
+
 file(GLOB BEE_DIR "${CMAKE_SOURCE_DIR}/src/*")
 file(GLOB BEE_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/include")
 foreach (f ${BEE_DIR})

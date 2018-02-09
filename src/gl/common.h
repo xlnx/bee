@@ -20,4 +20,17 @@ struct GLFatal: Fatal
 
 }
 
+namespace gl
+{
+
+inline void checkError()
+{
+	if (auto err = glGetError())
+	{
+		BEE_RAISE(GLFatal, err);
+	}
+}
+
+}
+
 }

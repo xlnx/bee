@@ -17,6 +17,19 @@ public:
 			unsigned height = 768);
 	Window(const Window &other) = delete;
 	virtual ~Window();
+
+	bool closed() const
+	{
+		return glfwWindowShouldClose(window);
+	}
+	void pollEvents() const
+	{
+		glfwPollEvents();
+	}
+	void swapBuffers() const
+	{
+		glfwSwapBuffers(window);
+	}
 	operator GLFWwindow *() const
 	{
 		return window;
@@ -24,8 +37,6 @@ public:
 private:
 	static GLFWwindow *window;
 };
-
-void exec(std::function<void()> fn);
 
 }
 
