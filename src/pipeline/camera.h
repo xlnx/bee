@@ -8,17 +8,45 @@ namespace bee
 
 class Camera
 {
-public:
-	Camera() = default;
+protected:
+	Camera(::glm::vec3 target = {0, 1, 0},
+			::glm::vec3 position = {0, 0, 0},
+			::glm::vec3 up = {0, 0, 1})
+	{
+		setTarget(target); setPosition(position); setUp(up);
+	}
 
 	const ::glm::mat4 &getTrans()
 	{
 		if (modified())
 		{
-			trans = getRotateTrans() * getTranslationTrans();
+			if (rotateModified)
+			{
+				rotateModified = false;
+				auto U = ::glm::normalize(::glm::cross(N, Up));
+				auto V = ::glm::cross(U, N);
+				rotateTrans = { 
+					U.x, V.x, -N.x, 0.f, 
+					U.y, V.y, -N.y, 0.f,
+					U.z, V.z, -N.z, 0.f,
+					0.f, 0.f, 0.f, 1.f
+				};
+			}
+			if (translateModified)
+			{
+				translateModified = false;
+				translateTrans = {
+					1.f, 0.f, 0.f, 0.f,
+					0.f, 1.f, 0.f, 0.f,
+					0.f, 0.f, 1.f, 0.f,
+					-P.x, -P.y, -P.z, 1.f
+				};
+			}
+			trans = rotateTrans * translateTrans;
 		}
 		return trans;
 	}
+public:
 	template <typename ...Types, typename = typename
 		::std::enable_if<::std::is_constructible<::glm::vec3, Types...>::value>::type>
 	void setTarget(Types &&...args)
@@ -30,7 +58,7 @@ public:
 		::std::enable_if<::std::is_constructible<::glm::vec3, Types...>::value>::type>
 	void setUp(Types &&...args)
 	{
-		V = ::glm::normalize(::glm::vec3(::std::forward<Types>(args)...));
+		Up = ::glm::normalize(::glm::vec3(::std::forward<Types>(args)...));
 		rotateModified = true;
 	}
 	template <typename ...Types, typename = typename
@@ -40,47 +68,20 @@ public:
 		P = ::glm::vec3(::std::forward<Types>(args)...);
 		translateModified = true;
 	}
+	const ::glm::vec3 &getPosition() const
+	{
+		return P;
+	}
 protected:
-	const ::glm::mat4 &getRotateTrans()
-	{
-		if (rotateModified)
-		{
-			rotateModified = false;
-			auto U = ::glm::cross(N, V);
-			rotateTrans = { 
-				U.x, U.y, U.z, 0.f, 
-				V.x, V.y, V.z, 0.f, 
-				N.x, N.y, N.z, 0.f, 
-				0.f, 0.f, 0.f, 1.f
-			};
-		}
-		return rotateTrans;
-	}
-	const ::glm::mat4 &getTranslationTrans()
-	{
-		if (translateModified)
-		{
-			translateModified = false;
-			translateTrans = {
-				1.f, 0.f, 0.f, P.x,
-				0.f, 1.f, 0.f, P.y,
-				0.f, 0.f, 1.f, P.z,
-				0.f, 0.f, 0.f, 1.f
-			};
-		}
-		return translateTrans;
-	}
 	bool modified() const
 	{
 		return rotateModified || translateModified;
 	}
 protected:
 	bool rotateModified = true, translateModified = true;
-	::glm::vec3 N = {0, 0, -1}, V = {0, 1, 0}, P = {0, 0, 1};
+	::glm::vec3 N, Up, P;
 private:
 	::glm::mat4 rotateTrans, translateTrans, trans;
 }; 
-
-extern Camera camera;
 
 }

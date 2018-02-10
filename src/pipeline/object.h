@@ -1,7 +1,8 @@
 #pragma once
 
-#include "gl.h"
-#include "camera.h"
+#include "shader.h"
+#include "model.h"
+#include "viewPort.h"
 #include "basicControl.h"
 
 namespace bee
@@ -13,12 +14,14 @@ public:
 	Object() = default;
 	Object(const gl::Model &m, gl::Shader &s): 
 		model(&m), shader(&s) 
-	{}
+	{
+	}
 
-	virtual void render()
+	virtual void render(ViewPort &viewPort)
 	{
 		shader->use();
-		shader->uniform<::glm::mat4>("gWVP") = camera.getTrans() * getTrans();
+		shader->uniform<::glm::mat4>("gWVP") = 
+			::glm::transpose(viewPort.getTrans() * getTrans());
 		model->render();
 	}
 protected:
