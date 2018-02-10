@@ -1,6 +1,7 @@
 #pragma once 
 
 #include "common.h"
+#include <map>
 
 namespace bee
 {
@@ -120,22 +121,16 @@ public:
 	template <typename T>
 		UniformRef<T> uniform(const std::string &name)
 	{
-		auto handle = glGetUniformLocation(shader, name.c_str());
-		if (!~handle)
+		if (!bufferedUniforms.count(name))
 		{
-			BEE_RAISE(GLFatal, "Invalid uniform variable name: " + name);
+			auto handle = glGetUniformLocation(shader, name.c_str());
+			if (!~handle)
+			{
+				BEE_RAISE(GLFatal, "Invalid uniform variable name: " + name);
+			}
+			bufferedUniforms[name] = handle;
 		}
-		return UniformRef<T>(handle);
-	}
-	template <typename T>
-		UniformRef<T> uniform(const char *name)
-	{
-		auto handle = glGetUniformLocation(shader, name);
-		if (!~handle)
-		{
-			BEE_RAISE(GLFatal, std::string("Invalid uniform variable name: ") + name);
-		}
-		return UniformRef<T>(handle);
+		return bufferedUniforms[name];
 	}
 private:
 	template <typename T, typename ...Types, typename = typename
@@ -175,6 +170,7 @@ private:
 	}
 private:
 	GLuint shader;
+	::std::map<::std::string, GLuint> bufferedUniforms;
 };
 
 template <typename T>

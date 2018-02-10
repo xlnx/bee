@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <utility>
 
 namespace bee
 {
@@ -8,9 +9,7 @@ namespace bee
 class Camera
 {
 public:
-	Camera():
-		N{0, 0, -1}, V{0, 1, 0}, P{0, 0, 1}
-	{}
+	Camera() = default;
 
 	const ::glm::mat4 &getTrans()
 	{
@@ -20,6 +19,28 @@ public:
 		}
 		return trans;
 	}
+	template <typename ...Types, typename = typename
+		::std::enable_if<::std::is_constructible<::glm::vec3, Types...>::value>::type>
+	void setTarget(Types &&...args)
+	{
+		N = ::glm::normalize(::glm::vec3(::std::forward<Types>(args)...));
+		rotateModified = true;
+	}
+	template <typename ...Types, typename = typename
+		::std::enable_if<::std::is_constructible<::glm::vec3, Types...>::value>::type>
+	void setUp(Types &&...args)
+	{
+		V = ::glm::normalize(::glm::vec3(::std::forward<Types>(args)...));
+		rotateModified = true;
+	}
+	template <typename ...Types, typename = typename
+		::std::enable_if<::std::is_constructible<::glm::vec3, Types...>::value>::type>
+	void setPosition(Types &&...args)
+	{
+		P = ::glm::vec3(::std::forward<Types>(args)...);
+		translateModified = true;
+	}
+protected:
 	const ::glm::mat4 &getRotateTrans()
 	{
 		if (rotateModified)
@@ -27,9 +48,9 @@ public:
 			rotateModified = false;
 			auto U = ::glm::cross(N, V);
 			rotateTrans = { 
-				N.x, N.y, N.z, 0.f, 
-				V.x, V.y, V.z, 0.f, 
 				U.x, U.y, U.z, 0.f, 
+				V.x, V.y, V.z, 0.f, 
+				N.x, N.y, N.z, 0.f, 
 				0.f, 0.f, 0.f, 1.f
 			};
 		}
@@ -37,58 +58,29 @@ public:
 	}
 	const ::glm::mat4 &getTranslationTrans()
 	{
-		if (translationModified)
+		if (translateModified)
 		{
-			translationModified = false;
-			translationTrans = {
+			translateModified = false;
+			translateTrans = {
 				1.f, 0.f, 0.f, P.x,
 				0.f, 1.f, 0.f, P.y,
 				0.f, 0.f, 1.f, P.z,
 				0.f, 0.f, 0.f, 1.f
 			};
 		}
-		return translationTrans;
-	}
-	void setTarget(const ::glm::vec3 &target)
-	{
-		N = ::glm::normalize(target);
-		rotateModified = true;
-	}
-	void setUp(const ::glm::vec3 &up)
-	{
-		V = ::glm::normalize(up);
-		rotateModified = true;
-	}
-	void setPosition(const ::glm::vec3 &position)
-	{
-		P = position;
-		translationModified = true;
+		return translateTrans;
 	}
 	bool modified() const
 	{
-		return rotateModified || translationModified;
+		return rotateModified || translateModified;
 	}
 protected:
-	bool rotateModified = true, translationModified = true;
-	::glm::vec3 N, V, P;
-	::glm::mat4 rotateTrans, translationTrans, trans;
+	bool rotateModified = true, translateModified = true;
+	::glm::vec3 N = {0, 0, -1}, V = {0, 1, 0}, P = {0, 0, 1};
+private:
+	::glm::mat4 rotateTrans, translateTrans, trans;
 }; 
 
-class Pipeline
-{
-	Pipeline() = default;
-public:
-	const ::glm::mat4 &getTrans()
-	{
-		if (perspective.modified() || camera.modified())
-		{
-			trans = persProjTrans * camera.getTrans() * object.trans();
-		}
-		return trans;
-	}
-private:
-	::glm::mat4 trans;
-	Camera camera;
-};
+extern Camera camera;
 
 }

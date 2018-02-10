@@ -1,5 +1,6 @@
 #include "runtime.h"
 #include "gl.h"
+#include "object.h"
 
 using namespace bee;
 using namespace bee::gl;
@@ -8,34 +9,36 @@ Window window("testMesh", false, 512, 512);
 
 Model model;
 
-UniformRef<::glm::mat4> world;
+Object object;
+
+::bee::gl::Shader shader{
+	::bee::gl::VertexShader("testModel.vert"),
+	::bee::gl::FragmentShader("testModel.frag")
+};
 
 void render()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	static float Scale = 0.0f;
-	Scale += 0.001f;
-	::glm::mat4 rotatey = {
-		cosf(Scale), 0.f, -sinf(Scale), 0.f,
-		0.f, 1.f, 0.f, 0.f,
-		sinf(Scale), 0.f, cosf(Scale), 0.f,
-		0.f, 0.f, 0.f, 1.f
-	};
-	world = rotatey; // * rotatex; // * scale;
-
-	model.render();
+	static auto angle = 0.002f;
+	object.rotate(angle, angle * 2, angle * 3);
+	object.render();
 }
 
 int Main(int argc, char **argv)
 {
-	::bee::gl::Shader shader{
-		::bee::gl::VertexShader("testModel.vert"),
-		::bee::gl::FragmentShader("testModel.frag")
-	};
-	shader.use();
-	world.bind(shader.uniform<::glm::mat4>("gWorld"));
 	model = Model("C:/Users/QwQ/Desktop/bee/build/tests/test.stl");
+	object = Object(model, shader);
+	object.scale(0.02, 0.02, 0.02);
+	// for (int i = 0; i != 4; ++i)
+	// 	for (int j = 0; j != 4; ++j)
+	// 		BEE_LOG(camera.getTrans()[i][j]);
+	// 	BEE_LOG();
+	// BEE_LOG();
+	// for (int i = 0; i != 4; ++i)
+	// 	for (int j = 0; j != 4; ++j)
+	// 		BEE_LOG(object.getTrans()[i][j]);
+	// 	BEE_LOG();
 	while (!window.closed())
 	{
 		render();
