@@ -14,7 +14,7 @@ const ::bee::gl::Faces faces = {
 	{ 0, 1, 2 }
 };
 
-::bee::gl::Window window("testGL", false, 512, 256);
+::bee::gl::Window<3, 3> window("testGL", false, 512, 256);
 
 ::bee::gl::UniformRef<::glm::mat4> world;
 

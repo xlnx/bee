@@ -6,7 +6,7 @@
 using namespace bee;
 using namespace bee::gl;
 
-Window window("testModel", false, 512, 512);
+Window<3, 3> window("testModel", false, 512, 512);
 
 Model model;
 
@@ -34,33 +34,6 @@ void render()
 	}
 }
 
-void printmat(const ::glm::mat4 &mat)
-{
-	::std::cout << "{" << ::std::endl;
-	for (int i = 0; i != 4; ++i)
-	{
-		for (int j = 0; j != 4; ++j)
-		{
-			::std::cout << mat[i][j] << " ";
-		}
-		::std::cout << ::std::endl;
-	}
-	::std::cout << "}" << ::std::endl;
-}
-
-void printvec(const ::glm::vec4 &vec)
-{
-	::std::cout << "{";
-	// for (int i = 0; i != 4; ++i)
-	// {
-		for (int j = 0; j != 4; ++j)
-		{
-			::std::cout << vec[j] << " ";
-		}
-	// }
-	::std::cout << "}" << ::std::endl;
-}
-
 int Main(int argc, char **argv)
 {
 	viewPorts.emplace_back();
@@ -73,24 +46,6 @@ int Main(int argc, char **argv)
 	object = Object(model, shader);
 	object.scale(0.02, 0.02, 0.02);
 	// object.translate(1, 0, 0);
-
-	::glm::mat4 a = {
-		1.f, 0.f, 0.f, 0.f,
-		0.f, 1.f, 0.f, 0.f,
-		0.f, 0.f, 1.f, 0.f,
-		1.f, 1.f, 1.f, 1.f
-	}, b = {
-		1.f, 0.f, 0.f, 0.f,
-		1.f, 0.f, 0.f, 0.f,
-		0.f, 0.f, 0.f, 0.f,
-		0.f, 0.f, 0.f, 0.f	
-	};
-	::glm::vec4 v = {
-		0, 0, 0, 1
-	};
-
-	printmat(::glm::transpose(a) * ::glm::transpose(b));
-	printvec(a * v);
 
 	while (!window.closed())
 	{

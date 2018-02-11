@@ -39,9 +39,9 @@ GLFatal::GLFatal(GLenum err):
 namespace gl
 {
 
-GLFWwindow *Window::window;
+GLFWwindow *WindowBase::window;
 
-Window::Window(const std::string &title, bool fullscreen, unsigned width, unsigned height)
+WindowBase::WindowBase(const std::string &title, bool fullscreen, unsigned width, unsigned height)
 {
 	if (window)
 	{
@@ -83,15 +83,9 @@ Window::Window(const std::string &title, bool fullscreen, unsigned width, unsign
 		os << "glewInit failed: " << glewGetErrorString(err);
 		BEE_RAISE(GLFatal, os.str());
 	}
-	// Specify OpenGL Version
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	// glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	// glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-	glClearColor(0.f, 0.f, 0.f, 0.f);
 }
 
-Window::~Window()
+WindowBase::~WindowBase()
 {
 	glfwTerminate();
 }

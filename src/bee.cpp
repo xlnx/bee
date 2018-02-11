@@ -8,7 +8,7 @@ int Main(int argc, char **argv)
 {
 	// -DBEE_RUNTIME_INTRUSIVE
 	// ::bee::Runtime::exec([](){
-	Window window("Header");
+	Window<3, 3> window("Header");
 
 	
 	// bee::Runtime::shell("nothing");
