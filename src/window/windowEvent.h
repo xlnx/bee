@@ -23,9 +23,8 @@ public:
 	using callbackType = ::std::function<bool(Types...)>;
 	using listType = WindowEventList<Types...>;
 private:
-	WindowEvent(listType &parent,
-			const callbackType &callback, int priority = INT_MAX):
-		callback(callback), parent(parent), priority(priority)
+	WindowEvent(const callbackType &callback, int priority = INT_MAX):
+		callback(callback), priority(priority)
 	{
 	}
 public:
@@ -34,17 +33,6 @@ public:
 		if (this->prev->next = this->next)
 		{
 			this->next->prev = this->prev;
-		}
-		else
-		{
-			if (this->prev->prev)
-			{
-				parent.endEvents = this->prev;
-			}
-			else
-			{
-				parent.endEvents = nullptr;
-			}
 		}
 		delete this;
 	}
@@ -60,7 +48,6 @@ public:
 	const callbackType callback;
 private:
 	WindowEvent *prev = nullptr, *next = nullptr;
-	listType &parent;
 	const int priority;
 };
 
@@ -96,7 +83,7 @@ public:
 	};
 
 	WindowEventList():
-		events(new eventType(*this, callbackType()))
+		events(new eventType(callbackType()))
 	{
 	}
 	~WindowEventList()
@@ -109,8 +96,8 @@ public:
 
 	eventType *emplace(const callbackType &callback, int priority = 0)
 	{
-		auto event = new eventType(*this, callback, priority), ptr = events;
-		for (; ptr != nullptr; ptr = ptr->next)
+		auto event = new eventType(callback, priority), ptr = events;
+		for (; ptr->next != nullptr; ptr = ptr->next)
 		{
 			if (ptr->priority < event->priority)
 			{
@@ -118,15 +105,16 @@ public:
 				event->next = ptr; ptr->prev = event; break;
 			}
 		}
-		if (!ptr)
+		if (ptr->next == nullptr)
 		{
-			if (endEvents)
+			if (ptr->priority < event->priority)
 			{
-				endEvents->next = event; event->prev = endEvents; endEvents = event;
+				ptr->prev->next = event; event->prev = ptr->prev;
+				event->next = ptr; ptr->prev = event;
 			}
 			else
 			{
-				events->next = event; event->prev = events; endEvents = event;
+				ptr->next = event; event->prev = ptr;
 			}
 		}
 		return event;
@@ -140,7 +128,7 @@ public:
 		return constIterator(nullptr);
 	}
 private:
-	eventType *events = nullptr, *endEvents = nullptr;
+	eventType *events = nullptr;
 };
 
 #define BEE_EVENT_DISPATCHER(eventName, ...) \
@@ -149,18 +137,19 @@ private:
 	protected:\
 		eventName##Dispatcher()\
 		{\
+			handlers = new WindowEventList<__VA_ARGS__>;\
 			glfwSet##eventName##Callback(reinterpret_cast<WindowBase&>(*this), dispatch<__VA_ARGS__>);\
 		}\
 		template <typename ...Types>\
 		static void dispatch(GLFWwindow *window, Types ...args)\
 		{\
-			for (auto &handler: handlers) \
+			for (auto &handler: *handlers) \
 			{\
 				if (handler.callback(args...)) break;\
 			}\
 		}\
 	protected:\
-		static WindowEventList<__VA_ARGS__> handlers;\
+		static WindowEventList<__VA_ARGS__> *handlers;\
 	};\
 	struct eventName##Event\
 	{\

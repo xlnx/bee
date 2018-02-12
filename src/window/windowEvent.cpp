@@ -4,7 +4,7 @@ namespace bee
 {
 
 #define BEE_EVENT_STATIC(eventName, ...) \
-	WindowEventList<__VA_ARGS__> eventName##Dispatcher::handlers 
+	WindowEventList<__VA_ARGS__> *eventName##Dispatcher::handlers = nullptr
 
 BEE_EVENT_STATIC(Key, int, int, int, int);
 
