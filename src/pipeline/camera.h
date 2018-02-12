@@ -54,12 +54,20 @@ public:
 		N = ::glm::normalize(::glm::vec3(::std::forward<Types>(args)...));
 		rotateModified = true;
 	}
+	const ::glm::vec3 &getTarget() const
+	{
+		return N;
+	}
 	template <typename ...Types, typename = typename
 		::std::enable_if<::std::is_constructible<::glm::vec3, Types...>::value>::type>
 	void setUp(Types &&...args)
 	{
 		Up = ::glm::normalize(::glm::vec3(::std::forward<Types>(args)...));
 		rotateModified = true;
+	}
+	const ::glm::vec3 &getUp() const
+	{
+		return Up;
 	}
 	template <typename ...Types, typename = typename
 		::std::enable_if<::std::is_constructible<::glm::vec3, Types...>::value>::type>

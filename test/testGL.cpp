@@ -1,5 +1,6 @@
 #include "runtime.h"
 #include "gl.h"
+#include "window.h"
 
 const ::bee::gl::VertexAttrs<::bee::gl::color3, ::bee::gl::pos3> vertices = {
 	{ {1, 2, 3}, {-1, -1, 0} },
@@ -14,7 +15,7 @@ const ::bee::gl::Faces faces = {
 	{ 0, 1, 2 }
 };
 
-::bee::gl::Window<3, 3> window("testGL", false, 512, 256);
+::bee::Window<3, 3> window("testGL", false, 512, 256);
 
 ::bee::gl::UniformRef<::glm::mat4> world;
 

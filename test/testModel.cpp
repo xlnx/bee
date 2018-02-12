@@ -1,5 +1,6 @@
 #include "runtime.h"
 #include "gl.h"
+#include "window.h"
 #include "object.h"
 #include <vector>
 
@@ -46,6 +47,14 @@ int Main(int argc, char **argv)
 	object = Object(model, shader);
 	object.scale(0.02, 0.02, 0.02);
 	// object.translate(1, 0, 0);
+	window.dispatch<CursorPosEvent>(
+	[](double x, double y)->bool{
+		BEE_LOG(x, " ", y); return true;
+	});
+	window.dispatch<CursorPosEvent>(
+	[](double x, double y)->bool{
+		BEE_LOG("failed to stop"); return false;
+	}, -1);
 
 	while (!window.closed())
 	{

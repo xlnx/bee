@@ -1,9 +1,6 @@
-#include "window.h"
+#include "windowBase.h"
 
 namespace bee
-{
-
-namespace gl
 {
 
 static const char *errorMessage[] = {
@@ -18,8 +15,6 @@ static const char *errorMessage[] = {
 	"GL_CONTEXT_LOST"
 };
 
-}
-
 namespace exception
 {
 
@@ -30,20 +25,21 @@ GLFatal::GLFatal(std::string info):
 
 GLFatal::GLFatal(GLenum err):
 	Fatal(static_cast<std::ostringstream&>(std::ostringstream() << 
-		"glGetError() = 0x" << std::hex << err << std::dec << ": " << gl::errorMessage[err & 0xff]).str())
+		"glGetError() = 0x" << std::hex << err << std::dec << ": " << errorMessage[err & 0xff]).str())
 {
 }
 
 }
 
-namespace gl
-{
+WindowBase *WindowBase::instance = nullptr;
 
-GLFWwindow *WindowBase::window;
+unsigned WindowBase::width = 0;
+
+unsigned WindowBase::height = 0;
 
 WindowBase::WindowBase(const std::string &title, bool fullscreen, unsigned width, unsigned height)
 {
-	if (window)
+	if (instance)
 	{
 		BEE_RAISE(Fatal, "Could not instantiate SINGLETON object 'bee::runtime::window'.");
 	}
@@ -74,7 +70,7 @@ WindowBase::WindowBase(const std::string &title, bool fullscreen, unsigned width
 		width = mode->width; height = mode->height;
 	}
 	window = glfwCreateWindow(width, height, title.c_str(), pMonitor, nullptr);
-	util::width = width; util::height = height;
+	this->width = width; this->height = height;
 	glfwMakeContextCurrent(window);
 	GLenum err = glewInit();
 	if (err != GLEW_OK)
@@ -83,13 +79,12 @@ WindowBase::WindowBase(const std::string &title, bool fullscreen, unsigned width
 		os << "glewInit failed: " << glewGetErrorString(err);
 		BEE_RAISE(GLFatal, os.str());
 	}
+	instance = this;
 }
 
 WindowBase::~WindowBase()
 {
 	glfwTerminate();
-}
-
 }
 
 }

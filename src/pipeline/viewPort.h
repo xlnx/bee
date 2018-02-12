@@ -1,8 +1,8 @@
 #pragma once
 
 #include "common.h"
-#include "util.h"
 #include "camera.h"
+#include "window.h"
 
 namespace bee
 {
@@ -28,8 +28,8 @@ public:
 			if (perspectiveModified)
 			{
 				perspectiveModified = false;
-				perspectiveTrans = ::glm::perspective(
-					::glm::radians(fov), float(util::width) / util::height, zNear, zFar);
+				perspectiveTrans = ::glm::perspective(::glm::radians(fov), 
+					float(WindowBase::getWidth()) / WindowBase::getHeight(), zNear, zFar);
 			}
 			trans = perspectiveTrans * Camera::getTrans();
 		}
@@ -65,7 +65,8 @@ protected:
 	}
 private:
 	GLfloat fov = 60.f, zNear = .1f, zFar = 100.f;
-	GLint left = 0, top = 0, width = util::width, height = util::height;
+	GLint left = 0, top = 0, 
+		width = WindowBase::getWidth(), height = WindowBase::getHeight();
 	bool perspectiveModified = true;
 	::glm::mat4 perspectiveTrans, trans;
 	static ViewPort *activePort;

@@ -1,5 +1,6 @@
 #include "runtime.h"
 #include "gl.h"
+#include "window.h"
 
 using namespace ::bee;
 using namespace ::bee::gl;
