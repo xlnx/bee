@@ -82,7 +82,6 @@ public:
 		vertices.template invoke<bitg3>(mesh->HasTangentsAndBitangents());
 		vertices.template invoke<tex3>(mesh->HasTextureCoords(0));
 		vertices.alloc();
-		BEE_LOG(mesh->mNumVertices, " ", vertices.elemSize);
 		if (mesh->HasPositions())
 		{
 			auto fp = mesh->mVertices;

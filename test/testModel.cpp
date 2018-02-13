@@ -8,7 +8,7 @@
 using namespace bee;
 using namespace bee::gl;
 
-Window<3, 3> window("testModel", true, 512, 512);
+Window<3, 3> window("testModel", false, 512, 512);
 Model model;
 Object object;
 ::std::vector<ViewPort*> viewPorts;
@@ -29,7 +29,7 @@ int Main(int argc, char **argv)
 	// viewPorts[1].setPosition(0, 0, -1);
 	// viewPorts[1].setTarget(0, 0, 1);
 	// viewPorts[1].setUp(0, 1, 0);
-	model = Model("keychain.obj");
+	model = Model("test.obj");
 	object = Object(model, shader);
 	object.scale(0.02, 0.02, 0.02);
 	// object.translate(1, 0, 0);

@@ -45,9 +45,7 @@ public:
 		materials.resize(scene->mNumMaterials);
 		for (auto i = 0u; i != scene->mNumMaterials; ++i)
 		{
-			BEE_LOG(i);
 			auto material = scene->mMaterials[i];
-			BEE_LOG(material->mNumAllocated);
 			if (material->GetTextureCount(Diffuse) > 0)
 			{
 				BEE_LOG("Diffuse");
@@ -87,7 +85,6 @@ public:
 		auto root = scene->mRootNode;
 		for (auto i = 0u; i != scene->mNumMeshes; ++i)
 		{
-			BEE_LOG(scene->mNumMeshes);
 			auto mesh = scene->mMeshes[i];
 			meshes.emplace_back(&materials[mesh->mMaterialIndex], mesh);
 		}
