@@ -78,6 +78,26 @@ using VertexShader = ShaderObj<GL_VERTEX_SHADER>;
 using FragmentShader = ShaderObj<GL_FRAGMENT_SHADER>;
 using GeometryShader = ShaderObj<GL_GEOMETRY_SHADER>;
 
+template <typename T>
+class UniformRefBase
+{
+protected:
+	friend class Shader;
+	UniformRefBase() = default;
+	UniformRefBase &operator = (const UniformRefBase &other) = delete;
+public:
+	void bind(const UniformRefBase &other)
+	{
+		handle = other.handle;
+	}
+	operator bool() const
+	{
+		return ~handle;
+	}
+protected:
+	GLuint handle = -1;
+};
+
 class Shader final
 {
 public:
@@ -121,6 +141,7 @@ public:
 	template <typename T>
 		UniformRef<T> uniform(const std::string &name)
 	{
+		UniformRef<T> ref;
 		if (!bufferedUniforms.count(name))
 		{
 			auto handle = glGetUniformLocation(shader, name.c_str());
@@ -130,7 +151,8 @@ public:
 			}
 			bufferedUniforms[name] = handle;
 		}
-		return bufferedUniforms[name];
+		static_cast<UniformRefBase<T>&>(ref).handle = bufferedUniforms[name];
+		return ref;
 	}
 private:
 	template <typename T, typename ...Types, typename = typename
@@ -174,65 +196,82 @@ private:
 };
 
 template <typename T>
-	class UniformRef
+	struct UniformRef: UniformRefBase<T>
 {
-	friend class Shader;
-public:
-	UniformRef(): handle(-1) {}
-	
-	UniformRef &operator = (const UniformRef &other) = delete;
 	void operator = (const T &target);
-	void bind(const UniformRef &other)
-	{
-		handle = other.handle;
-	}
-private:
-	UniformRef(GLuint handle): handle(handle) {}
-private:
-	GLuint handle;
 };
 
 template <>
-	void UniformRef<::glm::mat2>::operator = (const ::glm::mat2 &target)
+	struct UniformRef<::glm::mat2>: UniformRefBase<::glm::mat2>
 {
-	glUniformMatrix2fv(handle, 1, GL_TRUE, reinterpret_cast<const float*>(&target));
-}
+	void operator = (const ::glm::mat2 &target)
+	{
+		glUniformMatrix2fv(handle, 1, GL_TRUE, reinterpret_cast<const float*>(&target));
+	}
+};
 
 template <>
-	void UniformRef<::glm::mat3>::operator = (const ::glm::mat3 &target)
+	struct UniformRef<::glm::mat3>: UniformRefBase<::glm::mat3>
 {
-	glUniformMatrix3fv(handle, 1, GL_TRUE, reinterpret_cast<const float*>(&target));
-}
+	void operator = (const ::glm::mat3 &target)
+	{
+		glUniformMatrix3fv(handle, 1, GL_TRUE, reinterpret_cast<const float*>(&target));
+	}
+};
 
 template <>
-	void UniformRef<::glm::mat4>::operator = (const ::glm::mat4 &target)
+	struct UniformRef<::glm::mat4>: UniformRefBase<::glm::mat4>
 {
-	glUniformMatrix4fv(handle, 1, GL_TRUE, reinterpret_cast<const float*>(&target));
-}
+	void operator = (const ::glm::mat4 &target)
+	{
+		glUniformMatrix4fv(handle, 1, GL_TRUE, reinterpret_cast<const float*>(&target));
+	}
+};
 
 template <>
-	void UniformRef<float>::operator = (const float &target)
+	struct UniformRef<int>: UniformRefBase<int>
 {
-	glUniform1f(handle, target);
-}
+	void operator = (const int &target)
+	{
+		glUniform1i(handle, target);
+	}
+};
 
 template <>
-	void UniformRef<::glm::vec2>::operator = (const ::glm::vec2 &target)
+	struct UniformRef<float>: UniformRefBase<float>
 {
-	glUniform2f(handle, target[0], target[1]);
-}
+	void operator = (const float &target)
+	{
+		glUniform1f(handle, target);
+	}
+};
 
 template <>
-	void UniformRef<::glm::vec3>::operator = (const ::glm::vec3 &target)
+	struct UniformRef<::glm::vec2>: UniformRefBase<::glm::vec2>
 {
-	glUniform3f(handle, target[0], target[1], target[2]);
-}
+	void operator = (const ::glm::vec2 &target)
+	{
+		glUniform2f(handle, target[0], target[1]);
+	}
+};
 
 template <>
-	void UniformRef<::glm::vec4>::operator = (const ::glm::vec4 &target)
+	struct UniformRef<::glm::vec3>: UniformRefBase<::glm::vec3>
 {
-	glUniform4f(handle, target[0], target[1], target[2], target[3]);
-}
+	void operator = (const ::glm::vec3 &target)
+	{
+		glUniform3f(handle, target[0], target[1], target[2]);
+	}
+};
+
+template <>
+	struct UniformRef<::glm::vec4>: UniformRefBase<::glm::vec4>
+{
+	void operator = (const ::glm::vec4 &target)
+	{
+		glUniform4f(handle, target[0], target[1], target[2], target[3]);
+	}
+};
 
 }
 

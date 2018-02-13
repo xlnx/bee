@@ -11,14 +11,14 @@ using namespace bee::gl;
 Window<3, 3> window("testModel", true, 512, 512);
 Model model;
 Object object;
-::bee::gl::Shader shader{
-	::bee::gl::VertexShader("testModel.vert"),
-	::bee::gl::FragmentShader("testModel.frag")
-};
 ::std::vector<ViewPort*> viewPorts;
 
 int Main(int argc, char **argv)
 {
+	::bee::gl::Shader shader{
+		::bee::gl::VertexShader("testModel.vert"),
+		::bee::gl::FragmentShader("testModel.frag")
+	};
 	viewPorts.emplace_back(new FirstPersonCamera<>());
 	// viewPorts.emplace_back(0, 0, 200, 200);
 	// viewPorts[0].setPosition(-1, -1, 0);
@@ -29,7 +29,7 @@ int Main(int argc, char **argv)
 	// viewPorts[1].setPosition(0, 0, -1);
 	// viewPorts[1].setTarget(0, 0, 1);
 	// viewPorts[1].setUp(0, 1, 0);
-	model = Model("test.stl");
+	model = Model("keychain.obj");
 	object = Object(model, shader);
 	object.scale(0.02, 0.02, 0.02);
 	// object.translate(1, 0, 0);
@@ -43,7 +43,7 @@ int Main(int argc, char **argv)
 	// }, -1);
 	window.dispatch<KeyEvent>(
 		[](int key, int scancode, int action, int mods) -> bool {
-			const auto step = 0.02f;
+			const auto step = .1f;
 			switch (action) {
 			case GLFW_PRESS: case GLFW_REPEAT:
 				switch (key) {
@@ -66,7 +66,7 @@ int Main(int argc, char **argv)
 			static auto angle = 0.002f;
 			static auto s = 0.f;
 			s += 0.002f;
-			object.rotate(angle, angle * 2, angle * 3);
+			// object.rotate(angle, angle * 2, angle * 3);
 			// object.translate(0, 0, angle);
 			for (auto &viewPort: viewPorts)
 			{

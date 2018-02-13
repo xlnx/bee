@@ -3,6 +3,8 @@
 #include "common.h"
 #include "buffers.h"
 #include "vertexAttr.h"
+#include "material.h"
+#include "shader.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -47,7 +49,7 @@ public:
 		delete vao;
 	}
 
-	virtual void render() const
+	void render() const
 	{
 		vao->render();
 	}
@@ -70,7 +72,7 @@ public:
 	{
 		MeshBase::initVAO(vertices, faces);
 	}
-	Mesh(aiMesh *mesh)
+	Mesh(const Material *material, aiMesh *mesh): material(material)
 	{
 		VertexAttrs<any> vertices(mesh->mNumVertices);
 		vertices.template invoke<pos3>(mesh->HasPositions());
@@ -80,6 +82,7 @@ public:
 		vertices.template invoke<bitg3>(mesh->HasTangentsAndBitangents());
 		vertices.template invoke<tex3>(mesh->HasTextureCoords(0));
 		vertices.alloc();
+		BEE_LOG(mesh->mNumVertices, " ", vertices.elemSize);
 		if (mesh->HasPositions())
 		{
 			auto fp = mesh->mVertices;
@@ -149,10 +152,60 @@ public:
 			BEE_RAISE(GLFatal, "The mesh object has no faces info.");
 		}
 	}
-	void render() const override
+	void render(Shader &shader) const
 	{
+		if (material)
+		{
+			if (auto texture = material->getTexture<Diffuse>())
+			{
+				if (auto ref = shader.uniform<int>("material.diffuse"))
+				{
+					ref = Diffuse;
+					glActiveTexture(GL_TEXTURE0 + Diffuse);
+					glBindTexture(Tex2D, texture);
+				}
+			}
+			if (auto texture = material->getTexture<Specular>())
+			{
+				if (auto ref = shader.uniform<int>("material.specular"))
+				{
+					ref = Specular;
+					glActiveTexture(GL_TEXTURE0 + Specular);
+					glBindTexture(Tex2D, texture);
+				}
+			}
+			if (auto texture = material->getTexture<Ambient>())
+			{
+				if (auto ref = shader.uniform<int>("material.ambient"))
+				{
+					ref = Ambient;
+					glActiveTexture(GL_TEXTURE0 + Ambient);
+					glBindTexture(Tex2D, texture);
+				}
+			}
+			if (auto texture = material->getTexture<Emissive>())
+			{
+				if (auto ref = shader.uniform<int>("material.emissive"))
+				{
+					ref = Emissive;
+					glActiveTexture(GL_TEXTURE0 + Emissive);
+					glBindTexture(Tex2D, texture);
+				}
+			}
+			if (auto texture = material->getTexture<Normals>())
+			{
+				if (auto ref = shader.uniform<int>("material.normals"))
+				{
+					ref = Normals;
+					glActiveTexture(GL_TEXTURE0 + Normals);
+					glBindTexture(Tex2D, texture);
+				}
+			}
+		}
 		MeshBase::render();
 	}
+private:
+	const Material *material = nullptr;
 };
 
 }

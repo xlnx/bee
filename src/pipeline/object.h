@@ -22,7 +22,7 @@ public:
 		shader->use();
 		shader->uniform<::glm::mat4>("gWVP") = 
 			::glm::transpose(viewPort.getTrans() * getTrans());
-		model->render();
+		model->render(*shader);
 	}
 protected:
 	const gl::Model *model = nullptr;

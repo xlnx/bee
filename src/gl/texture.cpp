@@ -1,0 +1,28 @@
+#include "texture.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
+namespace bee
+{
+
+namespace gl
+{
+
+bool TextureGenerator::haveInstance = false;
+GLuint *TextureGenerator::dataptr = nullptr;
+GLuint *TextureGenerator::dataend = nullptr;
+GLuint *TextureGenerator::ptr = nullptr;
+
+unsigned char *TextureBase::loadImage(const ::std::string &path, int &width, int &height, int &comp)
+{
+	return stbi_load(path.c_str(), &width, &height, &comp, 0);
+}
+
+void TextureBase::freeImage(unsigned char *data)
+{
+	stbi_image_free(data);
+}
+
+}
+
+}
