@@ -16,18 +16,6 @@ public:
 	WindowBase(const WindowBase &other) = delete;
 	virtual ~WindowBase();
 
-	bool closed() const
-	{
-		return glfwWindowShouldClose(window);
-	}
-	void pollEvents() const
-	{
-		glfwPollEvents();
-	}
-	void swapBuffers() const
-	{
-		glfwSwapBuffers(window);
-	}
 	operator GLFWwindow *() const
 	{
 		return window;
@@ -39,6 +27,23 @@ public:
 	static unsigned getHeight()
 	{
 		return height;
+	}
+	static WindowBase &getInstance()
+	{
+		return *instance;
+	}
+protected:
+	bool closed() const
+	{
+		return glfwWindowShouldClose(window);
+	}
+	void pollEvents() const
+	{
+		glfwPollEvents();
+	}
+	void swapBuffers() const
+	{
+		glfwSwapBuffers(window);
 	}
 protected:
 	GLFWwindow *window;

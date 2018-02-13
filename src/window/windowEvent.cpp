@@ -24,4 +24,6 @@ BEE_EVENT_STATIC(Scroll, double, double);
 
 BEE_EVENT_STATIC(Drop, int, const char**);
 
+BEE_EVENT_STATIC(Render);
+
 }

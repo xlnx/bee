@@ -17,7 +17,8 @@ class GLWindowBase: public WindowBase,
 	MouseButtonDispatcher,
 	ScrollDispatcher,
 	// JoystickDispatcher,
-	DropDispatcher
+	DropDispatcher,
+	RenderDispatcher
 {
 public:
 	template <typename ...Types, typename = typename
@@ -45,19 +46,27 @@ public:
 		);
 	}
 
-	double getCursorX() const
+	static double getCursorX()
 	{
-		return x;
+		return static_cast<GLWindowBase*>(instance)->x;
 	}
-	double getCursorY() const
+	static double getCursorY()
 	{
-		return y;
+		return static_cast<GLWindowBase*>(instance)->y;
 	}
 	template <typename T>
-	typename T::type *dispatch(const typename T::callbackType &callback, int zindex = 0)
+	static typename T::type *dispatch(const typename T::callbackType &callback, int zindex = 0)
 	{
 		using base = typename T::dispatcherType;
 		return base::handlers->emplace(callback, zindex);
+	}
+	void dispatchMessages()
+	{
+		while (!closed())
+		{
+			RenderDispatcher::dispatch();
+			gl::checkError(); swapBuffers(); pollEvents();
+		}
 	}
 protected:
 	double x, y;
@@ -72,7 +81,7 @@ class Window: public GLWindowBase
 {
 public:
 	template <typename ...Types, typename = typename
-		::std::enable_if<::std::is_constructible<WindowBase, Types...>::value>::type >
+		::std::enable_if<::std::is_constructible<GLWindowBase, Types...>::value>::type >
 	Window(Types &&...args): 
 		GLWindowBase(::std::forward<Types>(args)...)
 	{

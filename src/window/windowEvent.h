@@ -176,4 +176,28 @@ BEE_EVENT_DISPATCHER(Scroll, double, double);
 
 BEE_EVENT_DISPATCHER(Drop, int, const char**);
 
+struct RenderDispatcher
+{
+protected:
+	RenderDispatcher()
+	{
+		handlers = new WindowEventList<>;
+	}
+	static void dispatch()
+	{
+		for (auto &handler: *handlers)
+		{
+			if (handler.callback()) break;
+		}
+	}
+protected:
+	static WindowEventList<> *handlers;
+};
+struct RenderEvent
+{
+	using type = WindowEvent<>;
+	using callbackType = typename WindowEventList<>::callbackType;
+	using dispatcherType = RenderDispatcher;
+};
+
 }
