@@ -86,7 +86,7 @@ public:
 		return ~handle;
 	}
 protected:
-	static unsigned char *loadImage(const ::std::string &path, int &width, int &height, int &comp);
+	static unsigned char *loadImage(::std::string path, int &width, int &height, int &comp);
 	static void freeImage(unsigned char *data);
 protected:
 	GLuint handle = -1;

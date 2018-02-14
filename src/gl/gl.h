@@ -7,3 +7,4 @@
 #include "texture.h"
 #include "mesh.h"
 #include "model.h"
+#include "property.h"

@@ -13,8 +13,13 @@ GLuint *TextureGenerator::dataptr = nullptr;
 GLuint *TextureGenerator::dataend = nullptr;
 GLuint *TextureGenerator::ptr = nullptr;
 
-unsigned char *TextureBase::loadImage(const ::std::string &path, int &width, int &height, int &comp)
+unsigned char *TextureBase::loadImage(::std::string path, int &width, int &height, int &comp)
 {
+	// if the path is wrapped by quotes
+	if (path[0] == '"')
+	{
+		path = path.substr(1, path.length() - 2);
+	}
 	return stbi_load(path.c_str(), &width, &height, &comp, 0);
 }
 

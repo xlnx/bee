@@ -4,6 +4,7 @@
 #include "windowEvent.h"
 #include "buffers.h"
 #include "texture.h"
+#include "shader.h"
 
 namespace bee
 {
@@ -27,6 +28,7 @@ public:
 	GLWindowBase(Types &&...args): 
 		WindowBase(::std::forward<Types>(args)...)
 	{
+		gl::Shader::initialize();
 		dispatch<CursorPosEvent>(
 			[this](double x, double y)->bool {
 				this->x = x; this->y = y; return false;
@@ -43,6 +45,12 @@ public:
 				if (this->enter) {
 					this->x = x; this->y = y; this->enter = false;
 				} return false;
+			}, INT_MAX
+		);
+		dispatch<RenderEvent>(
+			[this]() -> bool {
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				return false;
 			}, INT_MAX
 		);
 	}
@@ -95,7 +103,7 @@ public:
 		glClearColor(0.f, 0.f, 0.f, 0.f);
 		// glEnable(GL_BLEND);
 		// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		// glEnable(GL_DEPTH_TEST);
+		glEnable(GL_DEPTH_TEST);
 	}
 };
 

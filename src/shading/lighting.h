@@ -1,50 +1,140 @@
 #pragma once
 
 #include "shaderController.h"
+#include "property.h"
 
 namespace bee
 {
 
-class LightBase
+class LightBase:
+	public ShaderController
 {
+	BEE_SC_BASE(LightBase);
 public:
-	::glm::vec3 color;
-	float ambientIntensity;
-	float diffuseIntensity;
+	void invoke() override
+	{
+		gColor = fColor;
+		gAmbientIntensity = fAmbientIntensity;
+		gDiffuseIntensity = fDiffuseIntensity;
+	}
+protected:
+	BEE_SC_UNIFORM(::glm::vec3, Color);
+	BEE_SC_UNIFORM(float, AmbientIntensity);
+	BEE_SC_UNIFORM(float, DiffuseIntensity);
+public:
+	BEE_PROPERTY(glm::vec3, Color) = { 1, 1, 1 };
+	BEE_PROPERTY(float, AmbientIntensity) = 1.f;
+	BEE_PROPERTY(float, DiffuseIntensity) = 1.f;
 };
 
-class DirectionalLight: 
-	public ShaderController, 
-	protected LightBase
+class LightBaseMulti:
+	public ShaderController
 {
-protected:
-	::glm::vec3 direction;
-
-	gl::UniformRef<::glm::vec3> gColor;
-	gl::UniformRef<float> gAmbientIntensity;
-	gl::UniformRef<float> gDiffuseIntensity;
-	gl::UniformRef<::glm::vec3> gDirection;
+	BEE_SC_BASE_MULTI(LightBaseMulti);
 public:
-	DirectionalLight(const ::glm::vec3 &direction, 
-			const ::glm::vec3 &color = {1, 1, 1}, 
-			float ambientIntensity = 1, 
-			float diffuseIntensity = 1):
-		LightBase{color, ambientIntensity, diffuseIntensity}, 
-		direction(direction),
-		gColor(gl::Shader::uniform<::glm::vec3>("directionalLight.color")),
-		gAmbientIntensity(gl::Shader::uniform<float>("directionalLight.ambientIntensity")),
-		gDiffuseIntensity(gl::Shader::uniform<float>("directionalLight.diffuseIntensity")),
-		gDirection(gl::Shader::uniform<::glm::vec3>("directionalLight.direction"))
+	void invoke() override
+	{
+		gColor[getIndex()] = fColor;
+		gAmbientIntensity[getIndex()] = fAmbientIntensity;
+		gDiffuseIntensity[getIndex()] = fDiffuseIntensity;
+	}
+protected:
+	virtual int getIndex() const = 0;
+protected:
+	BEE_SC_UNIFORM(::glm::vec3[], Color);
+	BEE_SC_UNIFORM(float[], AmbientIntensity);
+	BEE_SC_UNIFORM(float[], DiffuseIntensity);
+public:
+	BEE_PROPERTY(glm::vec3, Color) = { 1, 1, 1 };
+	BEE_PROPERTY(float, AmbientIntensity) = 1.f;
+	BEE_PROPERTY(float, DiffuseIntensity) = 1.f;
+};
+
+class DirectionalLight:
+	public LightBase
+{
+	BEE_SC_INHERIT(DirectionalLight, LightBase);
+public:
+	DirectionalLight(const ::glm::vec3 &direction):
+		BEE_SC_SUPER(), fDirection(direction)
 	{
 	}
 
 	void invoke() override
 	{
-		gColor = color;
-		gAmbientIntensity = ambientIntensity;
-		gDiffuseIntensity = diffuseIntensity;
-		gDirection = direction;
+		Super::invoke();
+		gDirection = fDirection;
 	}
+	BEE_SC_UNIFORM(::glm::vec3, Direction);
+public:
+	BEE_PROPERTY(::glm::vec3, Direction) = { 0, 0, -1 };
+};
+
+class PointLight:
+	public LightBaseMulti
+{
+	BEE_SC_INHERIT_MULTI(PointLight, LightBaseMulti);
+public:
+	PointLight(const ::glm::vec3 &position):
+		BEE_SC_SUPER(), fPosition(position)
+	{
+	}
+
+	void invoke() override
+	{
+		Super::invoke();
+		gPosition[getIndex()] = fPosition;
+
+		gAttenConstant[getIndex()] = fAttenConstant;
+		gAttenLinear[getIndex()] = fAttenLinear;
+		gAttenExp[getIndex()] = fAttenExp;
+	}
+protected:
+	int getIndex() const override
+	{
+		return 0;
+	}
+protected:
+	BEE_SC_UNIFORM(::glm::vec3[], Position);
+
+	BEE_SC_UNIFORM(float[], AttenConstant);
+	BEE_SC_UNIFORM(float[], AttenLinear);
+	BEE_SC_UNIFORM(float[], AttenExp);
+public:
+	BEE_PROPERTY(::glm::vec3, Position) = { 0, 0, 1 };
+	BEE_PROPERTY(float, AttenConstant) = 1.f;
+	BEE_PROPERTY(float, AttenLinear) = .5f;
+	BEE_PROPERTY(float, AttenExp) = .5f;
+};
+
+class SpotLight:
+	public PointLight
+{
+	BEE_SC_INHERIT_MULTI(SpotLight, PointLight);
+public:
+	SpotLight(const ::glm::vec3 &position):
+		BEE_SC_SUPER()
+	{
+		setPosition(position);
+	}
+
+	void invoke() override
+	{
+		Super::invoke();
+		gDirection[getIndex()] = fDirection;
+		gCutoff[getIndex()] = fCutoff;
+	}
+protected:
+	int getIndex() const override
+	{
+		return 0;
+	}
+protected:
+	BEE_SC_UNIFORM(::glm::vec3[], Direction);
+	BEE_SC_UNIFORM(float[], Cutoff);
+public:
+	BEE_PROPERTY(::glm::vec3, Direction) = { 0, 0, 1 };
+	BEE_PROPERTY(float, Cutoff) = 1.f;
 };
 
 }

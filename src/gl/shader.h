@@ -59,11 +59,6 @@ public:
 	{
 		other.shader = 0;
 	}
-	// ShaderObj(ShaderObj &&):
-	// 	shader(other.shader)
-	// {
-	// 	other.shader = 0;
-	// }
 	~ShaderObj()
 	{
 		glDeleteShader(shader);
@@ -80,10 +75,13 @@ using VertexShader = ShaderObj<GL_VERTEX_SHADER>;
 using FragmentShader = ShaderObj<GL_FRAGMENT_SHADER>;
 using GeometryShader = ShaderObj<GL_GEOMETRY_SHADER>;
 
+class UniformRefHack;
+
 class UniformRefBase
 {
 protected:
 	friend class Shader;
+	friend class UniformRefHack;
 	UniformRefBase() = default;
 public:
 	void bind(const UniformRefBase &other)
@@ -94,8 +92,6 @@ protected:
 	int index = 0;
 };
 
-class UniformRefHack;
-
 class Shader final
 {
 	static constexpr auto maxUniformCount = 512;
@@ -105,12 +101,14 @@ class Shader final
 		ShaderRec *next = nullptr, *prev = nullptr;
 	};
 	friend class UniformRefHack;
+	friend class GLWindowBase;
 public:
 	template <typename ...Types>
 	Shader(Types &&...args):
 		shader(glCreateProgram()), 
 		prec(new ShaderRec{this, shaderHead.next, &shaderHead}),
-		uniforms(new GLuint [maxUniformCount])
+		uniforms(new GLuint [maxUniformCount]),
+		uniformArrays(new ::std::pair<GLint, GLint> [maxUniformCount])
 	{
 		if (!shader)
 		{
@@ -119,9 +117,15 @@ public:
 		attach(std::forward<Types>(args)...);
 		link();
 		memset(uniforms, -1, sizeof(*uniforms) * maxUniformCount);
-		for (auto i = 0u; i != registeredUniforms.size(); ++i)
+		for (auto i = 0u; i != registeredUniforms->size(); ++i)
 		{
-			uniforms[i + 1] = glGetUniformLocation(shader, registeredUniforms[i].c_str());
+			uniforms[i + 1] = glGetUniformLocation(shader, registeredUniforms->operator[](i).c_str());
+		}
+		for (auto i = 0u; i != registeredUniformArrays->size(); ++i)
+		{
+			auto start = glGetUniformLocation(shader, registeredUniformArrays->operator[](i).first.c_str());
+			auto step = glGetUniformLocation(shader, registeredUniformArrays->operator[](i).second.c_str());
+			uniformArrays[i + 1] = ::std::make_pair(start, step);
 		}
 		if (shaderHead.next)
 		{
@@ -134,14 +138,21 @@ public:
 	Shader(const E<GLuint, Alloc> &v):
 		shader(glCreateProgram()), 
 		prec(new ShaderRec{this, shaderHead.next, &shaderHead}),
-		uniforms(new GLuint [maxUniformCount])
+		uniforms(new GLuint [maxUniformCount]),
+		uniformArrays(new ::std::pair<GLint, GLint> [maxUniformCount])
 	{
 		for (auto e: v) attach(e);
 		link();
 		memset(uniforms, -1, sizeof(*uniforms) * maxUniformCount);
-		for (int i = 0; i != registeredUniforms.size(); ++i)
+		for (int i = 0; i != registeredUniforms->size(); ++i)
 		{
-			uniforms[i + 1] = glGetUniformLocation(shader, registeredUniforms[i].c_str());
+			uniforms[i + 1] = glGetUniformLocation(shader, registeredUniforms->operator[](i).c_str());
+		}
+		for (auto i = 0u; i != registeredUniformArrays->size(); ++i)
+		{
+			auto start = glGetUniformLocation(shader, registeredUniformArrays->operator[](i).first.c_str());
+			auto step = glGetUniformLocation(shader, registeredUniformArrays->operator[](i).second.c_str());
+			uniformArrays[i + 1] = ::std::make_pair(start, step);
 		}
 		if (shaderHead.next)
 		{
@@ -153,7 +164,8 @@ public:
 	Shader(Shader &&other):
 		shader(other.shader), 
 		prec(other.prec),
-		uniforms(other.uniforms)
+		uniforms(other.uniforms),
+		uniformArrays(other.uniformArrays)
 	{
 		prec->shader = this;
 		other.shader = 0;
@@ -170,6 +182,7 @@ public:
 			}
 			delete prec;
 			delete [] uniforms;
+			delete [] uniformArrays;
 		}
 	}
 	
@@ -186,27 +199,66 @@ public:
 	template <typename T>
 		static UniformRef<T> uniform(const ::std::string &name)
 	{
-		UniformRef<T> ref;
-		auto iter = uniformIndex.find(name);
-		if (iter != uniformIndex.end())
+		if (auto p = strstr(name.c_str(), "[]"))
 		{
-			reinterpret_cast<UniformRefBase&>(ref).index = iter->second;
+			UniformRef<T> ref;
+			auto iter = uniformArrayIndex->find(name);
+			if (iter != uniformArrayIndex->end())
+			{
+				reinterpret_cast<UniformRefBase&>(ref).index = iter->second;
+			}
+			else
+			{
+				auto front = name.substr(0, p - &name[0] + 1);
+				auto back = name.substr(p - &name[0] + 1);
+				auto name0 = front + "0" + back;
+				auto name1 = front + "1" + back;
+
+				registeredUniformArrays->emplace_back(name0, name1);
+				auto index = uniformArrayIndex->operator[](name) = registeredUniformArrays->size();
+				
+				reinterpret_cast<UniformRefBase&>(ref).index = index;
+				for (auto ptr = shaderHead.next; ptr != nullptr; ptr = ptr->next)
+				{
+					auto start = glGetUniformLocation(*ptr->shader, name0.c_str());
+					auto step = glGetUniformLocation(*ptr->shader, name1.c_str());
+					ptr->shader->uniformArrays[index] = ::std::make_pair(start, step);
+				}
+			}
+			return ref;
 		}
 		else
 		{
-			registeredUniforms.emplace_back(name);
-			auto index = uniformIndex[name] = registeredUniforms.size();
-			reinterpret_cast<UniformRefBase&>(ref).index = index;
-			for (auto ptr = shaderHead.next; ptr != nullptr; ptr = ptr->next)
+			UniformRef<T> ref;
+			auto iter = uniformIndex->find(name);
+			if (iter != uniformIndex->end())
 			{
-				ptr->shader->uniforms[index] = glGetUniformLocation(*ptr->shader, name.c_str());
+				reinterpret_cast<UniformRefBase&>(ref).index = iter->second;
 			}
+			else
+			{
+				registeredUniforms->emplace_back(name);
+				auto index = registeredUniforms->size();
+				uniformIndex->operator[](name) = index;
+				reinterpret_cast<UniformRefBase&>(ref).index = index;
+				for (auto ptr = shaderHead.next; ptr != nullptr; ptr = ptr->next)
+				{
+					ptr->shader->uniforms[index] = glGetUniformLocation(*ptr->shader, name.c_str());
+				}
+			}
+			return ref;
 		}
-		return ref;
 	}
 	static Shader &current()
 	{
 		return *currShader;
+	}
+	static void initialize()
+	{
+		uniformIndex = new ::std::map<::std::string, int>();
+		registeredUniforms = new ::std::vector<::std::string>();
+		uniformArrayIndex = new ::std::map<::std::string, int>();
+		registeredUniformArrays = new ::std::vector<::std::pair<::std::string, ::std::string>>();
 	}
 private:
 	template <typename T, typename ...Types, typename = typename
@@ -237,7 +289,8 @@ private:
 		}
 		glValidateProgram(shader);
 		glGetProgramiv(shader, GL_VALIDATE_STATUS, &success);
-		if (!success) {
+		if (!success)
+		{
 			glGetProgramInfoLog(shader, sizeof(infoLog), nullptr, infoLog);
 			std::ostringstream os;
 			os << "Invalid shader program." << std::endl << infoLog;
@@ -248,12 +301,16 @@ private:
 	GLuint shader;
 	ShaderRec *prec;
 	GLuint *uniforms;
+	::std::pair<GLint, GLint> *uniformArrays;
 private:
 	static Shader *currShader;
 	static ShaderRec shaderHead;
 	// ::std::map<::std::string, GLuint> bufferedUniforms;
-	static ::std::map<::std::string, int> uniformIndex;
-	static ::std::vector<::std::string> registeredUniforms;
+	static ::std::map<::std::string, int> *uniformIndex;
+	static ::std::vector<::std::string> *registeredUniforms;
+
+	static ::std::map<::std::string, int> *uniformArrayIndex;
+	static ::std::vector<::std::pair<::std::string, ::std::string>> *registeredUniformArrays;
 };
 
 class UniformRefHack: public UniformRefBase
@@ -261,7 +318,23 @@ class UniformRefHack: public UniformRefBase
 protected:
 	GLuint handle() const
 	{
-		return Shader::current().uniforms[UniformRefBase::index];
+		if (UniformRefBase::index > 0)
+		{
+			return Shader::current().uniforms[UniformRefBase::index];
+		}
+		else
+		{
+			return -UniformRefBase::index;
+		}
+	}
+	const ::std::pair<GLint, GLint> *getHack() const
+	{
+		return Shader::current().uniformArrays + UniformRefBase::index;
+	}
+	template <typename T>
+	void hackLocation(UniformRef<T> &ref, int location) const
+	{
+		reinterpret_cast<UniformRefBase&>(ref).index = -location;
 	}
 };
 
@@ -269,6 +342,19 @@ template <typename T>
 	struct UniformRef: UniformRefHack
 {
 	bool operator = (const T &target) const;
+};
+
+template <typename T>
+	struct UniformRef<T[]>: UniformRefHack
+{
+	UniformRef<T> operator [] (int index) const
+	{
+		UniformRef<T> ref;
+		auto & data = *getHack();
+		auto location = data.first + data.second * index;
+		hackLocation(ref, location);
+		return ref;
+	}
 };
 
 template <>

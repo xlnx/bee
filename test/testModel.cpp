@@ -30,7 +30,9 @@ int Main(int argc, char **argv)
 	// viewPorts[1].setPosition(0, 0, -1);
 	// viewPorts[1].setTarget(0, 0, 1);
 	// viewPorts[1].setUp(0, 1, 0);
-	model = Model("test.obj");
+	::std::string line;
+	::std::cin >> line;
+	model = Model(line);
 	object = Object(model, shader);
 	object.scale(0.02, 0.02, 0.02);
 
@@ -54,10 +56,9 @@ int Main(int argc, char **argv)
 	);
 	vector<ShaderController *> controllers;
 	controllers.emplace_back(new DirectionalLight(vec3(1, 1, 1)));
+	// controllers.emplace_back(new PointLight(vec3(0, 0, 1)));
 	window.dispatch<RenderEvent>(
 		[&]() -> bool {
-			glClear(GL_COLOR_BUFFER_BIT);
-
 			static auto angle = 0.002f;
 			static auto s = 0.f;
 			s += 0.002f;
@@ -66,7 +67,10 @@ int Main(int argc, char **argv)
 			for (auto &viewPort: viewPorts)
 			{
 				object.render(*viewPort);
-				controllers[0]->invoke();
+				for (auto &controller: controllers) 
+				{
+					controller->invoke();
+				}
 			}
 			return false;
 		}

@@ -5,6 +5,7 @@
 #include "vertexAttr.h"
 #include "material.h"
 #include "shader.h"
+#include "property.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -66,6 +67,11 @@ private:
 
 class Mesh: private MeshBase
 {
+	BEE_UNIFORM(int, Diffuse, "Material");
+	BEE_UNIFORM(int, Specular, "Material");
+	BEE_UNIFORM(int, Ambient, "Material");
+	BEE_UNIFORM(int, Emissive, "Material");
+	BEE_UNIFORM(int, Normals, "Material");
 public:
 	template <typename ...Attrs>
 	Mesh(const VertexAttrs<Attrs...> &vertices, const Faces &faces)
@@ -73,12 +79,7 @@ public:
 		MeshBase::initVAO(vertices, faces);
 	}
 	Mesh(const Material *material, aiMesh *mesh): 
-		material(material),
-		diffuse(Shader::uniform<int>("material.diffuse")),
-		specular(Shader::uniform<int>("material.specular")),
-		ambient(Shader::uniform<int>("material.ambient")),
-		emissive(Shader::uniform<int>("material.emissive")),
-		normals(Shader::uniform<int>("material.normals"))
+		material(material)
 	{
 		VertexAttrs<any> vertices(mesh->mNumVertices);
 		vertices.template invoke<pos3>(mesh->HasPositions());
@@ -88,9 +89,10 @@ public:
 		vertices.template invoke<bitg3>(mesh->HasTangentsAndBitangents());
 		vertices.template invoke<tex3>(mesh->HasTextureCoords(0));
 		vertices.alloc();
+		BEE_LOG("read ", mesh->mVertices, " vertices");
 		if (mesh->HasPositions())
 		{
-			// BEE_LOG("has positions");
+			BEE_LOG("has positions");
 			auto fp = mesh->mVertices;
 			for (auto i = 0u; i != mesh->mNumVertices; ++i)
 			{
@@ -100,7 +102,7 @@ public:
 		}
 		if (mesh->HasVertexColors(0))
 		{
-			// BEE_LOG("has colors");
+			BEE_LOG("has colors");
 			auto fp = mesh->mColors[0];
 			for (auto i = 0u; i != mesh->mNumVertices; ++i)
 			{
@@ -110,7 +112,7 @@ public:
 		}
 		if (mesh->HasNormals())
 		{
-			// BEE_LOG("has normals");
+			BEE_LOG("has normals");
 			auto fp = mesh->mNormals;
 			for (auto i = 0u; i != mesh->mNumVertices; ++i)
 			{
@@ -120,7 +122,7 @@ public:
 		}
 		if (mesh->HasTangentsAndBitangents())
 		{
-			// BEE_LOG("has tangent");
+			BEE_LOG("has tangent");
 			auto fp = mesh->mTangents;
 			for (auto i = 0u; i != mesh->mNumVertices; ++i)
 			{
@@ -130,7 +132,7 @@ public:
 		}
 		if (mesh->HasTangentsAndBitangents())
 		{
-			// BEE_LOG("has bitangent");
+			BEE_LOG("has bitangent");
 			auto fp = mesh->mBitangents;
 			for (auto i = 0u; i != mesh->mNumVertices; ++i)
 			{
@@ -140,7 +142,7 @@ public:
 		}
 		if (mesh->HasTextureCoords(0))
 		{
-			// BEE_LOG("has texcoords");
+			BEE_LOG("has texcoords");
 			auto fp = mesh->mTextureCoords[0];
 			for (auto i = 0u; i != mesh->mNumVertices; ++i)
 			{
@@ -169,7 +171,7 @@ public:
 		{
 			if (auto texture = material->getTexture<Diffuse>())
 			{
-				if (diffuse = Diffuse)
+				if (gDiffuse = Diffuse)
 				{
 					glActiveTexture(GL_TEXTURE0 + Diffuse);
 					glBindTexture(Tex2D, texture);
@@ -177,7 +179,7 @@ public:
 			}
 			if (auto texture = material->getTexture<Specular>())
 			{
-				if (specular = Specular)
+				if (gSpecular = Specular)
 				{
 					glActiveTexture(GL_TEXTURE0 + Specular);
 					glBindTexture(Tex2D, texture);
@@ -185,7 +187,7 @@ public:
 			}
 			if (auto texture = material->getTexture<Ambient>())
 			{
-				if (ambient = Ambient)
+				if (gAmbient = Ambient)
 				{
 					glActiveTexture(GL_TEXTURE0 + Ambient);
 					glBindTexture(Tex2D, texture);
@@ -193,7 +195,7 @@ public:
 			}
 			if (auto texture = material->getTexture<Emissive>())
 			{
-				if (emissive = Emissive)
+				if (gEmissive = Emissive)
 				{
 					glActiveTexture(GL_TEXTURE0 + Emissive);
 					glBindTexture(Tex2D, texture);
@@ -201,7 +203,7 @@ public:
 			}
 			if (auto texture = material->getTexture<Normals>())
 			{
-				if (normals = Normals)
+				if (gNormals = Normals)
 				{
 					glActiveTexture(GL_TEXTURE0 + Normals);
 					glBindTexture(Tex2D, texture);
@@ -212,7 +214,6 @@ public:
 	}
 private:
 	const Material *material = nullptr;
-	UniformRef<int> diffuse, specular, ambient, emissive, normals;
 };
 
 }
