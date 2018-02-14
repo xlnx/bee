@@ -72,7 +72,13 @@ public:
 	{
 		MeshBase::initVAO(vertices, faces);
 	}
-	Mesh(const Material *material, aiMesh *mesh): material(material)
+	Mesh(const Material *material, aiMesh *mesh): 
+		material(material),
+		diffuse(Shader::uniform<int>("material.diffuse")),
+		specular(Shader::uniform<int>("material.specular")),
+		ambient(Shader::uniform<int>("material.ambient")),
+		emissive(Shader::uniform<int>("material.emissive")),
+		normals(Shader::uniform<int>("material.normals"))
 	{
 		VertexAttrs<any> vertices(mesh->mNumVertices);
 		vertices.template invoke<pos3>(mesh->HasPositions());
@@ -84,6 +90,7 @@ public:
 		vertices.alloc();
 		if (mesh->HasPositions())
 		{
+			// BEE_LOG("has positions");
 			auto fp = mesh->mVertices;
 			for (auto i = 0u; i != mesh->mNumVertices; ++i)
 			{
@@ -93,6 +100,7 @@ public:
 		}
 		if (mesh->HasVertexColors(0))
 		{
+			// BEE_LOG("has colors");
 			auto fp = mesh->mColors[0];
 			for (auto i = 0u; i != mesh->mNumVertices; ++i)
 			{
@@ -102,6 +110,7 @@ public:
 		}
 		if (mesh->HasNormals())
 		{
+			// BEE_LOG("has normals");
 			auto fp = mesh->mNormals;
 			for (auto i = 0u; i != mesh->mNumVertices; ++i)
 			{
@@ -111,6 +120,7 @@ public:
 		}
 		if (mesh->HasTangentsAndBitangents())
 		{
+			// BEE_LOG("has tangent");
 			auto fp = mesh->mTangents;
 			for (auto i = 0u; i != mesh->mNumVertices; ++i)
 			{
@@ -120,6 +130,7 @@ public:
 		}
 		if (mesh->HasTangentsAndBitangents())
 		{
+			// BEE_LOG("has bitangent");
 			auto fp = mesh->mBitangents;
 			for (auto i = 0u; i != mesh->mNumVertices; ++i)
 			{
@@ -129,6 +140,7 @@ public:
 		}
 		if (mesh->HasTextureCoords(0))
 		{
+			// BEE_LOG("has texcoords");
 			auto fp = mesh->mTextureCoords[0];
 			for (auto i = 0u; i != mesh->mNumVertices; ++i)
 			{
@@ -151,51 +163,46 @@ public:
 			BEE_RAISE(GLFatal, "The mesh object has no faces info.");
 		}
 	}
-	void render(Shader &shader) const
+	void render() const
 	{
 		if (material)
 		{
 			if (auto texture = material->getTexture<Diffuse>())
 			{
-				if (auto ref = shader.uniform<int>("material.diffuse"))
+				if (diffuse = Diffuse)
 				{
-					ref = Diffuse;
 					glActiveTexture(GL_TEXTURE0 + Diffuse);
 					glBindTexture(Tex2D, texture);
 				}
 			}
 			if (auto texture = material->getTexture<Specular>())
 			{
-				if (auto ref = shader.uniform<int>("material.specular"))
+				if (specular = Specular)
 				{
-					ref = Specular;
 					glActiveTexture(GL_TEXTURE0 + Specular);
 					glBindTexture(Tex2D, texture);
 				}
 			}
 			if (auto texture = material->getTexture<Ambient>())
 			{
-				if (auto ref = shader.uniform<int>("material.ambient"))
+				if (ambient = Ambient)
 				{
-					ref = Ambient;
 					glActiveTexture(GL_TEXTURE0 + Ambient);
 					glBindTexture(Tex2D, texture);
 				}
 			}
 			if (auto texture = material->getTexture<Emissive>())
 			{
-				if (auto ref = shader.uniform<int>("material.emissive"))
+				if (emissive = Emissive)
 				{
-					ref = Emissive;
 					glActiveTexture(GL_TEXTURE0 + Emissive);
 					glBindTexture(Tex2D, texture);
 				}
 			}
 			if (auto texture = material->getTexture<Normals>())
 			{
-				if (auto ref = shader.uniform<int>("material.normals"))
+				if (normals = Normals)
 				{
-					ref = Normals;
 					glActiveTexture(GL_TEXTURE0 + Normals);
 					glBindTexture(Tex2D, texture);
 				}
@@ -205,6 +212,7 @@ public:
 	}
 private:
 	const Material *material = nullptr;
+	UniformRef<int> diffuse, specular, ambient, emissive, normals;
 };
 
 }

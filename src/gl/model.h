@@ -17,7 +17,7 @@ class ModelBase
 {
 public:
 	virtual ~ModelBase() = default;
-	virtual void render(Shader &) const = 0;
+	virtual void render() const = 0;
 };
 
 constexpr auto assImportFlags = 
@@ -90,9 +90,9 @@ public:
 		}
 	}
 
-	void render(Shader &shader) const override
+	void render() const override
 	{
-		for (auto &mesh: meshes) mesh.render(shader);
+		for (auto &mesh: meshes) mesh.render();
 	}
 protected:
 	::std::vector<Material> materials;

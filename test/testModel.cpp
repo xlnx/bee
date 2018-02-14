@@ -1,23 +1,24 @@
 #include "runtime.h"
 #include "gl.h"
+#include "pipeline.h"
+#include "shading.h"
 #include "window.h"
-#include "object.h"
-#include "firstPersonCamera.h"
-#include <vector>
 
 using namespace bee;
 using namespace bee::gl;
+using namespace std;
+using namespace glm;
 
 Window<3, 3> window("testModel", false, 512, 512);
 Model model;
 Object object;
-::std::vector<ViewPort*> viewPorts;
+vector<ViewPort*> viewPorts;
 
 int Main(int argc, char **argv)
 {
-	::bee::gl::Shader shader{
-		::bee::gl::VertexShader("testModel.vert"),
-		::bee::gl::FragmentShader("testModel.frag")
+	Shader shader{
+		VertexShader("testModel.vert"),
+		FragmentShader("testModel.frag")
 	};
 	viewPorts.emplace_back(new FirstPersonCamera<>());
 	// viewPorts.emplace_back(0, 0, 200, 200);
@@ -32,15 +33,7 @@ int Main(int argc, char **argv)
 	model = Model("test.obj");
 	object = Object(model, shader);
 	object.scale(0.02, 0.02, 0.02);
-	// object.translate(1, 0, 0);
-	// window.dispatch<CursorPosEvent>(
-	// [](double x, double y)->bool{
-	// 	BEE_LOG(x, " ", y); return true;
-	// });
-	// window.dispatch<CursorPosEvent>(
-	// [](double x, double y)->bool{
-	// 	BEE_LOG("failed to stop"); return false;
-	// }, -1);
+
 	window.dispatch<KeyEvent>(
 		[](int key, int scancode, int action, int mods) -> bool {
 			const auto step = .1f;
@@ -59,8 +52,10 @@ int Main(int argc, char **argv)
 			return false;
 		}
 	);
+	vector<ShaderController *> controllers;
+	controllers.emplace_back(new DirectionalLight(vec3(1, 1, 1)));
 	window.dispatch<RenderEvent>(
-		[]() -> bool {
+		[&]() -> bool {
 			glClear(GL_COLOR_BUFFER_BIT);
 
 			static auto angle = 0.002f;
@@ -71,6 +66,7 @@ int Main(int argc, char **argv)
 			for (auto &viewPort: viewPorts)
 			{
 				object.render(*viewPort);
+				controllers[0]->invoke();
 			}
 			return false;
 		}

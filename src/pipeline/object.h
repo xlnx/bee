@@ -13,20 +13,23 @@ class Object: public BasicCtrl
 public:
 	Object() = default;
 	Object(const gl::Model &m, gl::Shader &s): 
-		model(&m), shader(&s) 
+		model(&m), shader(&s), 
+		gWVP(gl::Shader::uniform<::glm::mat4>("gWVP")), 
+		gWorld(gl::Shader::uniform<::glm::mat4>("gWorld"))
 	{
 	}
 
 	virtual void render(ViewPort &viewPort)
 	{
 		shader->use();
-		shader->uniform<::glm::mat4>("gWVP") = 
-			::glm::transpose(viewPort.getTrans() * getTrans());
-		model->render(*shader);
+		gWVP = ::glm::transpose(viewPort.getTrans() * getTrans());
+		gWorld = ::glm::transpose(getTrans());
+		model->render();
 	}
 protected:
 	const gl::Model *model = nullptr;
 	gl::Shader *shader = nullptr;
+	gl::UniformRef<::glm::mat4> gWVP, gWorld;
 };
 
 }

@@ -1,7 +1,9 @@
 #pragma once 
 
 #include "common.h"
+#include <cstdlib>
 #include <map>
+#include <vector>
 
 namespace bee
 {
@@ -78,32 +80,37 @@ using VertexShader = ShaderObj<GL_VERTEX_SHADER>;
 using FragmentShader = ShaderObj<GL_FRAGMENT_SHADER>;
 using GeometryShader = ShaderObj<GL_GEOMETRY_SHADER>;
 
-template <typename T>
 class UniformRefBase
 {
 protected:
 	friend class Shader;
 	UniformRefBase() = default;
-	UniformRefBase &operator = (const UniformRefBase &other) = delete;
 public:
 	void bind(const UniformRefBase &other)
 	{
-		handle = other.handle;
-	}
-	operator bool() const
-	{
-		return ~handle;
+		index = other.index;
 	}
 protected:
-	GLuint handle = -1;
+	int index = 0;
 };
+
+class UniformRefHack;
 
 class Shader final
 {
+	static constexpr auto maxUniformCount = 512;
+	struct ShaderRec
+	{
+		Shader *shader;
+		ShaderRec *next = nullptr, *prev = nullptr;
+	};
+	friend class UniformRefHack;
 public:
 	template <typename ...Types>
 	Shader(Types &&...args):
-		shader(glCreateProgram())
+		shader(glCreateProgram()), 
+		prec(new ShaderRec{this, shaderHead.next, &shaderHead}),
+		uniforms(new GLuint [maxUniformCount])
 	{
 		if (!shader)
 		{
@@ -111,48 +118,95 @@ public:
 		}
 		attach(std::forward<Types>(args)...);
 		link();
+		memset(uniforms, -1, sizeof(*uniforms) * maxUniformCount);
+		for (auto i = 0u; i != registeredUniforms.size(); ++i)
+		{
+			uniforms[i + 1] = glGetUniformLocation(shader, registeredUniforms[i].c_str());
+		}
+		if (shaderHead.next)
+		{
+			shaderHead.next->prev = prec;
+		}
+		shaderHead.next = prec;
 	}
 	template <template <typename T, typename _Alloc> class E,
 		typename Alloc>
-	Shader(const E<GLuint, Alloc> &v)
+	Shader(const E<GLuint, Alloc> &v):
+		shader(glCreateProgram()), 
+		prec(new ShaderRec{this, shaderHead.next, &shaderHead}),
+		uniforms(new GLuint [maxUniformCount])
 	{
 		for (auto e: v) attach(e);
 		link();
+		memset(uniforms, -1, sizeof(*uniforms) * maxUniformCount);
+		for (int i = 0; i != registeredUniforms.size(); ++i)
+		{
+			uniforms[i + 1] = glGetUniformLocation(shader, registeredUniforms[i].c_str());
+		}
+		if (shaderHead.next)
+		{
+			shaderHead.next->prev = prec;
+		}
+		shaderHead.next = prec;
 	}
 	Shader(const Shader &) = delete;
 	Shader(Shader &&other):
-		shader(other.shader)
+		shader(other.shader), 
+		prec(other.prec),
+		uniforms(other.uniforms)
 	{
+		prec->shader = this;
 		other.shader = 0;
+		other.prec = nullptr;
 	}
 	~Shader()
 	{
-		glDeleteProgram(shader);
+		if (prec)
+		{
+			glDeleteProgram(shader);
+			if (prec->prev->next = prec->next)
+			{
+				prec->next->prev = prec->prev;
+			}
+			delete prec;
+			delete [] uniforms;
+		}
 	}
 	
 	operator GLuint() const
 	{
 		return shader;
 	}
-	void use() const
+	void use()
 	{
 		glUseProgram(shader);
+		currShader = this;
 	}
+public:
 	template <typename T>
-		UniformRef<T> uniform(const std::string &name)
+		static UniformRef<T> uniform(const ::std::string &name)
 	{
 		UniformRef<T> ref;
-		if (!bufferedUniforms.count(name))
+		auto iter = uniformIndex.find(name);
+		if (iter != uniformIndex.end())
 		{
-			auto handle = glGetUniformLocation(shader, name.c_str());
-			if (!~handle)
-			{
-				BEE_RAISE(GLFatal, "Invalid uniform variable name: " + name);
-			}
-			bufferedUniforms[name] = handle;
+			reinterpret_cast<UniformRefBase&>(ref).index = iter->second;
 		}
-		static_cast<UniformRefBase<T>&>(ref).handle = bufferedUniforms[name];
+		else
+		{
+			registeredUniforms.emplace_back(name);
+			auto index = uniformIndex[name] = registeredUniforms.size();
+			reinterpret_cast<UniformRefBase&>(ref).index = index;
+			for (auto ptr = shaderHead.next; ptr != nullptr; ptr = ptr->next)
+			{
+				ptr->shader->uniforms[index] = glGetUniformLocation(*ptr->shader, name.c_str());
+			}
+		}
 		return ref;
+	}
+	static Shader &current()
+	{
+		return *currShader;
 	}
 private:
 	template <typename T, typename ...Types, typename = typename
@@ -192,84 +246,116 @@ private:
 	}
 private:
 	GLuint shader;
-	::std::map<::std::string, GLuint> bufferedUniforms;
+	ShaderRec *prec;
+	GLuint *uniforms;
+private:
+	static Shader *currShader;
+	static ShaderRec shaderHead;
+	// ::std::map<::std::string, GLuint> bufferedUniforms;
+	static ::std::map<::std::string, int> uniformIndex;
+	static ::std::vector<::std::string> registeredUniforms;
+};
+
+class UniformRefHack: public UniformRefBase
+{
+protected:
+	GLuint handle() const
+	{
+		return Shader::current().uniforms[UniformRefBase::index];
+	}
 };
 
 template <typename T>
-	struct UniformRef: UniformRefBase<T>
+	struct UniformRef: UniformRefHack
 {
-	void operator = (const T &target);
+	bool operator = (const T &target) const;
 };
 
 template <>
-	struct UniformRef<::glm::mat2>: UniformRefBase<::glm::mat2>
+	struct UniformRef<::glm::mat2>: UniformRefHack
 {
-	void operator = (const ::glm::mat2 &target)
+	bool operator = (const ::glm::mat2 &target) const
 	{
-		glUniformMatrix2fv(handle, 1, GL_TRUE, reinterpret_cast<const float*>(&target));
+		auto targ = handle();
+		glUniformMatrix2fv(targ, 1, GL_TRUE, reinterpret_cast<const float*>(&target));
+		return ~targ;
 	}
 };
 
 template <>
-	struct UniformRef<::glm::mat3>: UniformRefBase<::glm::mat3>
+	struct UniformRef<::glm::mat3>: UniformRefHack
 {
-	void operator = (const ::glm::mat3 &target)
+	bool operator = (const ::glm::mat3 &target) const
 	{
-		glUniformMatrix3fv(handle, 1, GL_TRUE, reinterpret_cast<const float*>(&target));
+		auto targ = handle();
+		glUniformMatrix3fv(targ, 1, GL_TRUE, reinterpret_cast<const float*>(&target));
+		return ~targ;
 	}
 };
 
 template <>
-	struct UniformRef<::glm::mat4>: UniformRefBase<::glm::mat4>
+	struct UniformRef<::glm::mat4>: UniformRefHack
 {
-	void operator = (const ::glm::mat4 &target)
+	bool operator = (const ::glm::mat4 &target) const
 	{
-		glUniformMatrix4fv(handle, 1, GL_TRUE, reinterpret_cast<const float*>(&target));
+		auto targ = handle();
+		glUniformMatrix4fv(targ, 1, GL_TRUE, reinterpret_cast<const float*>(&target));
+		return ~targ;
 	}
 };
 
 template <>
-	struct UniformRef<int>: UniformRefBase<int>
+	struct UniformRef<int>: UniformRefHack
 {
-	void operator = (const int &target)
+	bool operator = (const int &target) const
 	{
-		glUniform1i(handle, target);
+		auto targ = handle();
+		glUniform1i(targ, target);
+		return ~targ;
 	}
 };
 
 template <>
-	struct UniformRef<float>: UniformRefBase<float>
+	struct UniformRef<float>: UniformRefHack
 {
-	void operator = (const float &target)
+	bool operator = (const float &target) const
 	{
-		glUniform1f(handle, target);
+		auto targ = handle();
+		glUniform1f(targ, target);
+		return ~targ;
 	}
 };
 
 template <>
-	struct UniformRef<::glm::vec2>: UniformRefBase<::glm::vec2>
+	struct UniformRef<::glm::vec2>: UniformRefHack
 {
-	void operator = (const ::glm::vec2 &target)
+	bool operator = (const ::glm::vec2 &target) const
 	{
-		glUniform2f(handle, target[0], target[1]);
+		auto targ = handle();
+		glUniform2f(targ, target[0], target[1]);
+		return ~targ;
 	}
 };
 
 template <>
-	struct UniformRef<::glm::vec3>: UniformRefBase<::glm::vec3>
+	struct UniformRef<::glm::vec3>: UniformRefHack
 {
-	void operator = (const ::glm::vec3 &target)
+	bool operator = (const ::glm::vec3 &target) const
 	{
-		glUniform3f(handle, target[0], target[1], target[2]);
+		auto targ = handle();
+		glUniform3f(targ, target[0], target[1], target[2]);
+		return ~targ;
 	}
 };
 
 template <>
-	struct UniformRef<::glm::vec4>: UniformRefBase<::glm::vec4>
+	struct UniformRef<::glm::vec4>: UniformRefHack
 {
-	void operator = (const ::glm::vec4 &target)
+	bool operator = (const ::glm::vec4 &target) const
 	{
-		glUniform4f(handle, target[0], target[1], target[2], target[3]);
+		auto targ = handle();
+		glUniform4f(targ, target[0], target[1], target[2], target[3]);
+		return ~targ;
 	}
 };
 

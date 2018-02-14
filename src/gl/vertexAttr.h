@@ -19,10 +19,15 @@ struct VertexAttr;
 template <typename ...Attrs>
 struct VertexAttrs;
 
-
+// VertexAttribute location in shader
 enum VertexAttrType { 
-	position = 0, color = 1, normal = 2, tangent = 3, 
-	bitangent = 4, textureCoord = 5 };
+	position = 0, 
+	color = 1, 
+	normal = 2, 
+	tangent = 3, 
+	bitangent = 4, 
+	textureCoord = 5 
+};
 
 constexpr GLenum vertexAttrTypeBegin = position; 
 constexpr GLenum vertexAttrTypeEnd = textureCoord + 1; 
