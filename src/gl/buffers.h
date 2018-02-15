@@ -146,7 +146,7 @@ public:
 		glBindVertexArray(handle);
 			vbo.bind(); vbo.data(vertices.size() * vertices.elemSize, vertices.begin());
 			ebo.bind(); ebo.data(faces.size() * faces.elemSize, faces.begin());
-			vertices.setVertexAttribute();
+			vertices.performSetVertexAttribute();
 		glBindVertexArray(0);
 	}
 	operator GLuint() const noexcept

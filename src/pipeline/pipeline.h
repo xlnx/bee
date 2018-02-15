@@ -1,6 +1,6 @@
 #pragma once
 
-#include "basicControl.h"
+#include "objectBase.h"
 #include "object.h"
 #include "camera.h"
 #include "viewPort.h"

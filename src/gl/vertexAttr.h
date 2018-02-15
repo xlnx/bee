@@ -251,6 +251,8 @@ struct ArrayMemoryManager
 
 	constexpr ::std::size_t size() const noexcept
 	{ return num; }
+	constexpr void resize(::std::size_t n)
+	{ delete [] dataptr; dataptr = new elemType[num = n]; }
 	constexpr elemType &operator [] (::std::size_t index) noexcept
 	{ return dataptr[index]; }
 	constexpr const elemType &operator [] (::std::size_t index) const noexcept
@@ -262,7 +264,7 @@ struct ArrayMemoryManager
 
 	constexpr static ::std::size_t elemSize = sizeof(elemType);
 protected:
-	const ::std::size_t num;
+	::std::size_t num;
 	elemType *dataptr;
 };
 
@@ -278,6 +280,15 @@ template <typename A, typename E>
  		VertexAttrSignature<typename A::elemType>::value, GL_FALSE, sizeof(E), 
 		 	(void*)&((E*)nullptr)->template get<A::type>());
 	glDisableVertexAttribArray(A::type);
+	return 0;
+}
+template <typename A, typename E>
+	int dummyExpandAux2()
+{
+	glEnableVertexAttribArray(A::type);
+	glVertexAttribPointer(A::type, A::size, 
+ 		VertexAttrSignature<typename A::elemType>::value, GL_FALSE, sizeof(E), 
+		 	(void*)&((E*)nullptr)->template get<A::type>());
 	return 0;
 }
 
@@ -346,8 +357,11 @@ struct VertexAttrs: public ArrayMemoryManager<VertexAttr<Attrs...>>
 	constexpr VertexAttrs(::std::size_t size):
 		Super(size)
 	{}
-	constexpr static void setVertexAttribute()
+	constexpr static void performSetVertexAttribute()
 	{ dummyExpand(dummyExpandAux<Attrs, elemType>()...); }
+	constexpr static void setVertexAttribute()
+	{ for (auto i = vertexAttrTypeBegin; i != vertexAttrTypeEnd; ++i) glDisableVertexAttribArray(i);
+		dummyExpand(dummyExpandAux2<Attrs, elemType>()...); }
 	constexpr static VertexAttrEnabledInfo info = {Attrs::type...};
 };
 
@@ -431,7 +445,7 @@ struct VertexAttrs<any>
 	// { return dataptr + num * elemSize; }
 	// const elemType *end() const noexcept
 	// { return dataptr + num * elemSize; }
-	void setVertexAttribute() const
+	void performSetVertexAttribute() const
 	{
 		for (auto i = vertexAttrTypeBegin; i != vertexAttrTypeEnd; ++i)
 		{
@@ -441,6 +455,19 @@ struct VertexAttrs<any>
 				glEnableVertexAttribArray(a.type);
 				glVertexAttribPointer(a.type, a.size, a.elemType, GL_FALSE, elemSize, (void*)a.offset);
 				glDisableVertexAttribArray(a.type);
+			}
+		}
+	}
+	void setVertexAttribute() const
+	{
+		for (auto i = vertexAttrTypeBegin; i != vertexAttrTypeEnd; ++i)
+		{
+			glDisableVertexAttribArray(i);
+			auto &a = dyninfo[i];
+			if (info.v[i])
+			{
+				glEnableVertexAttribArray(a.type);
+				glVertexAttribPointer(a.type, a.size, a.elemType, GL_FALSE, elemSize, (void*)a.offset);
 			}
 		}
 	}

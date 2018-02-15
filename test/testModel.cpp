@@ -11,7 +11,7 @@ using namespace glm;
 
 Window<3, 3> window("testModel", false, 512, 512);
 Model model;
-Object object;
+ModelObject object;
 vector<ViewPort*> viewPorts;
 
 int Main(int argc, char **argv)
@@ -33,7 +33,7 @@ int Main(int argc, char **argv)
 	::std::string line;
 	::std::cin >> line;
 	model = Model(line);
-	object = Object(model, shader);
+	object = ModelObject(model, shader);
 	object.scale(0.02, 0.02, 0.02);
 
 	window.dispatch<KeyEvent>(

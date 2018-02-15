@@ -33,6 +33,27 @@ namespace bee
 	protected:\
 		ty f##name
 
+
+
+#define BEE_PROPERTY_REF(ty, name) \
+	public:\
+		void set##name(ty &arg)\
+		{\
+			f##name = &arg;\
+		}\
+		void set##name(ty *arg)\
+		{\
+			f##name = arg;\
+		}\
+		ty &get##name() const\
+		{\
+			return *f##name;\
+		}\
+	protected:\
+		ty *f##name
+
+
+
 #define BEE_UNIFORM(ty, name, section) \
 	protected:\
 		gl::UniformRef<ty> g##name = gl::Shader::uniform<ty>(::std::string("g") + (section) + "." #name)
@@ -40,6 +61,7 @@ namespace bee
 #define BEE_UNIFORM_GLOB(ty, name) \
 	protected:\
 		gl::UniformRef<ty> g##name = gl::Shader::uniform<ty>("g" #name)
+
 
 
 #define BEE_SC_BASE(ty) \

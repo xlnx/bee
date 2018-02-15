@@ -56,9 +56,9 @@ if (BUILD_TESTS)
 	endforeach ()
 endif ()
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "")
-file(GLOB BEE_MAIN "${CMAKE_SOURCE_DIR}/src/*.cpp")
-add_executable(bee
-	${BEE_SOURCES}
-	${BEE_MAIN}
-)
+# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "")
+# file(GLOB BEE_MAIN "${CMAKE_SOURCE_DIR}/src/*.cpp")
+# add_executable(bee
+# 	${BEE_SOURCES}
+# 	${BEE_MAIN}
+# )

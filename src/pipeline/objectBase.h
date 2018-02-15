@@ -6,11 +6,11 @@
 namespace bee
 {
 
-class BasicCtrl
+class ObjectBase
 {
 protected:
-	BasicCtrl() = default;
-	virtual ~BasicCtrl() = default;
+	ObjectBase() = default;
+	virtual ~ObjectBase() = default;
 
 	const ::glm::mat4 &getTrans()
 	{

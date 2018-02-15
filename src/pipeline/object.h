@@ -3,35 +3,51 @@
 #include "shader.h"
 #include "model.h"
 #include "viewPort.h"
-#include "basicControl.h"
+#include "objectBase.h"
 #include "property.h"
 
 namespace bee
 {
 
-class Object: public BasicCtrl
+class Object: public ObjectBase
 {
 	BEE_UNIFORM_GLOB(::glm::mat4, WVP);
 	BEE_UNIFORM_GLOB(::glm::mat4, World);
 	BEE_UNIFORM_GLOB(::glm::vec3, CameraWorldPos);
-public:
+protected:
 	Object() = default;
-	Object(const gl::Model &m, gl::Shader &s): 
-		model(&m), shader(&s)
+	Object(gl::Shader &shader):
+		fShader(&shader)
 	{
 	}
-
+public:
 	virtual void render(ViewPort &viewPort)
 	{
-		shader->use();
+		fShader->use();
 		gWVP = ::glm::transpose(viewPort.getTrans() * getTrans());
 		gWorld = ::glm::transpose(getTrans());
 		gCameraWorldPos = viewPort.getPosition();
-		model->render();
 	}
-protected:
-	const gl::Model *model = nullptr;
-	gl::Shader *shader = nullptr;
+public:
+	BEE_PROPERTY_REF(gl::Shader, Shader) = nullptr;
+};
+
+class ModelObject: public Object
+{
+public:
+	ModelObject() = default;
+	ModelObject(const gl::Model &model, gl::Shader &shader): 
+		Object(shader), fModel(&model)
+	{
+	}
+
+	void render(ViewPort &viewPort) override
+	{
+		Object::render(viewPort);
+		fModel->render();
+	}
+public:
+	BEE_PROPERTY_REF(const gl::Model, Model) = nullptr;
 };
 
 }
