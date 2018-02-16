@@ -129,6 +129,11 @@ public:
 		glBindTexture(Dim, 0);
 		freeImage(data);
 	}
+	void invoke(int i) const
+	{
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(Dim, handle);
+	}
 };
 
 // template <>

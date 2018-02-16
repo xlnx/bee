@@ -22,13 +22,13 @@ int Main(int argc, char **argv)
 		VertexShader("testWave.vert"),
 		FragmentShader("testWave.frag")
 	));
-	ptr->attachWave(new GerstnerWave());
-	ptr->resize(200, 200);
+	ptr->attachWave(* new GerstnerWave());
+	ptr->resize(2, 2);
 	// objects[0]->scale(0.02);
 	cameras[0]->setPosition(0, -1, 0);
 	cameras[0]->setTarget(0, 1, 0);
-	vector<ShaderController *> controllers;
-	controllers.emplace_back(new DirectionalLight(vec3(1, -1, -1)));
+	ShaderControllers<> controllers;
+	controllers.addController(* new DirectionalLight(vec3(1, -1, -1)));
 	window.dispatch<RenderEvent>(
 		[&]() -> bool {
 			for (auto & camera: cameras)
@@ -36,10 +36,7 @@ int Main(int argc, char **argv)
 				for (auto & object: objects)
 				{
 					object->render(*camera);
-					for (auto &controller: controllers) 
-					{
-						controller->invoke();
-					}
+					controllers.invoke();
 				}
 			}
 			return false;

@@ -64,50 +64,34 @@ namespace bee
 
 
 
-#define BEE_SC_BASE(ty) \
-	protected:\
-		ty(const ::std::string &prefix): \
-			prefix(prefix)\
-		{\
-		}\
-	private:\
-		const ::std::string &prefix = #ty
-
-#define BEE_SC_BASE_MULTI(ty) \
-	protected:\
-		ty(const ::std::string &prefix): \
-			prefix(prefix)\
-		{\
-		}\
-	private:\
-		const ::std::string &prefix = #ty "[]"
-
 #define BEE_SC_UNIFORM(ty, name) \
 	BEE_UNIFORM(ty, name, prefix)
 
 #define BEE_SC_INHERIT(ty, base) \
 	private:\
 		using Super = base;\
-		static constexpr const char *SuperParam = #ty ".Base";\
+		static constexpr const char *SuperParam = base::isMulti ? \
+			#ty "[].Base" : #ty ".Base";\
 	protected:\
 		ty(const ::std::string &prefix): \
 			base(prefix + ".Base"), prefix(prefix)\
 		{\
 		}\
 	private:\
-		const ::std::string &prefix = #ty
-
-#define BEE_SC_INHERIT_MULTI(ty, base) \
-	private:\
-		using Super = base;\
-		static constexpr const char *SuperParam = #ty "[].Base";\
-	protected:\
-		ty(const ::std::string &prefix): \
-			base(prefix + ".Base"), prefix(prefix)\
+		ShaderControllerInfoGetter getInfoFunc() override\
 		{\
+			return getShaderControllerInfo;\
+		}\
+		static ShaderControllerInfo *getShaderControllerInfo() \
+		{\
+			static ShaderControllerInfo info {\
+				gl::Shader::uniform<int>("g" #ty "Count"),\
+				#ty,\
+			};\
+			return & info;\
 		}\
 	private:\
-		const ::std::string &prefix = #ty "[]"
+		const ::std::string &prefix = base::isMulti ? #ty "[]" : #ty
 
 #define BEE_SC_SUPER() \
 		Super(SuperParam)

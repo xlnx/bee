@@ -6,16 +6,17 @@
 namespace bee
 {
 
-class LightBase:
-	public ShaderController
+class LightBaseSingle:
+	public ShaderControllerSingle
 {
-	BEE_SC_BASE(LightBase);
+	BEE_SC_INHERIT(LightBaseSingle, ShaderControllerSingle);
 public:
-	void invoke() override
+	bool invoke(int index) override
 	{
 		gColor = fColor;
 		gAmbientIntensity = fAmbientIntensity;
 		gDiffuseIntensity = fDiffuseIntensity;
+		return true;
 	}
 protected:
 	BEE_SC_UNIFORM(::glm::vec3, Color);
@@ -28,18 +29,17 @@ public:
 };
 
 class LightBaseMulti:
-	public ShaderController
+	public ShaderControllerMulti
 {
-	BEE_SC_BASE_MULTI(LightBaseMulti);
+	BEE_SC_INHERIT(LightBaseMulti, ShaderControllerMulti);
 public:
-	void invoke() override
+	bool invoke(int index) override
 	{
-		gColor[getIndex()] = fColor;
-		gAmbientIntensity[getIndex()] = fAmbientIntensity;
-		gDiffuseIntensity[getIndex()] = fDiffuseIntensity;
+		gColor[index] = fColor;
+		gAmbientIntensity[index] = fAmbientIntensity;
+		gDiffuseIntensity[index] = fDiffuseIntensity;
+		return true;
 	}
-protected:
-	virtual int getIndex() const = 0;
 protected:
 	BEE_SC_UNIFORM(::glm::vec3[], Color);
 	BEE_SC_UNIFORM(float[], AmbientIntensity);
@@ -51,19 +51,20 @@ public:
 };
 
 class DirectionalLight:
-	public LightBase
+	public LightBaseSingle
 {
-	BEE_SC_INHERIT(DirectionalLight, LightBase);
+	BEE_SC_INHERIT(DirectionalLight, LightBaseSingle);
 public:
 	DirectionalLight(const ::glm::vec3 &direction):
 		BEE_SC_SUPER(), fDirection(direction)
 	{
 	}
 
-	void invoke() override
+	bool invoke(int index) override
 	{
-		Super::invoke();
+		Super::invoke(index);
 		gDirection = fDirection;
+		return true;
 	}
 	BEE_SC_UNIFORM(::glm::vec3, Direction);
 public:
@@ -73,26 +74,22 @@ public:
 class PointLight:
 	public LightBaseMulti
 {
-	BEE_SC_INHERIT_MULTI(PointLight, LightBaseMulti);
+	BEE_SC_INHERIT(PointLight, LightBaseMulti);
 public:
 	PointLight(const ::glm::vec3 &position):
 		BEE_SC_SUPER(), fPosition(position)
 	{
 	}
 
-	void invoke() override
+	bool invoke(int index) override
 	{
-		Super::invoke();
-		gPosition[getIndex()] = fPosition;
+		Super::invoke(index);
+		gPosition[index] = fPosition;
 
-		gAttenConstant[getIndex()] = fAttenConstant;
-		gAttenLinear[getIndex()] = fAttenLinear;
-		gAttenExp[getIndex()] = fAttenExp;
-	}
-protected:
-	int getIndex() const override
-	{
-		return 0;
+		gAttenConstant[index] = fAttenConstant;
+		gAttenLinear[index] = fAttenLinear;
+		gAttenExp[index] = fAttenExp;
+		return true;
 	}
 protected:
 	BEE_SC_UNIFORM(::glm::vec3[], Position);
@@ -110,7 +107,7 @@ public:
 class SpotLight:
 	public PointLight
 {
-	BEE_SC_INHERIT_MULTI(SpotLight, PointLight);
+	BEE_SC_INHERIT(SpotLight, PointLight);
 public:
 	SpotLight(const ::glm::vec3 &position):
 		BEE_SC_SUPER()
@@ -118,16 +115,12 @@ public:
 		setPosition(position);
 	}
 
-	void invoke() override
+	bool invoke(int index) override
 	{
-		Super::invoke();
-		gDirection[getIndex()] = fDirection;
-		gCutoff[getIndex()] = fCutoff;
-	}
-protected:
-	int getIndex() const override
-	{
-		return 0;
+		Super::invoke(index);
+		gDirection[index] = fDirection;
+		gCutoff[index] = fCutoff;
+		return true;
 	}
 protected:
 	BEE_SC_UNIFORM(::glm::vec3[], Direction);

@@ -362,7 +362,7 @@ struct VertexAttrs: public ArrayMemoryManager<VertexAttr<Attrs...>>
 	constexpr static void setVertexAttribute()
 	{ for (auto i = vertexAttrTypeBegin; i != vertexAttrTypeEnd; ++i) glDisableVertexAttribArray(i);
 		dummyExpand(dummyExpandAux2<Attrs, elemType>()...); }
-	constexpr static VertexAttrEnabledInfo info = {Attrs::type...};
+	const VertexAttrEnabledInfo info = {Attrs::type...};
 };
 
 template <>

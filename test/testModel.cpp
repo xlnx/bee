@@ -54,8 +54,8 @@ int Main(int argc, char **argv)
 			return false;
 		}
 	);
-	vector<ShaderController *> controllers;
-	controllers.emplace_back(new DirectionalLight(vec3(1, 1, 1)));
+	ShaderControllers<> controllers;
+	controllers.addController(* new DirectionalLight(vec3(1, 1, 1)));
 	// controllers.emplace_back(new PointLight(vec3(0, 0, 1)));
 	window.dispatch<RenderEvent>(
 		[&]() -> bool {
@@ -67,10 +67,7 @@ int Main(int argc, char **argv)
 			for (auto &viewPort: viewPorts)
 			{
 				object.render(*viewPort);
-				for (auto &controller: controllers) 
-				{
-					controller->invoke();
-				}
+				controllers.invoke();
 			}
 			return false;
 		}

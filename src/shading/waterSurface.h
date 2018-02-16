@@ -3,6 +3,8 @@
 #include "gl.h"
 #include "object.h"
 #include "property.h"
+#include "shaderController.h"
+#include "texture.h"
 #include <cmath>
 
 namespace bee
@@ -10,37 +12,43 @@ namespace bee
 
 class WaterSurface;
 
-class WaveBase
+class WaveBase:
+	public ShaderControllerMulti
 {
+	BEE_SC_INHERIT(WaveBase, ShaderControllerMulti);
 	friend class WaterSurface;
-protected:
-	WaveBase() = default;
-protected:
-	virtual void invoke(::glm::vec3[][200], int count, int length) = 0;
 };
 
 class WaterSurface: public Object
 {
 	friend class WaveBase;
-	static constexpr auto meshWidth = .1f;
+	static constexpr auto meshWidth = .02f;
 public:
-	WaterSurface() = default;
+	WaterSurface(): Object(* new gl::Shader(
+			gl::VertexShader("testWave.vert"),
+			gl::FragmentShader("testWave.frag")
+		))
+	{
+	}
 
 	void render(ViewPort &viewPort) override
 	{
 		Object::render(viewPort);
-		for (int i = 0; i != stripCount; ++i)
+		// BEE_LOG()
+		waves.invoke();
+		// texture.invoke(0);
+		int len = stripLength << 1;
+		for (int i = 0; i != stripCount - 1; ++i)
 		{
-			for (int j = 0; j != stripLength; ++j)
-			{
-				strip[i][j].z = 0.f;
-			}
+			vao.render(GL_TRIANGLE_STRIP, i * len, len);
 		}
-		for (auto &wave: waves)
-		{
-			wave->invoke(strip, stripCount, stripLength);
-		}
-		genNormals();
+	}
+	void resize(float x, float y)
+	{
+		stripCount = y / meshWidth;
+		stripLength = x / meshWidth;
+		auto vertices = gl::VertexAttrs<gl::pos3>(
+				(stripCount - 1) * (stripLength << 1));
 		int len = stripLength << 1;
 		for (int i = 0; i != stripCount - 1; ++i)
 		{
@@ -48,41 +56,12 @@ public:
 			{
 				auto i0 = j & 1 ? i : i + 1;
 				auto j0 = j >> 1;
-				vertices[i * len + j].get<gl::pos3>() = strip[i0][j0];
-				vertices[i * len + j].get<gl::norm3>() = strip[i0][j0];
+				vertices[i * len + j].get<gl::pos3>() = {
+					j0 * meshWidth, i0 * meshWidth, 0.f
+				};
 			}
 		}
-		vbo.bind(); 
-		vbo.data(vertices.size() * vertices.elemSize, vertices.begin());
-		vertices.setVertexAttribute();
-		for (int i = 0; i != stripCount - 1; ++i)
-		{
-			glDrawArrays(GL_TRIANGLE_STRIP, i * len, len);
-		}
-		// for (int i = 0; i != (stripCount - 1) * len; ++i)
-		// {
-		// 	// for (int j = 0; j != stripLength; ++j)
-		// 	// {
-		// 	std::cerr << "(" << vertices[i].get<gl::pos3>().x << "," <<
-		// 		vertices[i].get<gl::pos3>().y << "," <<
-		// 		vertices[i].get<gl::pos3>().z << ") ";
-		// 	// }
-		// 	std::cerr << std::endl;
-		// }
-	}
-	void resize(int count, int length)
-	{
-		stripCount = count;
-		stripLength = length;
-		for (int i = 0; i != stripCount; ++i)
-		{
-			for (int j = 0; j != stripLength; ++j)
-			{
-				strip[i][j].x = j * meshWidth;
-				strip[i][j].y = i * meshWidth;
-			}
-		}
-		vertices.resize( (stripCount - 1) * (stripLength << 1) );
+		vao.setVertices(vertices);
 	}
 	int getStripCount() const
 	{
@@ -92,173 +71,50 @@ public:
 	{
 		return stripLength;
 	}
-	void attachWave(WaveBase *wave)
+	void attachWave(WaveBase &wave)
 	{
-		waves.push_back(wave);
-	}
-private:
-	void genNormals()
-	{
-		for (int i = 1; i < stripCount - 1; ++i)
-		{
-			for (int j = 1; j < stripLength - 1; ++j)
-			{
-				auto p0 = strip[i][j - 1] - strip[i][j];
-				auto p1 = strip[i - 1][j] - strip[i][j];
-				auto p2 = strip[i][j + 1] - strip[i][j];
-				auto p3 = strip[i + 1][j] - strip[i][j];
-				normals[i][j] = ::glm::cross(p1, p0);
-				normals[i][j] += ::glm::cross(p2, p1);
-				normals[i][j] += ::glm::cross(p3, p2);
-				normals[i][j] += ::glm::cross(p0, p3);
-			}
-		}
-		for (int j = 1; j < stripLength - 1; ++j)
-		{
-			auto p0 = strip[0][j - 1] - strip[0][j];
-			// auto p1 = strip[i - 1][j] - strip[i][j];
-			auto p2 = strip[0][j + 1] - strip[0][j];
-			auto p3 = strip[0 + 1][j] - strip[0][j];
-			// normals[stripCount][j] += ::glm::cross(p1, p0);
-			// normals[stripCount][j] += ::glm::cross(p2, p1);
-			normals[0][j] = ::glm::cross(p3, p2);
-			normals[0][j] += ::glm::cross(p0, p3);
-		}
-		for (int j = 1; j < stripLength - 1; ++j)
-		{
-			auto p0 = strip[stripCount - 1][j - 1] - strip[stripCount - 1][j];
-			auto p1 = strip[stripCount - 1 - 1][j] - strip[stripCount - 1][j];
-			auto p2 = strip[stripCount - 1][j + 1] - strip[stripCount - 1][j];
-			// auto p3 = strip[i + 1][j] - strip[i][j];
-			normals[stripCount - 1][j] = ::glm::cross(p1, p0);
-			normals[stripCount - 1][j] += ::glm::cross(p2, p1);
-			// normals[i][j] += ::glm::cross(p3, p2);
-			// normals[i][j] += ::glm::cross(p0, p3);
-		}
-		for (int i = 1; i < stripCount - 1; ++i)
-		{
-			// auto p0 = strip[i][j - 1] - strip[i][j];
-			auto p1 = strip[i - 1][0] - strip[i][0];
-			auto p2 = strip[i][0 + 1] - strip[i][0];
-			auto p3 = strip[i + 1][0] - strip[i][0];
-			// normals[i][0] += ::glm::cross(p1, p0);
-			normals[i][0] = ::glm::cross(p2, p1);
-			normals[i][0] += ::glm::cross(p3, p2);
-			// normals[i][0] += ::glm::cross(p0, p3);
-		}
-		for (int i = 1; i < stripCount - 1; ++i)
-		{
-			auto p0 = strip[i][stripLength - 1 - 1] - strip[i][stripLength - 1];
-			auto p1 = strip[i - 1][stripLength - 1] - strip[i][stripLength - 1];
-			// auto p2 = strip[i][j + 1] - strip[i][j];
-			auto p3 = strip[i + 1][stripLength - 1] - strip[i][stripLength - 1];
-			normals[i][stripLength - 1] = ::glm::cross(p1, p0);
-			// normals[i][j] += ::glm::cross(p2, p1);
-			// normals[i][j] += ::glm::cross(p3, p2);
-			normals[i][stripLength - 1] += ::glm::cross(p0, p3);
-		}
-		normals[0][0] = 
-			::glm::cross(strip[1][0] - strip[0][0], 
-				strip[0][1] - strip[0][0]);
-		normals[0][stripLength - 1] = 
-			::glm::cross(strip[0][stripLength - 1 - 1] - strip[0][stripLength - 1], 
-				strip[1][stripLength - 1] - strip[0][stripLength - 1]);
-		normals[stripCount - 1][stripLength - 1] = 
-			::glm::cross(strip[stripCount - 1 - 1][stripLength - 1] - strip[stripCount - 1][stripLength - 1], 
-				strip[stripCount - 1][stripLength - 1 - 1] - strip[stripLength - 1][stripLength - 1]);
-		normals[stripCount - 1][0] = 
-			::glm::cross(strip[stripCount - 1][1] - strip[stripCount - 1][0], 
-				strip[stripCount - 1 - 1][0] - strip[stripCount - 1][0]);
-		for (int i = 0; i != stripCount; ++i)
-		{
-			for (int j = 0; j != stripLength; ++j)
-			{
-				normals[i][j] = ::glm::normalize(normals[i][j]);
-			}
-		}
+		waves.addController(wave);
 	}
 protected:
-	::std::vector<WaveBase*> waves;
-	gl::VBO vbo;
-	gl::VertexAttrs<gl::pos3, gl::norm3> vertices = 
-		gl::VertexAttrs<gl::pos3, gl::norm3>(1);
+	gl::ArrayedVAO vao;
 	int stripCount, stripLength;
-	::glm::vec3 strip[200][200], normals[200][200];
+	gl::Texture<gl::Tex2D> texture = 
+		gl::Texture<gl::Tex2D>("water-texture-2.tga");
+	
+	ShaderControllers<WaveBase> waves;
 };
 
-class GerstnerWave: public WaveBase
+class GerstnerWave: 
+	public WaveBase
 {
-	static constexpr int sampleCount = 12;
+	BEE_SC_INHERIT(GerstnerWave, WaveBase);
 public:
-	GerstnerWave()
+	GerstnerWave():
+		BEE_SC_SUPER()
 	{
-		setSample();
 	}
 protected:
-	void invoke(::glm::vec3 strip[][200], int count, int length) override
+	bool invoke(int index) override
 	{
-		for (int i = 0; i != count; ++i)
-		{
-			for (int j = 0; j != length; ++j)
-			{
-				auto d = (strip[i][j].x/*- x0*/) * cosf(fAngle) + 
-					(strip[i][j].y/*- y0*/) * sinf(fAngle);
-				auto z = gerstnerZ(fLength, fHeight, d + fSpeed * time);
-				strip[i][j].z += z;
-			}
-		}
-	}
-	static constexpr float time = 0;
-protected:
-	float gerstnerZ(float w, float h, float x) const
-	{
-		x = fmodf(x * 2 * sampleX[sampleCount - 1] / w, 2 * sampleX[sampleCount - 1]);
-		if (x > sampleX[sampleCount - 1])
-		{
-			x = 2 * sampleX[sampleCount - 1] - x;
-		}
-		// search for xpos section
-		int l = 0, r = sampleCount, m = (l + r) >> 1;
-		while (r - l > 1)
-		{
-			if (sampleX[m] > x)
-			{
-				r = m;
-			}
-			else
-			{
-				l = m;
-			}
-			m = (l + r) >> 1;
-		}
-		// linear interpolation
-		return h * (sampleY[l] + (x - sampleX[l]) 
-			/ (sampleX[r] - sampleX[l]) * (sampleY[r] - sampleY[l]));
-	}
-	void setSample()
-	{
-		// float start = M_PI / sampleCount;
-		// float det = M_PI / sampleCount / (sampleCount + 1);
-		float det = 4 * M_PI * fSharpness / (3.f * (sampleCount - 1) * (sampleCount - 2));
-		float start = M_PI * (1 - 2.f / 3.f * fSharpness) / (sampleCount - 1) + (sampleCount - 1) * det;
-		auto alpha = 0.f;
-		for (int i = 0; i != sampleCount; ++i)
-		{
-			sampleX[i] = alpha - fSharpness * fLength * sinf(alpha - M_PI);
-			sampleY[i] = cosf(alpha - M_PI);
-			BEE_LOG(alpha, " ", sampleX[i], " ", sampleY[i]);
-			alpha += start; start -= det;
-		}
+		gSteepness[index] = fSteepness / (fFrequency * fAmplitude);
+		gAmplitude[index] = fAmplitude;
+		gFrequency[index] = fFrequency;
+		gSpeed[index] = fSpeed;
+		gDirection[index] = fDirection;
+		return true;
 	}
 protected:
-	float sampleX[sampleCount];
-	float sampleY[sampleCount];
+	BEE_SC_UNIFORM(float[], Steepness);
+	BEE_SC_UNIFORM(float[], Amplitude);
+	BEE_SC_UNIFORM(float[], Frequency);
+	BEE_SC_UNIFORM(float[], Speed);
+	BEE_SC_UNIFORM(::glm::vec2[], Direction);
 public:
-	BEE_PROPERTY(float, Sharpness) = .5f;
-	BEE_PROPERTY(float, Length) = 2.f;
-	BEE_PROPERTY(float, Height) = .2f;
-	BEE_PROPERTY(float, Angle) = 0.f;
-	BEE_PROPERTY(float, Speed) = .1f;
+	BEE_PROPERTY(float, Steepness) = .5f;
+	BEE_PROPERTY(float, Amplitude) = .2f;
+	BEE_PROPERTY(float, Frequency) = 5.f;
+	BEE_PROPERTY(::glm::vec2, Direction) = {1, 0};
+	BEE_PROPERTY(float, Speed) = 1.f;
 };
 
 }

@@ -138,9 +138,20 @@ private:
 class VAO
 {
 public:
+	operator GLuint() const noexcept
+	{
+		return handle;
+	}
+protected:
+	GLuint handle = VertexArrayGenerator::gen();
+};
+
+class IndicedVAO: public VAO
+{
+public:
 	template <typename ...Attrs>
-	VAO(const VertexAttrs<Attrs...> &vertices, const Faces &faces):
-		handle(VertexArrayGenerator::gen()), indicesCount(faces.size() * 3), info(vertices.info)
+	IndicedVAO(const VertexAttrs<Attrs...> &vertices, const Faces &faces):
+		indicesCount(faces.size() * 3), info(vertices.info)
 	{
 		VBO vbo; EBO ebo;
 		glBindVertexArray(handle);
@@ -149,10 +160,7 @@ public:
 			vertices.performSetVertexAttribute();
 		glBindVertexArray(0);
 	}
-	operator GLuint() const noexcept
-	{
-		return handle;
-	}
+
 	void render() const noexcept
 	{
 		glBindVertexArray(handle);
@@ -160,8 +168,30 @@ public:
 		glBindVertexArray(0);
 	}
 private:
-	GLuint handle;
 	GLsizei indicesCount;
+	VertexAttrEnabledInfo info;
+};
+
+class ArrayedVAO: public VAO
+{
+public:
+	void render(GLenum mode, int first, int count) const noexcept
+	{
+		glBindVertexArray(handle);
+			info.invoke(); glDrawArrays(mode, first, count);
+		glBindVertexArray(0);
+	}
+	template <typename ...Attrs>
+	void setVertices(const VertexAttrs<Attrs...> &vertices)
+	{
+		info = vertices.info;
+		glBindVertexArray(handle);
+			vbo.bind(); vbo.data(vertices.size() * vertices.elemSize, vertices.begin());
+			vertices.performSetVertexAttribute();
+		glBindVertexArray(0);
+	}
+private:
+	VBO vbo;
 	VertexAttrEnabledInfo info;
 };
 

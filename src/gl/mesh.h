@@ -24,7 +24,7 @@ public:
 	{
 	}
 	MeshBase(const MeshBase &other):
-		vao(new VAO(*other.vao))
+		vao(new IndicedVAO(*other.vao))
 	{
 	}
 	MeshBase(MeshBase &&other):
@@ -35,7 +35,7 @@ public:
 	MeshBase &operator = (const MeshBase &other)
 	{
 		delete vao;
-		vao = new VAO(*other.vao);
+		vao = new IndicedVAO(*other.vao);
 		return *this;
 	}
 	MeshBase &operator = (MeshBase &&other)
@@ -59,10 +59,10 @@ protected:
 	void initVAO(const VertexAttrs<Attrs...> &vertices, const Faces &faces)
 	{
 		delete vao;
-		vao = new VAO(vertices, faces);
+		vao = new IndicedVAO(vertices, faces);
 	}
 private:
-	VAO *vao;
+	IndicedVAO *vao;
 };
 
 class Mesh: private MeshBase
@@ -173,40 +173,35 @@ public:
 			{
 				if (gDiffuse = Diffuse)
 				{
-					glActiveTexture(GL_TEXTURE0 + Diffuse);
-					glBindTexture(Tex2D, texture);
+					texture.invoke(Diffuse);
 				}
 			}
 			if (auto texture = material->getTexture<Specular>())
 			{
 				if (gSpecular = Specular)
 				{
-					glActiveTexture(GL_TEXTURE0 + Specular);
-					glBindTexture(Tex2D, texture);
+					texture.invoke(Specular);
 				}
 			}
 			if (auto texture = material->getTexture<Ambient>())
 			{
 				if (gAmbient = Ambient)
 				{
-					glActiveTexture(GL_TEXTURE0 + Ambient);
-					glBindTexture(Tex2D, texture);
+					texture.invoke(Ambient);
 				}
 			}
 			if (auto texture = material->getTexture<Emissive>())
 			{
 				if (gEmissive = Emissive)
 				{
-					glActiveTexture(GL_TEXTURE0 + Emissive);
-					glBindTexture(Tex2D, texture);
+					texture.invoke(Emissive);
 				}
 			}
 			if (auto texture = material->getTexture<Normals>())
 			{
 				if (gNormals = Normals)
 				{
-					glActiveTexture(GL_TEXTURE0 + Normals);
-					glBindTexture(Tex2D, texture);
+					texture.invoke(Normals);
 				}
 			}
 		}
