@@ -48,7 +48,7 @@ If any exception is captured, the dump file will be produced in `log/` dir (by d
 [C:\Users\QwQ\Desktop\bee\build\bee.exe:0x403197] runtimeBase.cpp:68::_ZN3bee9exception5FatalC2ERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES7_()
 [C:\Users\QwQ\Desktop\bee\build\bee.exe:0x4025b3] runtime.cpp:75::_ZN3bee7Runtime4testEv()
 [C:\Users\QwQ\Desktop\bee\build\bee.exe:0x4046aa] testRuntime.cpp:20::main()
-[C:\Users\QwQ\Desktop\bee\build\bee.exe:0x4013f8] crtexe.c 
+[C:\User\QwQ\Desktop\bee\build\bee.exe:0x4013f8] crtexe.c 
 [C:\Users\QwQ\Desktop\bee\build\bee.exe:0x40151b] crtexe.c 
 [C:\WINDOWS\System32\KERNEL32.DLL:0x7fffbe961fe4] BaseThreadInitThunk (No symbols)
 [C:\WINDOWS\SYSTEM32\ntdll.dll:0x7fffc085efb1] RtlUserThreadStart (No symbols)
@@ -56,5 +56,16 @@ If any exception is captured, the dump file will be produced in `log/` dir (by d
 
 you can check these features in `runtimeBase.h`.
 
-## OpenGL
-under construction.
+## OpenGL Encapsulation
+
+See the classes hierachy.
+
+## Shader Controllers
+
+In order to implement a shader controller system, it is necessary to add class metadata support. In order to derive from any ShaderController Class, use some macros to add metadata. See `property.h` && `shaderController.h`.
+
+Shader controller class aims at transmitting data from CPU to GPU(shaders). 
+
+It is a great flexibility that **unknown variables will be ignored rather than prompting an error**.
+
+Whenever you add a property, the getter and setter are automatically generated, and the data member will be protected.
