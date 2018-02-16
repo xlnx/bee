@@ -243,9 +243,9 @@ public:
 		}
 		for (auto i = 0u; i != registeredUniformArrays->size(); ++i)
 		{
-			auto start = glGetUniformLocation(shader, registeredUniformArrays->operator[](i).first.c_str());
-			auto step = glGetUniformLocation(shader, registeredUniformArrays->operator[](i).second.c_str());
-			uniformArrays[i + 1] = ::std::make_pair(start, step);
+			auto first = glGetUniformLocation(shader, registeredUniformArrays->operator[](i).first.c_str());
+			auto second = glGetUniformLocation(shader, registeredUniformArrays->operator[](i).second.c_str());
+			uniformArrays[i + 1] = ::std::make_pair(first, second - first);
 		}
 		if (shaderHead.next)
 		{
@@ -270,9 +270,9 @@ public:
 		}
 		for (auto i = 0u; i != registeredUniformArrays->size(); ++i)
 		{
-			auto start = glGetUniformLocation(shader, registeredUniformArrays->operator[](i).first.c_str());
-			auto step = glGetUniformLocation(shader, registeredUniformArrays->operator[](i).second.c_str());
-			uniformArrays[i + 1] = ::std::make_pair(start, step);
+			auto first = glGetUniformLocation(shader, registeredUniformArrays->operator[](i).first.c_str());
+			auto second = glGetUniformLocation(shader, registeredUniformArrays->operator[](i).second.c_str());
+			uniformArrays[i + 1] = ::std::make_pair(first, second - first);
 		}
 		if (shaderHead.next)
 		{
@@ -341,9 +341,9 @@ public:
 				reinterpret_cast<UniformRefBase&>(ref).index = index;
 				for (auto ptr = shaderHead.next; ptr != nullptr; ptr = ptr->next)
 				{
-					auto start = glGetUniformLocation(*ptr->shader, name0.c_str());
-					auto step = glGetUniformLocation(*ptr->shader, name1.c_str());
-					ptr->shader->uniformArrays[index] = ::std::make_pair(start, step);
+					auto first = glGetUniformLocation(*ptr->shader, name0.c_str());
+					auto second = glGetUniformLocation(*ptr->shader, name1.c_str());
+					ptr->shader->uniformArrays[index] = ::std::make_pair(first, second - first);
 				}
 			}
 			return ref;

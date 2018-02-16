@@ -22,7 +22,10 @@ int Main(int argc, char **argv)
 		VertexShader("testWave.vert"),
 		FragmentShader("testWave.frag")
 	));
-	ptr->attachWave(* new GerstnerWave());
+	GerstnerWave hWave, vWave; 
+	vWave.setDirection(0, 1);
+	ptr->attachWave(hWave);
+	ptr->attachWave(vWave);
 	ptr->resize(2, 2);
 	// objects[0]->scale(0.02);
 	cameras[0]->setPosition(0, -1, 0);
