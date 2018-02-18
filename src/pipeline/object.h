@@ -114,23 +114,19 @@ class Object: public ObjectBase
 {
 	BEE_UNIFORM_GLOB(::glm::mat4, WVP);
 	BEE_UNIFORM_GLOB(::glm::mat4, World);
+	BEE_UNIFORM_GLOB(::glm::mat4, VP);
 	BEE_UNIFORM_GLOB(::glm::vec3, CameraWorldPos);
 protected:
 	Object() = default;
-	Object(gl::Shader &shader):
-		fShader(&shader)
+	void setViewMatrices(ViewPort &viewPort)
 	{
-	}
-public:
-	virtual void render(ViewPort &viewPort)
-	{
-		fShader->use();
 		gWVP = ::glm::transpose(viewPort.getTrans() * getTrans());
 		gWorld = ::glm::transpose(getTrans());
+		gVP = ::glm::transpose(viewPort.getTrans());
 		gCameraWorldPos = viewPort.getPosition();
 	}
 public:
-	BEE_PROPERTY_REF(gl::Shader, Shader) = nullptr;
+	virtual void render(ViewPort &viewPort) = 0;
 };
 
 }

@@ -24,18 +24,16 @@ class WaterSurface: public Object
 	friend class WaveBase;
 	static constexpr auto meshWidth = .02f;
 public:
-	WaterSurface(): Object(!shader ? 
-		*(shader = new gl::Shader(
-			gl::VertexShader("waterSurface-vs.glsl"),
-			gl::FragmentShader("waterSurface-fs.glsl"))
-		) : *shader)
+	WaterSurface()
 	{
+		createShader();
 		resize(width, length);
 	}
 
 	void render(ViewPort &viewPort) override
 	{
-		Object::render(viewPort);
+		shader->use();
+		setViewMatrices(viewPort);
 		// BEE_LOG()
 		waves.invoke();
 		// texture.invoke(0);
@@ -78,8 +76,17 @@ public:
 	{
 		waves.addController(wave);
 	}
-protected:
-	using Object::setShader;
+private:
+	void createShader()
+	{
+		if (!shader)
+		{
+			shader = new gl::Shader(
+				gl::VertexShader("waterSurface-vs.glsl"),
+				gl::FragmentShader("waterSurface-fs.glsl")
+			);
+		}
+	}
 protected:
 	gl::ArrayedVAO vao;
 	int stripCount, stripLength;
