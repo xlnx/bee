@@ -24,11 +24,13 @@ class WaterSurface: public Object
 	friend class WaveBase;
 	static constexpr auto meshWidth = .02f;
 public:
-	WaterSurface(): Object(* new gl::Shader(
-			gl::VertexShader("testWave.vert"),
-			gl::FragmentShader("testWave.frag")
-		))
+	WaterSurface(): Object(!shader ? 
+		*(shader = new gl::Shader(
+			gl::VertexShader("waterSurface-vs.glsl"),
+			gl::FragmentShader("waterSurface-fs.glsl"))
+		) : *shader)
 	{
+		resize(width, length);
 	}
 
 	void render(ViewPort &viewPort) override
@@ -45,6 +47,7 @@ public:
 	}
 	void resize(float x, float y)
 	{
+		width = x; length = y;
 		stripCount = y / meshWidth;
 		stripLength = x / meshWidth;
 		auto vertices = gl::VertexAttrs<gl::pos3>(
@@ -63,25 +66,28 @@ public:
 		}
 		vao.setVertices(vertices);
 	}
-	int getStripCount() const
+	int getWidth() const
 	{
-		return stripCount;
+		return width;
 	}
-	int getStripLength() const
+	int getLength() const
 	{
-		return stripLength;
+		return length;
 	}
 	void attachWave(WaveBase &wave)
 	{
 		waves.addController(wave);
 	}
 protected:
+	using Object::setShader;
+protected:
 	gl::ArrayedVAO vao;
 	int stripCount, stripLength;
-	gl::Texture<gl::Tex2D> texture = 
-		gl::Texture<gl::Tex2D>("water-texture-2.tga");
-	
+	float width = 0, length = 1;
+	// gl::Texture<gl::Tex2D> texture = 
+		// gl::Texture<gl::Tex2D>("water-texture-2.tga");
 	ShaderControllers<WaveBase> waves;
+	static gl::Shader *shader;
 };
 
 class GerstnerWave: 
@@ -100,7 +106,7 @@ protected:
 		gAmplitude[index] = fAmplitude;
 		gFrequency[index] = fFrequency;
 		gSpeed[index] = fSpeed;
-		gDirection[index] = fDirection;
+		gDirection[index] = ::glm::normalize(fDirection);
 		return true;
 	}
 protected:

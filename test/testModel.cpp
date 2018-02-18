@@ -16,10 +16,6 @@ vector<ViewPort*> viewPorts;
 
 int Main(int argc, char **argv)
 {
-	Shader shader{
-		VertexShader("testModel.vert"),
-		FragmentShader("testModel.frag")
-	};
 	viewPorts.emplace_back(new FirstPersonCamera<>());
 	// viewPorts.emplace_back(0, 0, 200, 200);
 	// viewPorts[0].setPosition(-1, -1, 0);
@@ -33,7 +29,7 @@ int Main(int argc, char **argv)
 	::std::string line;
 	::std::cin >> line;
 	model = Model(line);
-	object = ModelObject(model, shader);
+	object = ModelObject(model);
 	object.scale(0.02, 0.02, 0.02);
 
 	window.dispatch<KeyEvent>(

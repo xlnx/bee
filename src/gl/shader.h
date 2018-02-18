@@ -22,10 +22,12 @@ template <typename T> class UniformRef;
 template <int ShaderType>
 	class ShaderObj final
 {
+	friend class Shader;
 public:
-	ShaderObj(const std::string &filename):
+	ShaderObj(std::string filename):
 		shader(glCreateShader(ShaderType))
 	{
+		filename = shaderPath + filename;
 		if (!shader)
 		{
 			BEE_RAISE(GLFatal, "Failed to create shader.");
@@ -70,11 +72,12 @@ public:
 	}
 private:
 	GLuint shader;
+	static const char *shaderPath;
 };
 
 using VertexShader = ShaderObj<GL_VERTEX_SHADER>;
-using FragmentShader = ShaderObj<GL_FRAGMENT_SHADER>;
 using GeometryShader = ShaderObj<GL_GEOMETRY_SHADER>;
+using FragmentShader = ShaderObj<GL_FRAGMENT_SHADER>;
 
 class UniformRefHack;
 
@@ -317,6 +320,12 @@ public:
 		gTime = float(glfwGetTime());
 	}
 public:
+	static void setShaderPath(const char *path)
+	{
+		VertexShader::shaderPath = path;
+		GeometryShader::shaderPath = path;
+		FragmentShader::shaderPath = path;
+	}
 	template <typename T>
 		static UniformRef<T> uniform(const ::std::string &name)
 	{

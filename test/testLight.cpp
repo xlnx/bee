@@ -1,8 +1,8 @@
 #include "bee.h"
 
-using namespace std;
 using namespace bee;
 using namespace gl;
+using namespace std;
 using namespace glm;
 
 int Main(int argc, char **argv)
@@ -11,31 +11,18 @@ int Main(int argc, char **argv)
 	vector<ViewPort*> cameras;
 	vector<Object*> objects;
 	WaterSurface surface;
-	GerstnerWave hWave, vWave, sWave, pWave; 
 
 	cameras.push_back(new FirstPersonCamera<>());
 	objects.push_back(&surface);
 
-	surface.attachWave(hWave);
-	surface.attachWave(vWave);
-	surface.attachWave(sWave);
 	// surface.attachWave(pWave);
 	surface.resize(2, 2);
-	
-	hWave.setDirection(1, 0);
-	vWave.setDirection(0, 1);
-	sWave.setDirection(1, 1.5);
-	pWave.setDirection(-1, 1.2);
-	pWave.setFrequency(2.f);
-	pWave.setSteepness(1.f);
-	vWave.setAmplitude(vWave.getAmplitude() / 2);
 	// objects[0]->scale(0.02);
 	cameras[0]->setPosition(0, -1, 0);
 	cameras[0]->setTarget(0, 1, 0);
-	surface.setPosition(-1, 0, 0);
 	
 	ShaderControllers<> controllers;
-	DirectionalLight light(vec3(0, -1, -1));
+	PointLight light(vec3(0, 2, 1));
 	controllers.addController(light);
 	UniformRef<float> gMatSpecularIntensity = Shader::uniform<float>("gMatSpecularIntensity");
 	UniformRef<float> gSpecularPower = Shader::uniform<float>("gSpecularPower");

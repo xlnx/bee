@@ -50,9 +50,20 @@ public:
 		dispatch<RenderEvent>(
 			[this]() -> bool {
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				int time0 = glfwGetTime();
+				if (time0 - timeStamp == 1)
+				{
+					frameCount = 0;
+				}
+				else
+				{
+					frameCount++;
+				}
+				timeStamp = time0;
 				return false;
 			}, INT_MAX
 		);
+		gl::Shader::setShaderPath("shaders/");
 	}
 
 	static double getCursorX()
@@ -79,6 +90,7 @@ public:
 	}
 protected:
 	double x = -1, y = -1;
+	int frameCount = 0, timeStamp = 0;
 private:
 	bool enter = true;
 	gl::BufferGenerator bufferGenerator;
