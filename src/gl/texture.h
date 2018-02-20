@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include <vector>
 
 namespace bee
 {
@@ -14,13 +15,14 @@ enum TextureDim {
 	Tex3D = GL_TEXTURE_CUBE_MAP
 };
 
+class TextureBase;
+
 template <TextureDim Dim>
 class Texture;
 
 class TextureGenerator
 {
-	friend class Texture<Tex1D>;
-	friend class Texture<Tex2D>;
+	friend class TextureBase;
 	constexpr static std::size_t initSize = 4;
 public:
 	TextureGenerator()
@@ -72,32 +74,81 @@ class TextureBase
 {
 protected:
 	TextureBase() = default;
-	TextureBase(GLuint handle):
-		handle(handle)
-	{
-	}
 public:
 	operator GLuint () const
 	{
 		return handle;
 	}
-	operator bool () const
-	{
-		return ~handle;
-	}
 protected:
 	static unsigned char *loadImage(::std::string path, int &width, int &height, int &comp);
 	static void freeImage(unsigned char *data);
 protected:
-	GLuint handle = -1;
+	GLuint handle = TextureGenerator::gen();
 };
 
 template <TextureDim Dim>
-class Texture: public TextureBase
+class TextureNDBase: public TextureBase
+{
+public:
+	void invoke(int i) const
+	{
+		glActiveTexture(GL_TEXTURE0 + i);
+		bind();
+	}
+protected:
+	void bind() const 
+	{
+		glBindTexture(Dim, handle);
+	}
+	void unbind() const 
+	{
+		glBindTexture(Dim, 0);
+	}
+};
+
+template <>
+class Texture<Tex1D>: public TextureNDBase<Tex1D>
 {
 public:
 	Texture() = default;
-	Texture(const ::std::string &path, bool useMipmap = true): TextureBase(TextureGenerator::gen())
+	Texture(const std::vector<::glm::vec3> &points)
+	{
+		glBindTexture(Tex1D, handle);
+			glTexImage1D(Tex1D, 0, GL_RGB, points.size(), 0.f, GL_RGB, GL_FLOAT, &points[0]);
+			glTexParameterf(Tex1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameterf(Tex1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameterf(Tex1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glBindTexture(Tex1D, 0);
+	}
+};
+
+class RandomTexture: public Texture<Tex1D>
+{
+public:
+	RandomTexture() = default;
+	RandomTexture(::std::size_t n): 
+		Texture<Tex1D>(getRandomVector(n))
+	{
+	}
+private:
+	static ::std::vector<::glm::vec3> getRandomVector(::std::size_t n)
+	{
+		static const auto randMax = []() ->int { srand(time(nullptr)); return RAND_MAX; } ();
+		::std::vector<::glm::vec3> vec(n);
+		for (auto &e: vec)
+		{
+			e = { float(rand()) / randMax, float(rand()) / randMax, float(rand()) / randMax };
+		}
+		return vec;
+	}
+};
+
+template <>
+class Texture<Tex2D>: public TextureNDBase<Tex2D>
+{
+public:
+	Texture() = default;
+	Texture(const ::std::string &path, bool useMipmap = true)
 	{
 		int width, height, componentCount;
 		auto data = loadImage(path, width, height, componentCount);
@@ -112,27 +163,22 @@ public:
 		{
 			BEE_RAISE(Fatal, "invalid image format.");
 		}
-		glBindTexture(Dim, handle);
-			glTexImage2D(Dim, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-			glTexParameteri(Dim, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(Dim, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			glTexParameteri(Dim, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		bind();
+			glTexImage2D(Tex2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+			glTexParameteri(Tex2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(Tex2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameteri(Tex2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			if (useMipmap)
 			{
-				glTexParameteri(Dim, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-				glGenerateMipmap(Dim);
+				glTexParameteri(Tex2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+				glGenerateMipmap(Tex2D);
 			}
 			else
 			{
-				glTexParameteri(Dim, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				glTexParameteri(Tex2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			}
-		glBindTexture(Dim, 0);
+		unbind();
 		freeImage(data);
-	}
-	void invoke(int i) const
-	{
-		glActiveTexture(GL_TEXTURE0 + i);
-		glBindTexture(Dim, handle);
 	}
 };
 
@@ -140,7 +186,7 @@ public:
 // class Texture<Tex3D>: TextureBase
 // {
 // public:
-// 	Texture(const ::std::string &path): TextureBase(TextureGenerator::gen())
+// 	Texture(const ::std::string &path)
 // 	{
 // 		glBindTexture(Tex3D, handle);
 // 		for (auto i = 0u; i != faces.size();++i)

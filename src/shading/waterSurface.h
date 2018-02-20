@@ -26,7 +26,6 @@ class WaterSurface: public Object
 public:
 	WaterSurface()
 	{
-		createShader();
 		resize(width, length);
 	}
 
@@ -77,16 +76,16 @@ public:
 		waves.addController(wave);
 	}
 private:
-	void createShader()
+	static gl::Shader *getShader()
 	{
-		if (!shader)
-		{
-			shader = new gl::Shader(
-				gl::VertexShader("waterSurface-vs.glsl"),
-				gl::FragmentShader("waterSurface-fs.glsl")
-			);
-		}
+		static auto var = new gl::Shader(
+			gl::VertexShader("waterSurface-vs.glsl"),
+			gl::FragmentShader("waterSurface-fs.glsl")
+		);
+		return var;
 	}
+private:
+	gl::Shader *shader = getShader();
 protected:
 	gl::ArrayedVAO vao;
 	int stripCount, stripLength;
@@ -94,7 +93,6 @@ protected:
 	// gl::Texture<gl::Tex2D> texture = 
 		// gl::Texture<gl::Tex2D>("water-texture-2.tga");
 	ShaderControllers<WaveBase> waves;
-	static gl::Shader *shader;
 };
 
 class GerstnerWave: 

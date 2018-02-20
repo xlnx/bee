@@ -3,6 +3,7 @@
 #include "shader.h"
 #include <vector>
 #include <map>
+#include <functional>
 
 namespace bee
 {
@@ -18,8 +19,9 @@ class ShaderController
 {
 protected:
 	ShaderController() = default;
-	virtual ~ShaderController() = default;
 public:
+	virtual ~ShaderController() = default;
+	
 	virtual ShaderControllerInfoGetter getInfoFunc() = 0;
 public:
 	virtual bool invoke(int index) = 0;
@@ -82,6 +84,13 @@ public:
 	void addController(T &controller)
 	{
 		controllers.push_back(&controller);
+	}
+	void foreach(const ::std::function<void(T*)> &f)
+	{
+		for (auto controller: controllers)
+		{
+			f(controller);
+		}
 	}
 protected:
 	::std::vector<T *> controllers;

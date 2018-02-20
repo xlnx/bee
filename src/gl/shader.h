@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <map>
 #include <vector>
+#include <initializer_list>
 
 namespace bee
 {
@@ -239,22 +240,7 @@ public:
 		}
 		attach(std::forward<Types>(args)...);
 		link();
-		memset(uniforms, -1, sizeof(*uniforms) * maxUniformCount);
-		for (auto i = 0u; i != registeredUniforms->size(); ++i)
-		{
-			uniforms[i + 1] = glGetUniformLocation(shader, registeredUniforms->operator[](i).c_str());
-		}
-		for (auto i = 0u; i != registeredUniformArrays->size(); ++i)
-		{
-			auto first = glGetUniformLocation(shader, registeredUniformArrays->operator[](i).first.c_str());
-			auto second = glGetUniformLocation(shader, registeredUniformArrays->operator[](i).second.c_str());
-			uniformArrays[i + 1] = ::std::make_pair(first, second - first);
-		}
-		if (shaderHead.next)
-		{
-			shaderHead.next->prev = prec;
-		}
-		shaderHead.next = prec;
+		init();
 	}
 	template <template <typename T, typename _Alloc> class E,
 		typename Alloc>
@@ -266,22 +252,7 @@ public:
 	{
 		for (auto e: v) attach(e);
 		link();
-		memset(uniforms, -1, sizeof(*uniforms) * maxUniformCount);
-		for (int i = 0; i != registeredUniforms->size(); ++i)
-		{
-			uniforms[i + 1] = glGetUniformLocation(shader, registeredUniforms->operator[](i).c_str());
-		}
-		for (auto i = 0u; i != registeredUniformArrays->size(); ++i)
-		{
-			auto first = glGetUniformLocation(shader, registeredUniformArrays->operator[](i).first.c_str());
-			auto second = glGetUniformLocation(shader, registeredUniformArrays->operator[](i).second.c_str());
-			uniformArrays[i + 1] = ::std::make_pair(first, second - first);
-		}
-		if (shaderHead.next)
-		{
-			shaderHead.next->prev = prec;
-		}
-		shaderHead.next = prec;
+		init();
 	}
 	Shader(const Shader &) = delete;
 	Shader(Shader &&other):
@@ -319,8 +290,25 @@ public:
 		currShader = this;
 		gTime = float(glfwGetTime());
 	}
+	template <typename ...Types>
+	void setTransformFeedbackVaryings(Types ...varyings)
+	{
+		const char *data[] = { varyings... };
+		glTransformFeedbackVaryings(shader, sizeof...(Types), data, GL_INTERLEAVED_ATTRIBS);
+		link();
+	}
+	void setTransformFeedbackVaryings(const ::std::vector<const char*> &varyings)
+	{
+		glTransformFeedbackVaryings(shader, varyings.size(), &*varyings.begin(), GL_INTERLEAVED_ATTRIBS);
+		link();
+	}
+	void setTransformFeedbackVaryings(const ::std::initializer_list<const char*> &varyings)
+	{
+		glTransformFeedbackVaryings(shader, varyings.size(), &*varyings.begin(), GL_INTERLEAVED_ATTRIBS);
+		link();
+	}
 public:
-	static void setShaderPath(const char *path)
+	static void setFilePath(const char *path)
 	{
 		VertexShader::shaderPath = path;
 		GeometryShader::shaderPath = path;
@@ -404,7 +392,7 @@ private:
 	{
 		glAttachShader(shader, shaderObj);
 	}
-	void link() const
+	void link()
 	{
 		GLint success;
 		GLchar infoLog[512];
@@ -426,6 +414,25 @@ private:
 			os << "Invalid shader program." << std::endl << infoLog;
 			BEE_RAISE(GLFatal, os.str());
 		}
+	}
+	void init()
+	{
+		memset(uniforms, -1, sizeof(*uniforms) * maxUniformCount);
+		for (auto i = 0u; i != registeredUniforms->size(); ++i)
+		{
+			uniforms[i + 1] = glGetUniformLocation(shader, registeredUniforms->operator[](i).c_str());
+		}
+		for (auto i = 0u; i != registeredUniformArrays->size(); ++i)
+		{
+			auto first = glGetUniformLocation(shader, registeredUniformArrays->operator[](i).first.c_str());
+			auto second = glGetUniformLocation(shader, registeredUniformArrays->operator[](i).second.c_str());
+			uniformArrays[i + 1] = ::std::make_pair(first, second - first);
+		}
+		if (shaderHead.next)
+		{
+			shaderHead.next->prev = prec;
+		}
+		shaderHead.next = prec;
 	}
 private:
 	GLuint shader;

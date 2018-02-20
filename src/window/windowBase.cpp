@@ -4,15 +4,14 @@ namespace bee
 {
 
 static const char *errorMessage[] = {
-	"",
 	"GL_INVALID_ENUM",
 	"GL_INVALID_VALUE",
-	"GL_INVALID_OPERATION"
+	"GL_INVALID_OPERATION",
 	"GL_STACK_OVERFLOW",
 	"GL_STACK_UNDERFLOW",
 	"GL_OUT_OF_MEMORY",
 	"GL_INVALID_FRAMEBUFFER_OPERATION",
-	"GL_CONTEXT_LOST"
+	"GL_CONTEXT_LOST",
 };
 
 namespace exception

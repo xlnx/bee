@@ -21,7 +21,7 @@ int Main(int argc, char **argv)
 			{
 				for (auto &object: objects)
 				{
-					object->render(*camera)
+					object->render(*camera);
 				}
 			}
 			return false;

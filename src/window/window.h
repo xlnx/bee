@@ -5,6 +5,7 @@
 #include "buffers.h"
 #include "texture.h"
 #include "shader.h"
+#include "model.h"
 
 namespace bee
 {
@@ -63,7 +64,6 @@ public:
 				return false;
 			}, INT_MAX
 		);
-		gl::Shader::setShaderPath("shaders/");
 	}
 
 	static double getCursorX()
@@ -95,7 +95,7 @@ private:
 	bool enter = true;
 	gl::BufferGenerator bufferGenerator;
 	gl::VertexArrayGenerator arrayGenerator;
-	gl::TextureGenerator TextureGenerator;
+	gl::TextureGenerator textureGenerator;
 };
 
 template <int Major, int Minor>
@@ -116,6 +116,9 @@ public:
 		// glEnable(GL_BLEND);
 		// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_DEPTH_TEST);
+
+		gl::Shader::setFilePath("shaders/");
+		gl::Model::setFilePath("models/");
 	}
 };
 

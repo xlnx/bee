@@ -9,14 +9,10 @@ namespace bee
 class ModelObject: public Object
 {
 public:
-	ModelObject()
-	{
-		createShader();
-	}
+	ModelObject() = default;
 	ModelObject(const gl::Model &model): 
 		fModel(&model)
 	{
-		createShader();
 	}
 
 	void render(ViewPort &viewPort) override
@@ -26,19 +22,18 @@ public:
 		fModel->render();
 	}
 private:
-	void createShader()
+	static gl::Shader *getShader()
 	{
-		if (!shader)
-		{
-			shader = new gl::Shader(
-				gl::VertexShader("model-vs.glsl"),
-				gl::FragmentShader("model-fs.glsl")
-			);
-		}
+		static auto var = new gl::Shader(
+			gl::VertexShader("model-vs.glsl"),
+			gl::FragmentShader("model-fs.glsl")
+		);
+		return var;
 	}
+private:
+	gl::Shader *shader = getShader();
 public:
 	BEE_PROPERTY_REF(const gl::Model, Model) = nullptr;
-	static gl::Shader *shader;
 };
 
 }

@@ -6,3 +6,4 @@
 #include "shading.h"
 #include "window.h"
 #include "configure.h"
+#include "manager.h"
