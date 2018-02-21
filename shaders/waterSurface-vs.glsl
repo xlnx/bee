@@ -35,20 +35,21 @@ void GerstnerLevelOne(vec3 vertex, out vec3 offset, out vec3 normal)
 	for(int i = 0; i < gGerstnerWaveCount; i++)
 	{
 		float dp = dot(vertex.xy, gGerstnerWave[i].Direction.xy);
-		float p = (dp - gGerstnerWave[i].Speed * gTime) * gGerstnerWave[i].Frequency;
+		float p = gGerstnerWave[i].Frequency * dp - gGerstnerWave[i].Speed * gTime;
 		float Acos = gGerstnerWave[i].Amplitude * cos(p);
 		float Asin = gGerstnerWave[i].Amplitude * sin(p);
-		offset.x += -gGerstnerWave[i].Steepness * 
-			gGerstnerWave[i].Direction.x * Acos;
-		offset.y += -gGerstnerWave[i].Steepness * 
-			gGerstnerWave[i].Direction.y * Acos;
-		offset.z += -Asin;
+		offset.x -= gGerstnerWave[i].Steepness * 
+			gGerstnerWave[i].Direction.x * Asin;
+		offset.y -= gGerstnerWave[i].Steepness * 
+			gGerstnerWave[i].Direction.y * Asin;
+		offset.z += Acos;
+
 		normal.x += gGerstnerWave[i].Frequency *
-			gGerstnerWave[i].Direction.x * Acos;
+			gGerstnerWave[i].Direction.x * Asin;
 		normal.y += gGerstnerWave[i].Frequency * 
-			gGerstnerWave[i].Direction.y * Acos;
-		normal.z += -gGerstnerWave[i].Frequency *
-			gGerstnerWave[i].Steepness * Asin;
+			gGerstnerWave[i].Direction.y * Asin;
+		normal.z -= gGerstnerWave[i].Frequency *
+			gGerstnerWave[i].Steepness * Acos;
 	}
 }
 
@@ -61,6 +62,8 @@ void main()
 	Position0 += offset;
 	gl_Position = gWVP * vec4(Position0, 1.0);
 	// TexCoord0 = TexCoord;
+	if (normal.z < 0)
+		normal.z = -normal.z;
 	Normal0 = (gWorld * vec4(normal, 0.0)).xyz;
 	WorldPos0 = (gWorld * vec4(Position0, 1.0)).xyz;
 	// Color0 = vec4(clamp(Position0, 0.0, 1.0), 1.0);

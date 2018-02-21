@@ -1,9 +1,8 @@
 #pragma once 
 
-#include "gl.h"
 #include "object.h"
 #include "property.h"
-#include "shaderController.h"
+#include "shader.h"
 #include "texture.h"
 #include <cmath>
 
@@ -13,18 +12,23 @@ namespace bee
 class WaterSurface;
 
 class WaveBase:
-	public ShaderControllerMulti
+	public gl::ShaderControllerMulti
 {
-	BEE_SC_INHERIT(WaveBase, ShaderControllerMulti);
+	BEE_SC_INHERIT(WaveBase, gl::ShaderControllerMulti);
 	friend class WaterSurface;
 };
 
 class WaterSurface: public Object
 {
 	friend class WaveBase;
-	static constexpr auto meshWidth = .02f;
+	static constexpr auto meshWidth = .1f;
 public:
 	WaterSurface()
+	{
+		resize(width, length);
+	}
+	WaterSurface(float width, float length):
+		width(width), length(length)
 	{
 		resize(width, length);
 	}
@@ -50,6 +54,7 @@ public:
 		auto vertices = gl::VertexAttrs<gl::pos3>(
 				(stripCount - 1) * (stripLength << 1));
 		int len = stripLength << 1;
+		float dx = width / 2, dy = length / 2;
 		for (int i = 0; i != stripCount - 1; ++i)
 		{
 			for (int j = 0; j != len; ++j)
@@ -57,17 +62,17 @@ public:
 				auto i0 = j & 1 ? i : i + 1;
 				auto j0 = j >> 1;
 				vertices[i * len + j].get<gl::pos3>() = {
-					j0 * meshWidth, i0 * meshWidth, 0.f
+					j0 * meshWidth - dx, i0 * meshWidth - dy, 0.f
 				};
 			}
 		}
 		vao.setVertices(vertices);
 	}
-	int getWidth() const
+	float getWidth() const
 	{
 		return width;
 	}
-	int getLength() const
+	float getLength() const
 	{
 		return length;
 	}
@@ -92,7 +97,7 @@ protected:
 	float width = 0, length = 1;
 	// gl::Texture<gl::Tex2D> texture = 
 		// gl::Texture<gl::Tex2D>("water-texture-2.tga");
-	ShaderControllers<WaveBase> waves;
+	gl::ShaderControllers waves;
 };
 
 class GerstnerWave: 

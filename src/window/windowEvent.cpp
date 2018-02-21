@@ -26,4 +26,6 @@ BEE_EVENT_STATIC(Drop, int, const char**);
 
 BEE_EVENT_STATIC(Render);
 
+BEE_EVENT_STATIC(Update, double);
+
 }

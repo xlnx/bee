@@ -21,7 +21,7 @@ int Main(int argc, char **argv)
 	cameras[0]->setPosition(0, -1, 0);
 	cameras[0]->setTarget(0, 1, 0);
 	
-	ShaderControllers<> controllers;
+	ShaderControllers controllers;
 	PointLight light(vec3(0, 2, 1));
 	controllers.addController(light);
 	UniformRef<float> gMatSpecularIntensity = Shader::uniform<float>("gMatSpecularIntensity");

@@ -1,15 +1,15 @@
 #pragma once
 
-#include "shaderController.h"
+#include "shader.h"
 #include "property.h"
 
 namespace bee
 {
 
 class LightBaseSingle:
-	public ShaderControllerSingle
+	public gl::ShaderControllerSingle
 {
-	BEE_SC_INHERIT(LightBaseSingle, ShaderControllerSingle);
+	BEE_SC_INHERIT(LightBaseSingle, gl::ShaderControllerSingle);
 public:
 	bool invoke(int index) override
 	{
@@ -24,14 +24,14 @@ protected:
 	BEE_SC_UNIFORM(float, DiffuseIntensity);
 public:
 	BEE_PROPERTY(glm::vec3, Color) = { 1, 1, 1 };
-	BEE_PROPERTY(float, AmbientIntensity) = 1.f;
+	BEE_PROPERTY(float, AmbientIntensity) = .5f;
 	BEE_PROPERTY(float, DiffuseIntensity) = 1.f;
 };
 
 class LightBaseMulti:
-	public ShaderControllerMulti
+	public gl::ShaderControllerMulti
 {
-	BEE_SC_INHERIT(LightBaseMulti, ShaderControllerMulti);
+	BEE_SC_INHERIT(LightBaseMulti, gl::ShaderControllerMulti);
 public:
 	bool invoke(int index) override
 	{
@@ -46,7 +46,7 @@ protected:
 	BEE_SC_UNIFORM(float[], DiffuseIntensity);
 public:
 	BEE_PROPERTY(glm::vec3, Color) = { 1, 1, 1 };
-	BEE_PROPERTY(float, AmbientIntensity) = 1.f;
+	BEE_PROPERTY(float, AmbientIntensity) = .5f;
 	BEE_PROPERTY(float, DiffuseIntensity) = 1.f;
 };
 

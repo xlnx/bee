@@ -10,6 +10,17 @@
 namespace bee
 {
 
+class GLWindowBase;
+
+class WindowController
+{
+	friend class GLWindowBase;
+protected:
+	WindowController() = default;
+public:
+	virtual ~WindowController() = default;
+};
+
 class GLWindowBase: public WindowBase,
 //  GLFW event dispatchers
 	KeyDispatcher,
@@ -21,7 +32,8 @@ class GLWindowBase: public WindowBase,
 	ScrollDispatcher,
 	// JoystickDispatcher,
 	DropDispatcher,
-	RenderDispatcher
+	RenderDispatcher,
+	UpdateDispatcher
 {
 public:
 	template <typename ...Types, typename = typename
@@ -29,6 +41,7 @@ public:
 	GLWindowBase(Types &&...args): 
 		WindowBase(::std::forward<Types>(args)...)
 	{
+		init();
 		gl::Shader::initialize();
 		dispatch<CursorPosEvent>(
 			[this](double x, double y)->bool {
@@ -65,6 +78,10 @@ public:
 			}, INT_MAX
 		);
 	}
+	~GLWindowBase()
+	{
+		deleteControllers();
+	}
 
 	static double getCursorX()
 	{
@@ -75,27 +92,52 @@ public:
 		return static_cast<GLWindowBase*>(instance)->y;
 	}
 	template <typename T>
-	static typename T::type *dispatch(const typename T::callbackType &callback, int zindex = 0)
+	static typename T::type &dispatch(const typename T::callbackType &callback, int zindex = 0)
 	{
 		using base = typename T::dispatcherType;
 		return base::handlers->emplace(callback, zindex);
 	}
 	void dispatchMessages()
 	{
+		static double millis = glfwGetTime();
+		auto curr = millis;
 		while (!closed())
 		{
+			UpdateDispatcher::dispatch((curr - millis) * 1000);
 			RenderDispatcher::dispatch();
 			gl::checkError(); swapBuffers(); pollEvents();
+			millis = curr; curr = glfwGetTime();
 		}
+	}
+	// template <typename T, typename ...Types, typename = typename
+	// 	::std::enable_if<::std::is_constructible<T, GLWindowBase &, Types...>::value &&
+	// 		::std::is_base_of<WindowController, T>::value>::type>
+	// T &createController(Types &&...args)
+	// {
+	// 	auto controller = new T(*this, ::std::forward<Types>(args)...);
+	// 	controllers.push_back(controller);
+	// 	return *controller;
+	// }
+	void deleteControllers()
+	{
+		for (auto controller: controllers)
+		{
+			delete controller;
+		}
+	}
+private:
+	static void init()
+	{
+		static gl::BufferGenerator bufferGenerator;
+		static gl::VertexArrayGenerator arrayGenerator;
+		static gl::TextureGenerator textureGenerator;
 	}
 protected:
 	double x = -1, y = -1;
 	int frameCount = 0, timeStamp = 0;
+	::std::vector<WindowController*> controllers;
 private:
 	bool enter = true;
-	gl::BufferGenerator bufferGenerator;
-	gl::VertexArrayGenerator arrayGenerator;
-	gl::TextureGenerator textureGenerator;
 };
 
 template <int Major, int Minor>

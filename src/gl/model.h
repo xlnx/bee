@@ -116,7 +116,7 @@ public:
 				materials[i].addTexture<Normals>(path.C_Str());
 			}
 		}
-		auto root = scene->mRootNode;
+		// auto root = scene->mRootNode;
 		for (auto i = 0u; i != scene->mNumMeshes; ++i)
 		{
 			auto mesh = scene->mMeshes[i];

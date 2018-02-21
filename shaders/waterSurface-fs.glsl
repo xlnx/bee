@@ -61,11 +61,13 @@ vec4 CalcLightInternal(LightBase Light, vec3 LightDirection, vec3 Normal)
 		float SpecularFactor = dot(VertexToEye, LightReflect);
 		if (SpecularFactor > 0)
 		{
-			SpecularFactor = pow(SpecularFactor, gSpecularPower);
-			SpecularColor = vec4(Light.Color * gMatSpecularIntensity * SpecularFactor, 1.0f);
+			SpecularFactor = pow(SpecularFactor, 0.5);
+			SpecularColor = vec4(SpecularFactor * 1.0/*gMatSpecularIntensity*/ * Light.Color, 1.0f);
 		}
 	}
-	return AmbientColor + DiffuseColor + SpecularColor;
+	return DiffuseColor + SpecularColor;
+	// return vec4(Normal, 1);// * DiffuseFactor;
+	// return DiffuseColor;// + SpecularColor;
 }
 
 vec4 CalcDirectionalLight(vec3 Normal)
@@ -96,8 +98,14 @@ void main()
 		Light += CalcPointLight(i, Normal);
 	}
 
-	// FragColor = // texture2D(gMaterial.Diffuse, TexCoord0.xy)
-	// 	vec4(0.5, 0.5, 0.5, 1) * Light;
-	FragColor = vec4(0, 0.42, 0.6, 1)
+	// if (Light.x > 1.0 || Light.y > 1.0 || Light.z > 1.0)
+	// {
+	// 	FragColor = vec4(1, 0, 0, 1);
+	// }
+	// else
+	// {
+		FragColor = vec4(0.2, 0.32, 0.45, 1)
 		/*texture2D(gMaterial.Diffuse, TexCoord0.xy)*/ * Light;
+	// }
+	// FragColor = Light;
 }

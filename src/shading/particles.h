@@ -1,7 +1,7 @@
 // TODO: modify this
 #pragma once 
 
-#include "gl.h"
+#include "shader.h"
 #include "object.h"
 #include "property.h"
 #include "texture.h"

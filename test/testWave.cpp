@@ -5,22 +5,36 @@ using namespace bee;
 using namespace gl;
 using namespace glm;
 
+Window<3, 3> window;
+vector<ViewPort*> cameras;
+Scene scene;
+UniformRef<float> gMatSpecularIntensity = Shader::uniform<float>("gMatSpecularIntensity");
+UniformRef<float> gSpecularPower = Shader::uniform<float>("gSpecularPower");
+
+bool render()
+{
+	for (auto &camera: cameras)
+	{
+		scene.render(*camera);
+		// gMatSpecularIntensity = 0.3;
+		// gSpecularPower = 32;
+	}
+	return false;
+}
+
 int Main(int argc, char **argv)
 {
-	Window<3, 3> window;
-	vector<ViewPort*> cameras;
-	vector<Object*> objects;
-	WaterSurface surface;
 	GerstnerWave hWave, vWave, sWave, pWave; 
+	// vector<Object*> objects;
+	auto &surface = scene.createObject<WaterSurface>(2, 2);
 
-	cameras.push_back(new FirstPersonCamera<>());
-	objects.push_back(&surface);
+	FirstPersonCamera<> camera;
+	cameras.push_back(&camera);
 
 	surface.attachWave(hWave);
 	surface.attachWave(vWave);
 	surface.attachWave(sWave);
 	// surface.attachWave(pWave);
-	surface.resize(2, 2);
 	
 	hWave.setDirection(1, 0);
 	vWave.setDirection(0, 1);
@@ -30,49 +44,13 @@ int Main(int argc, char **argv)
 	pWave.setSteepness(1.f);
 	vWave.setAmplitude(vWave.getAmplitude() / 2);
 	// objects[0]->scale(0.02);
-	cameras[0]->setPosition(0, -1, 0);
-	cameras[0]->setTarget(0, 1, 0);
-	surface.setPosition(-1, 0, 0);
+	camera.setPosition(0, -1, 0);
+	camera.setTarget(0, 1, 0);
+	// surface.setPosition(-1, 0, 0);
 	
-	ShaderControllers<> controllers;
-	DirectionalLight light(vec3(0, -1, -1));
-	controllers.addController(light);
-	UniformRef<float> gMatSpecularIntensity = Shader::uniform<float>("gMatSpecularIntensity");
-	UniformRef<float> gSpecularPower = Shader::uniform<float>("gSpecularPower");
-
-	window.dispatch<RenderEvent>(
-		[&]() -> bool {
-			for (auto & camera: cameras)
-			{
-				for (auto & object: objects)
-				{
-					object->render(*camera);
-					controllers.invoke();
-					gMatSpecularIntensity = 0.3;
-					gSpecularPower = 32;
-				}
-			}
-			return false;
-		}
-	);
-	window.dispatch<KeyEvent>(
-		[&](int key, int scancode, int action, int mods) -> bool {
-			const auto step = .1f;
-			switch (action) {
-			case GLFW_PRESS: case GLFW_REPEAT:
-				switch (key) {
-				case GLFW_KEY_UP:
-					cameras[0]->setPosition(cameras[0]->getPosition() + cameras[0]->getTarget() * step); break;
-				case GLFW_KEY_DOWN:
-					cameras[0]->setPosition(cameras[0]->getPosition() - cameras[0]->getTarget() * step); break;
-				case GLFW_KEY_LEFT:
-
-				case GLFW_KEY_RIGHT:;
-				}
-			}
-			return false;
-		}
-	);
+	scene.createController<DirectionalLight>(vec3(0, -1, -1));
+	CameraCarrier cc(camera);
+	window.dispatch<RenderEvent>(render);
 	window.dispatchMessages();
 	return 0;
 }

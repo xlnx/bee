@@ -1,8 +1,4 @@
-#include "runtime.h"
-#include "gl.h"
-#include "pipeline.h"
-#include "shading.h"
-#include "window.h"
+#include "bee.h"
 
 using namespace bee;
 using namespace bee::gl;
@@ -50,7 +46,7 @@ int Main(int argc, char **argv)
 			return false;
 		}
 	);
-	ShaderControllers<> controllers;
+	ShaderControllers controllers;
 	controllers.addController(* new DirectionalLight(vec3(1, 1, 1)));
 	// controllers.emplace_back(new PointLight(vec3(0, 0, 1)));
 	window.dispatch<RenderEvent>(

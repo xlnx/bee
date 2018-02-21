@@ -27,7 +27,7 @@ public:
 	}
 	template <typename T, typename ...Types, typename = typename
 		::std::enable_if<::std::is_constructible<T, Types...>::value &&
-			::std::is_base_of<ShaderController, T>::value>::type>
+			::std::is_base_of<gl::ShaderController, T>::value>::type>
 	T &createController(Types &&...args)
 	{
 		auto controller = new T(::std::forward<Types>(args)...);
@@ -38,8 +38,8 @@ public:
 	{
 		for (auto object: objects)
 		{
+			gl::ShaderControllers::setControllers(controllers);
 			object->render(camera);
-			controllers.invoke();
 		}
 	}
 	void clear()
@@ -48,14 +48,14 @@ public:
 		{
 			delete object;
 		}
-		controllers.foreach([](ShaderController *controller)
+		controllers.foreach([](gl::ShaderController *controller)
 		{
 			delete controller;
 		});
 	}
 private:
 	::std::vector<Object*> objects;
-	ShaderControllers<> controllers;
+	gl::ShaderControllers controllers;
 };
 
 }

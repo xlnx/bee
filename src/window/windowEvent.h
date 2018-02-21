@@ -94,7 +94,7 @@ public:
 		}
 	}
 
-	eventType *emplace(const callbackType &callback, int priority = 0)
+	eventType &emplace(const callbackType &callback, int priority = 0)
 	{
 		auto event = new eventType(callback, priority), ptr = events;
 		for (; ptr->next != nullptr; ptr = ptr->next)
@@ -117,7 +117,7 @@ public:
 				ptr->next = event; event->prev = ptr;
 			}
 		}
-		return event;
+		return *event;
 	}
 	constIterator begin() const
 	{
@@ -198,6 +198,30 @@ struct RenderEvent
 	using type = WindowEvent<>;
 	using callbackType = typename WindowEventList<>::callbackType;
 	using dispatcherType = RenderDispatcher;
+};
+
+struct UpdateDispatcher
+{
+protected:
+	UpdateDispatcher()
+	{
+		handlers = new WindowEventList<double>;
+	}
+	static void dispatch(double detMillis)
+	{
+		for (auto &handler: *handlers)
+		{
+			if (handler.callback(detMillis)) break;
+		}
+	}
+protected:
+	static WindowEventList<double> *handlers;
+};
+struct UpdateEvent
+{
+	using type = WindowEvent<double>;
+	using callbackType = typename WindowEventList<double>::callbackType;
+	using dispatcherType = UpdateDispatcher;
 };
 
 }

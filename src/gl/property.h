@@ -78,13 +78,13 @@ namespace bee
 		{\
 		}\
 	private:\
-		ShaderControllerInfoGetter getInfoFunc() override\
+		gl::ShaderControllerInfoGetter getInfoFunc() override\
 		{\
 			return getShaderControllerInfo;\
 		}\
-		static ShaderControllerInfo *getShaderControllerInfo() \
+		static gl::ShaderControllerInfo *getShaderControllerInfo() \
 		{\
-			static ShaderControllerInfo info {\
+			static gl::ShaderControllerInfo info {\
 				gl::Shader::uniform<int>("g" #ty "Count"),\
 				#ty,\
 			};\

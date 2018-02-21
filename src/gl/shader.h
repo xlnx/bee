@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <map>
 #include <vector>
+#include <functional>
 #include <initializer_list>
 
 namespace bee
@@ -14,9 +15,13 @@ namespace gl
 {
 
 template <int ShaderType> class ShaderObj;
+
 class Shader;
 
 template <typename T> class UniformRef;
+
+class ShaderControllers;
+
 
 
 
@@ -216,6 +221,109 @@ template <>
 	}
 };
 
+struct ShaderControllerInfo
+{
+	gl::UniformRef<int> counter;
+	const char *typeName;
+};
+using ShaderControllerInfoGetter = ShaderControllerInfo *(*)();
+
+class ShaderController
+{
+protected:
+	ShaderController() = default;
+public:
+	virtual ~ShaderController() = default;
+	
+	virtual ShaderControllerInfoGetter getInfoFunc() = 0;
+public:
+	virtual bool invoke(int index) = 0;
+};
+
+class ShaderControllerSingle: public ShaderController
+{
+protected:
+	static constexpr bool isMulti = false;
+protected:
+	ShaderControllerSingle(const ::std::string &prefix): 
+		prefix(prefix)
+	{
+	}
+private:
+	const ::std::string &prefix = "ShaderControllerSingle";
+};
+
+class ShaderControllerMulti: public ShaderController
+{
+protected:
+	static constexpr bool isMulti = true;
+protected:
+	ShaderControllerMulti(const ::std::string &prefix): 
+		prefix(prefix)
+	{
+	}
+private:
+	const ::std::string &prefix = "ShaderControllerMulti[]";
+};
+
+// template <typename T = ShaderController, typename = typename 
+// 	::std::enable_if<::std::is_base_of<ShaderController, T>::value>::type>
+class ShaderControllers final
+{
+	friend class Shader;
+public:
+	void invoke()
+	{
+		::std::map<ShaderControllerInfo*, int> ptrs;
+		for (auto & controller: controllers)
+		{
+			if (auto multi = dynamic_cast<ShaderControllerMulti*>(controller))
+			{
+				auto info = multi->getInfoFunc()();
+				if (multi->invoke(ptrs[info]))
+				{
+					++ptrs[info];
+				}
+			}
+			else
+			{
+				controller->invoke(0);
+			}
+		}
+		for (auto &pair: ptrs)
+		{
+			pair.first->counter = pair.second;
+		}
+	}
+	void addController(ShaderController &controller)
+	{
+		controllers.push_back(&controller);
+	}
+	void foreach(const ::std::function<void(ShaderController*)> &f)
+	{
+		for (auto controller: controllers)
+		{
+			f(controller);
+		}
+	}
+	static ShaderControllers &getControllers()
+	{
+		return *getCurrent();
+	}
+	static void setControllers(ShaderControllers &current)
+	{
+		getCurrent() = &current;
+	}
+private:
+	static ShaderControllers *&getCurrent()
+	{
+		static ShaderControllers *current = nullptr;
+		return current;
+	}
+protected:
+	::std::vector<ShaderController *> controllers;
+};
+
 class Shader final
 {
 	static constexpr auto maxUniformCount = 512;
@@ -289,6 +397,10 @@ public:
 		glUseProgram(shader);
 		currShader = this;
 		gTime = float(glfwGetTime());
+		if (auto controllers = ShaderControllers::getCurrent())
+		{
+			controllers->invoke();
+		}
 	}
 	template <typename ...Types>
 	void setTransformFeedbackVaryings(Types ...varyings)
