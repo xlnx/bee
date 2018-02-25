@@ -10,13 +10,12 @@ int Main(int argc, char **argv)
 	Window<3, 3> window;
 	vector<ViewPort*> cameras;
 	vector<Object*> objects;
-	WaterSurface surface;
+	WaterSurface surface(2, 2);
 
 	cameras.push_back(new FirstPersonCamera<>());
 	objects.push_back(&surface);
 
 	// surface.attachWave(pWave);
-	surface.resize(2, 2);
 	// objects[0]->scale(0.02);
 	cameras[0]->setPosition(0, -1, 0);
 	cameras[0]->setTarget(0, 1, 0);

@@ -73,22 +73,33 @@ private:
 class TextureBase
 {
 protected:
-	TextureBase() = default;
+	TextureBase(bool isValid = false): isValid(isValid)
+	{
+	}
 public:
 	operator GLuint () const
 	{
 		return handle;
+	}
+	bool valid() const
+	{
+		return isValid;
 	}
 protected:
 	static unsigned char *loadImage(::std::string path, int &width, int &height, int &comp);
 	static void freeImage(unsigned char *data);
 protected:
 	GLuint handle = TextureGenerator::gen();
+	bool isValid = false;
 };
 
 template <TextureDim Dim>
 class TextureNDBase: public TextureBase
 {
+protected:
+	TextureNDBase(bool isValid = false): TextureBase(isValid)
+	{
+	}
 public:
 	void invoke(int i) const
 	{
@@ -111,7 +122,8 @@ class Texture<Tex1D>: public TextureNDBase<Tex1D>
 {
 public:
 	Texture() = default;
-	Texture(const std::vector<::glm::vec3> &points)
+	Texture(const std::vector<::glm::vec3> &points): 
+		TextureNDBase<Tex1D>(true)
 	{
 		glBindTexture(Tex1D, handle);
 			glTexImage1D(Tex1D, 0, GL_RGB, points.size(), 0.f, GL_RGB, GL_FLOAT, &points[0]);
@@ -148,7 +160,8 @@ class Texture<Tex2D>: public TextureNDBase<Tex2D>
 {
 public:
 	Texture() = default;
-	Texture(const ::std::string &path, bool useMipmap = true)
+	Texture(const ::std::string &path, bool useMipmap = true): 
+		TextureNDBase<Tex2D>(true)
 	{
 		int width, height, componentCount;
 		auto data = loadImage(path, width, height, componentCount);

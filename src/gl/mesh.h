@@ -67,11 +67,6 @@ private:
 
 class Mesh: private MeshBase
 {
-	BEE_UNIFORM(int, Diffuse, "Material");
-	BEE_UNIFORM(int, Specular, "Material");
-	BEE_UNIFORM(int, Ambient, "Material");
-	BEE_UNIFORM(int, Emissive, "Material");
-	BEE_UNIFORM(int, Normals, "Material");
 public:
 	template <typename ...Attrs>
 	Mesh(const VertexAttrs<Attrs...> &vertices, const Faces &faces)
@@ -169,41 +164,7 @@ public:
 	{
 		if (material)
 		{
-			if (auto texture = material->getTexture<Diffuse>())
-			{
-				if (gDiffuse = Diffuse)
-				{
-					texture.invoke(Diffuse);
-				}
-			}
-			if (auto texture = material->getTexture<Specular>())
-			{
-				if (gSpecular = Specular)
-				{
-					texture.invoke(Specular);
-				}
-			}
-			if (auto texture = material->getTexture<Ambient>())
-			{
-				if (gAmbient = Ambient)
-				{
-					texture.invoke(Ambient);
-				}
-			}
-			if (auto texture = material->getTexture<Emissive>())
-			{
-				if (gEmissive = Emissive)
-				{
-					texture.invoke(Emissive);
-				}
-			}
-			if (auto texture = material->getTexture<Normals>())
-			{
-				if (gNormals = Normals)
-				{
-					texture.invoke(Normals);
-				}
-			}
+			material->use();
 		}
 		MeshBase::render();
 	}

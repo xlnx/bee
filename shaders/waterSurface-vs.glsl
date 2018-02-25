@@ -1,13 +1,14 @@
 #version 330 core
 
-layout (location = 0) in vec3 Position;
+layout (location = 0) in vec2 Position;
 layout (location = 2) in vec3 Normal;
-layout (location = 5) in vec2 TexCoord;
+// layout (location = 5) in vec2 TexCoord;
 
 out vec2 TexCoord0;
 out vec3 Normal0;
+out vec3 Tangent0;
 out vec3 WorldPos0;
-out vec3 Offset0;
+// out vec3 Offset0;
 // out vec4 Color0;
 
 #define MAX_GERSTNER_WAVE_COUNT 128
@@ -26,11 +27,13 @@ uniform float gTime;
 
 uniform mat4 gWVP;
 uniform mat4 gWorld;
+uniform vec3 gCameraWorldPos;
 
-void GerstnerLevelOne(vec3 vertex, out vec3 offset, out vec3 normal)
+void Gerstner(vec3 vertex, out vec3 offset, out vec3 normal, out vec3 tangent)
 {
 	offset = vec3(0, 0, 0);
-	normal = vec3(0, 0, 1);
+	normal = vec3(0, 0, gGerstnerWaveCount);
+	tangent = vec3(0, gGerstnerWaveCount, 0);
 
 	for(int i = 0; i < gGerstnerWaveCount; i++)
 	{
@@ -50,23 +53,38 @@ void GerstnerLevelOne(vec3 vertex, out vec3 offset, out vec3 normal)
 			gGerstnerWave[i].Direction.y * Asin;
 		normal.z -= gGerstnerWave[i].Frequency *
 			gGerstnerWave[i].Steepness * Acos;
+
+		tangent.x -= gGerstnerWave[i].Frequency *
+			gGerstnerWave[i].Steepness * 
+			gGerstnerWave[i].Direction.x * 
+			gGerstnerWave[i].Direction.y * Acos;
+		tangent.y -= gGerstnerWave[i].Frequency *
+			gGerstnerWave[i].Steepness * 
+			gGerstnerWave[i].Direction.y *
+			gGerstnerWave[i].Direction.y * Acos;
+		tangent.z -= gGerstnerWave[i].Frequency *
+			gGerstnerWave[i].Direction.y * Asin;
 	}
+	normal = normalize(normal);
+	tangent = normalize(tangent);
 }
 
 void main()
 {
 	vec3 offset;
 	vec3 normal;
-	vec3 Position0 = Position;
-	GerstnerLevelOne(Position0, offset, normal);
+	vec3 tangent;
+	// vec3 Position0 = vec3(Position * (abs(gCameraWorldPos.z) + 1), 0);
+	vec3 Position0 = vec3(Position, 0);
+	Position0 += vec3(gCameraWorldPos.xy, 0.0);
+	Gerstner(Position0, offset, normal, tangent);
 	Position0 += offset;
 	gl_Position = gWVP * vec4(Position0, 1.0);
-	// TexCoord0 = TexCoord;
-	if (normal.z < 0)
-		normal.z = -normal.z;
+
+	TexCoord0 = Position0.xy;
 	Normal0 = (gWorld * vec4(normal, 0.0)).xyz;
+	Tangent0 = (gWorld * vec4(tangent, 0.0)).xyz;
+	
 	WorldPos0 = (gWorld * vec4(Position0, 1.0)).xyz;
-	// Color0 = vec4(clamp(Position0, 0.0, 1.0), 1.0);
-	// gl_Position = gWVP * vec4(Position, 1.0);
-	Offset0 = offset;
+	// Offset0 = offset;
 }

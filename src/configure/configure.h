@@ -34,16 +34,12 @@ public:
 		if (!reader.parse(fin, root, false))
 		{
 			able = false;
-			// BEE_RAISE(ConfigureError, "Failed to read configuration file: " + path);
-		}
-		else
-		{
 			root = ::Json::objectValue;
+			// BEE_RAISE(ConfigureError, "Failed to read configuration file: " + path);
 		}
 	}
 	~Configure()
 	{
-		dump();
 	}
 
 	template <typename T>
@@ -61,7 +57,7 @@ public:
 			{
 			case '.': {
 				*p = 0;
-				if (!*ref)
+				if (ref->isNull())
 				{
 					*ref = ::Json::objectValue;
 				}
@@ -83,12 +79,12 @@ public:
 				*p = 0;
 				if (*ptr)
 				{
-					if (!*ref)
+					if (ref->isNull())
 					{
 						*ref = ::Json::objectValue;
 					}
 					ref = &(*ref)[ptr];
-					if (!*ref)
+					if (ref->isNull())
 					{
 						*ref = ::Json::arrayValue;
 					}
@@ -97,7 +93,7 @@ public:
 				}
 				else
 				{
-					if (!*ref)
+					if (ref->isNull())
 					{
 						*ref = ::Json::arrayValue;
 					}
@@ -109,7 +105,7 @@ public:
 		}
 		if (*ptr)
 		{
-			if (!*ref)
+			if (ref->isNull())
 			{
 				*ref = ::Json::objectValue;
 			}

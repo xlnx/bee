@@ -73,6 +73,7 @@ private:
 
 using any = void;
 using pos3 = VertexAttrElem<position, ::glm::vec3>;
+using pos2 = VertexAttrElem<position, ::glm::vec2>;
 using pos4 = VertexAttrElem<position, ::glm::vec4>;
 using color3 = VertexAttrElem<color, ::glm::vec3>;
 using color4 = VertexAttrElem<color, ::glm::vec4>;

@@ -28,7 +28,7 @@ int Main(int argc, char **argv)
 	FirstPersonCamera<> camera;
 	cameras.push_back(&camera);
 
-	auto &surface = scene.createObject<WaterSurface>(20, 20);
+	auto &surface = scene.createObject<WaterSurface>(60, 60);
 	GerstnerWave wave[5];
 	surface.attachWave(wave[0]);
 	surface.attachWave(wave[1]);
@@ -41,25 +41,31 @@ int Main(int argc, char **argv)
 	wave[1].setDirection(0, 1);
 	wave[2].setDirection(1, 1.5);
 	wave[3].setDirection(-1, 1);
-	wave[4].setDirection(-1, -1);
+	wave[4].setDirection(1, -.8);
 	
 	wave[0].setFrequency(2.5f);
 	wave[1].setFrequency(2.f);
-	wave[2].setFrequency(.8f);
-	wave[3].setFrequency(.5f);
-	wave[4].setFrequency(1.f);
+	wave[2].setFrequency(.5f);
+	wave[3].setFrequency(1.f);
+	wave[4].setFrequency(.1f);
 	
-	wave[0].setAmplitude(.07f);
-	wave[1].setAmplitude(.05f);
-	wave[2].setAmplitude(.03f);
-	wave[3].setAmplitude(.04f);
-	wave[4].setAmplitude(.1f);
+	wave[0].setAmplitude(.1f);
+	wave[1].setAmplitude(.09f);
+	wave[2].setAmplitude(.12f);
+	wave[3].setAmplitude(.08f);
+	wave[4].setAmplitude(.5f);
+
+	wave[0].setSteepness(.7f);
+	wave[1].setSteepness(.5f);
+	wave[2].setSteepness(.3f);
+	wave[3].setSteepness(.1f);
+	wave[4].setSteepness(.0f);
 
 	scene.createObject<ModelObject>(
 		ModelManager::loadModel("NBB_Bismark/NBB_Bismark.obj")
 	);
 	auto &light = scene.createController<DirectionalLight>(
-		vec3{0, -1, -1}
+		vec3{0, -.1, -1}
 	);
 	// light.setDiffuseIntensity(.3f);
 	CameraCarrier cc(camera);

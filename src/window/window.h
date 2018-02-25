@@ -161,6 +161,7 @@ public:
 
 		gl::Shader::setFilePath("shaders/");
 		gl::Model::setFilePath("models/");
+		gl::Material::setFilePath("materials/");
 	}
 };
 
