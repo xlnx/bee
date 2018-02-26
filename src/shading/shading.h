@@ -4,3 +4,4 @@
 #include "lighting.h"
 #include "waterSurface.h"
 #include "particles.h"
+#include "skybox.h"

@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include <vector>
+#include <sstream>
 
 namespace bee
 {
@@ -195,37 +196,56 @@ public:
 	}
 };
 
-// template <>
-// class Texture<Tex3D>: TextureBase
-// {
-// public:
-// 	Texture(const ::std::string &path)
-// 	{
-// 		glBindTexture(Tex3D, handle);
-// 		for (auto i = 0u; i != faces.size();++i)
-// 		{
-// 			int width, height, componentCount;
-// 			auto data = stbi_load(faces[i].c_str(), &width, &height, &componentCount, 0);
-// 			if (!data)
-// 			{
-// 				BEE_RAISE(Fatal, "failed to load image: " + faces[i]);
-// 			}
-// 			auto format = componentCount == 1 ? GL_RED : 
-// 				componentCount == 3 ? GL_RGB : 
-// 				componentCount == 4 ? GL_RGBA : 0;
-// 			if (!format)
-// 			{
-// 				BEE_RAISE(Fatal, "invalid image format.");
-// 			}
-// 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-// 			stbi_image_free(data);
-// 		}
-// 		glTexParameteri(Tex3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-// 		glTexParameteri(Tex3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-// 		glTexParameteri(Tex3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-// 		glTexParameteri(Tex3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-// 	}
-// };
+template <>
+class Texture<Tex3D>: public TextureNDBase<Tex3D>
+{
+public:
+	Texture(::std::string path)
+	{
+		bind();
+		char *p = const_cast<char *>(&path[0]), *q = p;
+		while (*p != 0)
+		{
+			if (*p == '.') q = p;
+			p++;
+		}
+		::std::string ext = q;
+		path = path.substr(0, q - &path[0]);
+		for (auto i = 0u; i != 6; ++i)
+		{
+			int width, height, componentCount;
+			static const char *const suffix[] = {
+				"_right", "_left", "_front", "_back", "_top", "_bottom"
+			};
+			::std::ostringstream os;
+			os << path << suffix[i] << ext;
+			if (auto data = loadImage(os.str(), width, height, componentCount))
+			{
+				auto format = componentCount == 1 ? GL_RED : 
+					componentCount == 3 ? GL_RGB : 
+					componentCount == 4 ? GL_RGBA : 0;
+				if (!format)
+				{
+					BEE_RAISE(Fatal, "invalid image format.");
+				}
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+				
+				freeImage(data);
+			}
+		}
+		glTexParameteri(Tex3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(Tex3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(Tex3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(Tex3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(Tex3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		
+		unbind();
+	}
+};
+
+using Texture1D = Texture<Tex1D>;
+using Texture2D = Texture<Tex2D>;
+using Texture3D = Texture<Tex3D>;
 
 }
 

@@ -8,17 +8,12 @@ using namespace glm;
 Window<3, 3> window;
 vector<ViewPort*> cameras;
 Scene scene;
-UniformRef<float> gMatSpecularIntensity = Shader::uniform<float>("gMatSpecularIntensity");
-UniformRef<float> gSpecularPower = Shader::uniform<float>("gSpecularPower");
-// UniformRef<float> gSpecularPower = Shader::uniform<float>("gSpecularPower");
 
 bool render()
 {
 	for (auto &camera: cameras)
 	{
 		scene.render(*camera);
-		gMatSpecularIntensity = 0.3;
-		gSpecularPower = 1;
 	}
 	return false;
 }
@@ -64,6 +59,7 @@ int Main(int argc, char **argv)
 	scene.createObject<ModelObject>(
 		ModelManager::loadModel("NBB_Bismark/NBB_Bismark.obj")
 	);
+	scene.createObject<Skybox>();
 	auto &light = scene.createController<DirectionalLight>(
 		vec3{0, -.1, -1}
 	);
