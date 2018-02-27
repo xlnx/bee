@@ -9,66 +9,55 @@
 namespace bee
 {
 
-class WaterSurface;
+class WaterMeshBase;
 
 class WaveBase:
 	public gl::ShaderControllerMulti
 {
 	BEE_SC_INHERIT(WaveBase, gl::ShaderControllerMulti);
-	friend class WaterSurface;
+	friend class WaterMeshBase;
 };
 
-class WaterSurface: public Object
+class WaterMeshBase: public Object
 {
 	friend class WaveBase;
-	static constexpr auto minMeshWidth = .5f;
-	static constexpr auto firstStageWidth = 75.f;
+	static constexpr auto minMeshWidth = .1f;
+	static constexpr auto firstStageWidth = 35.f;
 	static constexpr auto maxStageCount = 10;
 	static constexpr auto stageCount = 10;
-	BEE_UNIFORM_GLOB(int, NormalMap);
-public:
-	WaterSurface(float width, float length):
-		width(width), length(length)
+protected:
+	WaterMeshBase()
+		// width(width), length(length)
 	{
 		static int n = init();
 	}
-
+public:
 	void render(ViewPort &viewPort) override
 	{
-		shader->use();
 		setViewMatrices(viewPort);
-		material.use();
 		waves.invoke();
-		quads[0][0].render();
+		quads[0][0]->render();
 		for (int i = 1; i != stageCount; ++i)
 		{
 			for (int j = 0; j != 8; ++j)
 			{
-				quads[i][j].render();
+				quads[i][j]->render();
 			}
 		}
 	}
-	float getWidth() const
-	{
-		return width;
-	}
-	float getLength() const
-	{
-		return length;
-	}
+	// float getWidth() const
+	// {
+	// 	return width;
+	// }
+	// float getLength() const
+	// {
+	// 	return length;
+	// }
 	void attachWave(WaveBase &wave)
 	{
 		waves.addController(wave);
 	}
-private:
-	static gl::Shader *getShader()
-	{
-		static auto var = new gl::Shader(
-			gl::VertexShader("waterSurface-vs.glsl"),
-			gl::FragmentShader("waterSurface-fs.glsl")
-		);
-		return var;
-	}
+protected:
 	static int init()
 	{
 		float meshWidth = minMeshWidth;
@@ -76,7 +65,7 @@ private:
 		meshCount -= meshCount % 9;
 		float left = -meshCount * meshWidth / 2;
 		float top = left;
-		auto genVertices = [&](Quad &quad, int edges)
+		auto genVertices = [&](Quad *&quad, int edges)
 		{
 			int verticesCount, w = (meshCount + 1) << 1, h = meshCount;
 			float l = left, t = top;
@@ -207,13 +196,14 @@ private:
 					}
 				}
 			}
-			quad.vao.setVertices(vertices);
-			quad.stripCount = h;
-			quad.stripLength = w;
-			quad.cornerBegin = cornerBegin;
-			quad.cornerCount = cornerCount;
-			quad.edgeBegin = edgeBegin;
-			quad.edgeCount = edgeCount;
+			quad = new Quad(::std::move(vertices));
+			quad->stripCount = h;
+			quad->stripLength = w;
+			quad->cornerBegin = cornerBegin;
+			quad->cornerCount = cornerCount;
+			quad->edgeBegin = edgeBegin;
+			quad->edgeCount = edgeCount;
+			// quad->vao.setVertices(vertices);
 		};
 		genVertices(getQuads()[0][0], 0b1111);
 		meshCount /= 3;
@@ -238,12 +228,20 @@ private:
 	}
 	struct Quad
 	{
+		Quad(gl::VertexAttrs<gl::pos2> &&vertices):
+			vertices(vertices)
+		{
+			vao.setVertices(vertices);
+		}
+		gl::VertexAttrs<gl::pos2> vertices;
 		gl::ArrayedVAO vao;
 		int stripCount, stripLength;
 		int cornerBegin, cornerCount;
 		int edgeBegin, edgeCount;
+
 		void render()
 		{
+			// vao.setVertices(vertices);
 			for (int i = 0; i != stripCount; ++i)
 			{
 				vao.render(GL_TRIANGLE_STRIP, i * stripLength, stripLength);
@@ -258,55 +256,40 @@ private:
 			}
 		}
 	};
-	using refQuads = Quad (&)[maxStageCount][8];
+	using refQuads = Quad *(&)[maxStageCount][8];
 	static refQuads getQuads()
 	{
-		static Quad quads[maxStageCount][8];
+		static Quad *quads[maxStageCount][8];
 		return quads;
 	}
-private:
-	gl::Shader *shader = getShader();
+protected:
 	refQuads quads = getQuads();
 protected:
-	int stripCount, stripLength;
-	float width = 0, length = 1;
-	// gl::Texture<gl::Tex2D> texture = 
-		// gl::Texture<gl::Tex2D>("water-texture-2.tga");
-	gl::Material material = gl::Material("water");
+	// float width = 0, length = 1;
 	gl::ShaderControllers waves;
 };
 
-class GerstnerWave: 
-	public WaveBase
+class OceanMesh: public WaterMeshBase
 {
-	BEE_SC_INHERIT(GerstnerWave, WaveBase);
 public:
-	GerstnerWave():
-		BEE_SC_SUPER()
+	void render(ViewPort &viewPort) override
 	{
+		shader->use();
+		material.use();
+		WaterMeshBase::render(viewPort);
 	}
 protected:
-	bool invoke(int index) override
+	static gl::Shader *getShader()
 	{
-		gSteepness[index] = fSteepness / (fFrequency * fAmplitude);
-		gAmplitude[index] = fAmplitude;
-		gFrequency[index] = fFrequency;
-		gSpeed[index] = fSpeed;
-		gDirection[index] = ::glm::normalize(fDirection);
-		return true;
+		static auto var = new gl::Shader(
+			gl::VertexShader("ocean-vs.glsl"),
+			gl::FragmentShader("ocean-fs.glsl")
+		);
+		return var;
 	}
-protected:
-	BEE_SC_UNIFORM(float[], Steepness);
-	BEE_SC_UNIFORM(float[], Amplitude);
-	BEE_SC_UNIFORM(float[], Frequency);
-	BEE_SC_UNIFORM(float[], Speed);
-	BEE_SC_UNIFORM(::glm::vec2[], Direction);
-public:
-	BEE_PROPERTY(float, Steepness) = .5f;
-	BEE_PROPERTY(float, Amplitude) = .2f;
-	BEE_PROPERTY(float, Frequency) = 5.f;
-	BEE_PROPERTY(::glm::vec2, Direction) = {1, 0};
-	BEE_PROPERTY(float, Speed) = 1.f;
+private:
+	gl::Shader *shader = getShader();
+	gl::Material material = gl::Material("ocean");
 };
 
 }
