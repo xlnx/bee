@@ -158,6 +158,7 @@ public:
 		// glEnable(GL_BLEND);
 		// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_DEPTH_TEST);
+		// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 		gl::Shader::setFilePath("shaders/");
 		gl::Model::setFilePath("models/");

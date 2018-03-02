@@ -58,9 +58,9 @@ int Main(int argc, char **argv)
 	camera.setPosition(0, -1, 0);
 	camera.setTarget(0, 1, 0);
 	
-	scene.createController<DirectionalLight>(
-		vec3(0, -1, -1)
-	);
+	scene.createController<DirectionalLight>(vec3(0, -1, -1));
+	// scene.createController<PointLight>(vec3(0, 2, 2));
+	camera.setPosition(0, 0, 1);
 	CameraCarrier cc(camera);
 	window.dispatch<RenderEvent>(render);
 	window.dispatchMessages();
