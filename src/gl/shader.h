@@ -127,7 +127,7 @@ template <typename T>
 	{
 		UniformRef<T> ref;
 		auto & data = *getHack();
-		auto location = data.first + data.second * index;
+		auto location = ~data.first ? data.first + data.second * index : 0;
 		hackLocation(ref, location);
 		return ref;
 	}

@@ -25,6 +25,7 @@ class Material
 {
 	BEE_UNIFORM(float, SpecularIntensity, "Material");
 	BEE_UNIFORM(float, SpecularPower, "Material");
+	BEE_UNIFORM(float, DiffuseIntensity, "Material");
 public:
 	Material(::std::string name = "")
 	{
@@ -64,6 +65,16 @@ public:
 						fSpecularIntensity = intensity.asDouble();
 					}
 				}
+
+				auto diffuse = cfg["diffuse"];
+				if (diffuse.isObject())
+				{
+					auto intensity = diffuse["intensity"];
+					if (intensity.isDouble())
+					{
+						fDiffuseIntensity = intensity.asDouble();
+					}
+				}
 			}
 		}
 	}
@@ -90,6 +101,7 @@ public:
 		}
 		gSpecularPower = fSpecularPower;
 		gSpecularIntensity = fSpecularIntensity;
+		gDiffuseIntensity = fDiffuseIntensity;
 	}
 	static void setFilePath(const ::std::string &path)
 	{
@@ -111,6 +123,7 @@ protected:
 public:
 	BEE_PROPERTY(float, SpecularPower) = .5f;
 	BEE_PROPERTY(float, SpecularIntensity) = 1.f;
+	BEE_PROPERTY(float, DiffuseIntensity) = .5f;
 };
 
 }

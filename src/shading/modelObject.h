@@ -2,6 +2,7 @@
 
 #include "model.h"
 #include "object.h"
+#include "modelManager.h"
 
 namespace bee
 {
@@ -10,6 +11,10 @@ class ModelObject: public Object
 {
 public:
 	ModelObject() = default;
+	ModelObject(const ::std::string &model): 
+		fModel(&ModelManager::loadModel(model))
+	{
+	}
 	ModelObject(const gl::Model &model): 
 		fModel(&model)
 	{

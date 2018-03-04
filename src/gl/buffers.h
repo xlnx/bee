@@ -175,12 +175,6 @@ private:
 class ArrayedVAO: public VAO
 {
 public:
-	void render(GLenum mode, int first, int count) const noexcept
-	{
-		glBindVertexArray(handle);
-			info.invoke(); glDrawArrays(mode, first, count);
-		glBindVertexArray(0);
-	}
 	template <typename ...Attrs>
 	void setVertices(const VertexAttrs<Attrs...> &vertices)
 	{
@@ -188,6 +182,13 @@ public:
 		glBindVertexArray(handle);
 			vbo.bind(); vbo.data(vertices.size() * vertices.elemSize, vertices.begin());
 			vertices.performSetVertexAttribute();
+		glBindVertexArray(0);
+	}
+	
+	void render(GLenum mode, int first, int count) const noexcept
+	{
+		glBindVertexArray(handle);
+			info.invoke(); glDrawArrays(mode, first, count);
 		glBindVertexArray(0);
 	}
 private:

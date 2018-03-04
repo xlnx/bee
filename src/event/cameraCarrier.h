@@ -20,7 +20,8 @@ public:
 					auto leftwardVec = ::glm::normalize(::glm::cross(this->camera.getUp(), forwardVec));
 				
 					this->camera.setPosition(this->camera.getPosition() + 
-						forwardVec * (forward -backward) + leftwardVec * (leftward - rightward));
+						forwardVec * (forward -backward) * this->vVelocity * detMillis + 
+						leftwardVec * (leftward - rightward) * this->uVelocity * detMillis);
 					return false;
 				}, priority
 			)

@@ -2,7 +2,6 @@
 
 #include "windowBase.h"
 #include "windowEvent.h"
-#include "buffers.h"
 #include "texture.h"
 #include "shader.h"
 #include "model.h"

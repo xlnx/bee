@@ -25,11 +25,11 @@ int Main(int argc, char **argv)
 	FirstPersonCamera<> camera;
 	cameras.push_back(&camera);
 
-	ocean.attachWave(wave[0]);
-	ocean.attachWave(wave[1]);
-	ocean.attachWave(wave[2]);
-	ocean.attachWave(wave[3]);
-	ocean.attachWave(wave[4]);
+	// ocean.attachWave(wave[0]);
+	// ocean.attachWave(wave[1]);
+	// ocean.attachWave(wave[2]);
+	// ocean.attachWave(wave[3]);
+	// ocean.attachWave(wave[4]);
 	
 	wave[0].setDirection(1, 0);
 	wave[1].setDirection(0, 1);
@@ -58,7 +58,7 @@ int Main(int argc, char **argv)
 	camera.setPosition(0, -1, 0);
 	camera.setTarget(0, 1, 0);
 	
-	scene.createController<DirectionalLight>(vec3(0, -1, -1));
+	scene.createController<DirectionalLight>(vec3(0, -0.25, -1));
 	// scene.createController<PointLight>(vec3(0, 2, 2));
 	camera.setPosition(0, 0, 1);
 	CameraCarrier cc(camera);

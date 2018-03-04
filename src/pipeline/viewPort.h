@@ -69,7 +69,7 @@ protected:
 		return port;
 	}
 private:
-	GLfloat fov = 60.f, zNear = .1f, zFar = 1e20f;//100.f;
+	GLfloat fov = 60.f, zNear = 1e-3f, zFar = 1e5f;//100.f;
 	GLint left = 0, top = 0, 
 		width = WindowBase::getWidth(), height = WindowBase::getHeight();
 	bool perspectiveModified = true;

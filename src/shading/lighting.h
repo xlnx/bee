@@ -15,17 +15,17 @@ public:
 	{
 		gColor = fColor;
 		gAmbientIntensity = fAmbientIntensity;
-		gDiffuseIntensity = fDiffuseIntensity;
+		gIntensity = fIntensity;
 		return true;
 	}
 protected:
 	BEE_SC_UNIFORM(::glm::vec3, Color);
 	BEE_SC_UNIFORM(float, AmbientIntensity);
-	BEE_SC_UNIFORM(float, DiffuseIntensity);
+	BEE_SC_UNIFORM(float, Intensity);
 public:
 	BEE_PROPERTY(glm::vec3, Color) = { 1, 1, 1 };
 	BEE_PROPERTY(float, AmbientIntensity) = .5f;
-	BEE_PROPERTY(float, DiffuseIntensity) = 1.f;
+	BEE_PROPERTY(float, Intensity) = 1.f;
 };
 
 class LightBaseMulti:
@@ -37,17 +37,17 @@ public:
 	{
 		gColor[index] = fColor;
 		gAmbientIntensity[index] = fAmbientIntensity;
-		gDiffuseIntensity[index] = fDiffuseIntensity;
+		gIntensity[index] = fIntensity;
 		return true;
 	}
 protected:
 	BEE_SC_UNIFORM(::glm::vec3[], Color);
 	BEE_SC_UNIFORM(float[], AmbientIntensity);
-	BEE_SC_UNIFORM(float[], DiffuseIntensity);
+	BEE_SC_UNIFORM(float[], Intensity);
 public:
 	BEE_PROPERTY(glm::vec3, Color) = { 1, 1, 1 };
 	BEE_PROPERTY(float, AmbientIntensity) = .5f;
-	BEE_PROPERTY(float, DiffuseIntensity) = 1.f;
+	BEE_PROPERTY(float, Intensity) = 1.f;
 };
 
 class DirectionalLight:
