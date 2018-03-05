@@ -24,7 +24,7 @@ public:
 	{
 	}
 	MeshBase(const MeshBase &other):
-		vao(new IndicedVAO(*other.vao))
+		vao(new IndicedVertices(*other.vao))
 	{
 	}
 	MeshBase(MeshBase &&other):
@@ -35,7 +35,7 @@ public:
 	MeshBase &operator = (const MeshBase &other)
 	{
 		delete vao;
-		vao = new IndicedVAO(*other.vao);
+		vao = new IndicedVertices(*other.vao);
 		return *this;
 	}
 	MeshBase &operator = (MeshBase &&other)
@@ -59,10 +59,10 @@ protected:
 	void initVAO(const VertexAttrs<Attrs...> &vertices, const Faces &faces)
 	{
 		delete vao;
-		vao = new IndicedVAO(vertices, faces);
+		vao = new IndicedVertices(vertices, faces);
 	}
 private:
-	IndicedVAO *vao;
+	IndicedVertices *vao;
 };
 
 class Mesh: private MeshBase

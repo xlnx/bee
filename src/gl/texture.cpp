@@ -8,11 +8,6 @@ namespace bee
 namespace gl
 {
 
-bool TextureGenerator::haveInstance = false;
-GLuint *TextureGenerator::dataptr = nullptr;
-GLuint *TextureGenerator::dataend = nullptr;
-GLuint *TextureGenerator::ptr = nullptr;
-
 unsigned char *TextureBase::loadImage(::std::string path, int &width, int &height, int &comp)
 {
 	// if the path is wrapped by quotes

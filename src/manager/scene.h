@@ -2,6 +2,9 @@
 
 #include "object.h"
 #include "shading.h"
+#include "bufferControllers.h"
+#include "viewPort.h"
+#include "windowBase.h"
 #include <vector>
 
 namespace bee
@@ -34,13 +37,38 @@ public:
 		controllers.addController(*controller);
 		return *controller;
 	}
-	void render(ViewPort &camera)
+	template <typename T, typename ...Types, typename = typename
+		::std::enable_if<::std::is_constructible<T, Types...>::value &&
+			::std::is_base_of<ViewPort, T>::value>::type>
+	T &createCamera(Types &&...args)
 	{
+		auto camera = new T(::std::forward<Types>(args)...);
+		cameras.push_back(camera);
+		return *camera;
+	}
+	void render()
+	{
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		depthFramebuffer.invoke(0);
+		for (auto camera: cameras)
+		{
+			for (auto object: objects)
+			{
+				gl::ShaderControllers::setControllers(controllers);
+				object->render(*camera);
+			}
+		}
+	}
+	void renderDepth()
+	{
+		depthFramebuffer.bind();
+		glClear(GL_DEPTH_BUFFER_BIT);
 		for (auto object: objects)
 		{
 			gl::ShaderControllers::setControllers(controllers);
-			object->render(camera);
+			object->render(majorLightCamera);
 		}
+		depthFramebuffer.unbind();
 	}
 	void clear()
 	{
@@ -55,7 +83,11 @@ public:
 	}
 private:
 	::std::vector<Object*> objects;
+	::std::vector<ViewPort*> cameras;
 	gl::ShaderControllers controllers;
+	gl::DepthFramebuffer depthFramebuffer;
+	ViewPort majorLightCamera = ViewPort(0, 0, 
+		GLWindowBase::getWidth(), GLWindowBase::getHeight());
 };
 
 }

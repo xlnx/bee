@@ -234,7 +234,7 @@ protected:
 			vao.setVertices(vertices);
 		}
 		gl::VertexAttrs<gl::pos2> vertices;
-		gl::ArrayedVAO vao;
+		gl::ArrayedVertices vao;
 		int stripCount, stripLength;
 		int cornerBegin, cornerCount;
 		int edgeBegin, edgeCount;

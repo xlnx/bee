@@ -1,6 +1,8 @@
 #pragma once
 
 #include "common.h"
+#include "buffers.h"
+#include "windowBase.h"
 #include <vector>
 #include <sstream>
 
@@ -16,66 +18,12 @@ enum TextureDim {
 	Tex3D = GL_TEXTURE_CUBE_MAP
 };
 
-class TextureBase;
-
-template <TextureDim Dim>
-class Texture;
-
-class TextureGenerator
-{
-	friend class TextureBase;
-	constexpr static std::size_t initSize = 4;
-public:
-	TextureGenerator()
-	{
-		ptr = dataptr = new GLuint [initSize];
-		dataend = dataptr + initSize;
-		if (haveInstance)
-		{
-			BEE_RAISE(GLFatal, "Cannot create SINGLETON class bee::gl::TextureGenerator.");
-		}
-		else
-		{
-			haveInstance = true;
-		}
-		glGenTextures(initSize, dataptr);
-	}
-	TextureGenerator(const TextureGenerator &) = delete;
-	~TextureGenerator()
-	{
-		delete [] dataptr;
-	}
-private:
-	static GLuint gen()
-	{
-		if (ptr != dataend)
-		{
-			// glBindTexture(Ty, *ptr);
-			return *ptr++;
-		}
-		else
-		{
-			::std::size_t size = (dataend - dataptr) << 1;
-			delete [] dataptr;
-			ptr = dataptr = new GLuint [size];
-			dataend = dataptr + size;
-			glGenTextures(size, dataptr);
-			// glBindTexture(Ty, *ptr);
-			return *ptr++;
-		}
-	}
-private:
-	static bool haveInstance;
-	static GLuint *dataptr;
-	static GLuint *dataend;
-	static GLuint *ptr;
-};
-
 class TextureBase
 {
 protected:
 	TextureBase(bool isValid = false): isValid(isValid)
 	{
+		glGenTextures(1, &handle);
 	}
 public:
 	operator GLuint () const
@@ -90,7 +38,7 @@ protected:
 	static unsigned char *loadImage(::std::string path, int &width, int &height, int &comp);
 	static void freeImage(unsigned char *data);
 protected:
-	GLuint handle = TextureGenerator::gen();
+	GLuint handle;
 	bool isValid = false;
 };
 
@@ -118,12 +66,11 @@ protected:
 	}
 };
 
-template <>
-class Texture<Tex1D>: public TextureNDBase<Tex1D>
+class Texture1D: public TextureNDBase<Tex1D>
 {
 public:
-	Texture() = default;
-	Texture(const std::vector<::glm::vec3> &points): 
+	Texture1D() = default;
+	Texture1D(const std::vector<::glm::vec3> &points): 
 		TextureNDBase<Tex1D>(true)
 	{
 		glBindTexture(Tex1D, handle);
@@ -135,12 +82,12 @@ public:
 	}
 };
 
-class RandomTexture: public Texture<Tex1D>
+class RandomTexture: public Texture1D
 {
 public:
 	RandomTexture() = default;
 	RandomTexture(::std::size_t n): 
-		Texture<Tex1D>(getRandomVector(n))
+		Texture1D(getRandomVector(n))
 	{
 	}
 private:
@@ -156,12 +103,11 @@ private:
 	}
 };
 
-template <>
-class Texture<Tex2D>: public TextureNDBase<Tex2D>
+class Texture2D: public TextureNDBase<Tex2D>
 {
 public:
-	Texture() = default;
-	Texture(const ::std::string &path, bool useMipmap = true): 
+	Texture2D() = default;
+	Texture2D(const ::std::string &path, bool useMipmap = true): 
 		TextureNDBase<Tex2D>(true)
 	{
 		int width, height, componentCount;
@@ -196,11 +142,31 @@ public:
 	}
 };
 
-template <>
-class Texture<Tex3D>: public TextureNDBase<Tex3D>
+class DepthTexture: public TextureNDBase<Tex2D>
 {
 public:
-	Texture(::std::string path)
+	DepthTexture():
+		TextureNDBase<Tex2D>(true)
+	{
+		bind();
+			glTexImage2D(Tex2D, 0, GL_DEPTH_COMPONENT, 
+				WindowBase::getWidth(), WindowBase::getHeight(), 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		unbind();
+	}
+	void attachTo(const FBO &fbo) const
+	{
+		fbo.addTexture<GL_DEPTH_ATTACHMENT>(handle);
+	}
+};
+
+class Texture3D: public TextureNDBase<Tex3D>
+{
+public:
+	Texture3D(::std::string path)
 	{
 		bind();
 		char *p = const_cast<char *>(&path[0]), *q = p;
@@ -242,10 +208,6 @@ public:
 		unbind();
 	}
 };
-
-using Texture1D = Texture<Tex1D>;
-using Texture2D = Texture<Tex2D>;
-using Texture3D = Texture<Tex3D>;
 
 }
 

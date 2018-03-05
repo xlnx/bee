@@ -2,7 +2,6 @@
 
 #include "windowBase.h"
 #include "windowEvent.h"
-#include "texture.h"
 #include "shader.h"
 #include "model.h"
 
@@ -36,11 +35,10 @@ class GLWindowBase: public WindowBase,
 {
 public:
 	template <typename ...Types, typename = typename
-		::std::enable_if<::std::is_constructible<WindowBase, Types...>::value>::type >
+		::std::enable_if<::std::is_constructible<WindowBase, Types...>::value>::type>
 	GLWindowBase(Types &&...args): 
 		WindowBase(::std::forward<Types>(args)...)
 	{
-		init();
 		gl::Shader::initialize();
 		dispatch<CursorPosEvent>(
 			[this](double x, double y)->bool {
@@ -62,7 +60,6 @@ public:
 		);
 		dispatch<RenderEvent>(
 			[this]() -> bool {
-				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 				int time0 = glfwGetTime();
 				if (time0 - timeStamp == 1)
 				{
@@ -124,13 +121,6 @@ public:
 			delete controller;
 		}
 	}
-private:
-	static void init()
-	{
-		static gl::BufferGenerator bufferGenerator;
-		static gl::VertexArrayGenerator arrayGenerator;
-		static gl::TextureGenerator textureGenerator;
-	}
 protected:
 	double x = -1, y = -1;
 	int frameCount = 0, timeStamp = 0;
@@ -157,7 +147,6 @@ public:
 		// glEnable(GL_BLEND);
 		// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_DEPTH_TEST);
-		// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 		gl::Shader::setFilePath("shaders/");
 		gl::Model::setFilePath("models/");

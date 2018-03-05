@@ -46,7 +46,7 @@ public:
 					auto normal = texture["normal"];
 					if (normal.isString())
 					{
-						textures[Normals] = Texture<Tex2D>(name + normal.asString(), false);
+						textures[Normals] = Texture2D(name + normal.asString(), false);
 					}
 				}
 			}
@@ -80,14 +80,14 @@ public:
 	}
 	
 	template <aiTextureType type>
-	const Texture<Tex2D> &getTexture() const
+	const Texture2D &getTexture() const
 	{
 		return textures[type];
 	}
 	template <aiTextureType Type>
 	void addTexture(const ::std::string &path, bool useMipmap = true)
 	{
-		textures[Type] = Texture<Tex2D>(path, useMipmap);
+		textures[Type] = Texture2D(path, useMipmap);
 	}
 	void use() const
 	{
@@ -118,7 +118,7 @@ public:
 		return path; 
 	}
 protected:
-	Texture<Tex2D> textures[TextureTypeSize];
+	Texture2D textures[TextureTypeSize];
 	UniformRef<int> textureControllers[TextureTypeSize];
 public:
 	BEE_PROPERTY(float, SpecularPower) = .5f;
