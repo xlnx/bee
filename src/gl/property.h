@@ -70,8 +70,7 @@ namespace bee
 #define BEE_SC_INHERIT(ty, base) \
 	private:\
 		using Super = base;\
-		static constexpr const char *SuperParam = base::isMulti ? \
-			#ty "[].Base" : #ty ".Base";\
+		static constexpr const char *SuperParam = #ty ".Instance[].Base";\
 	protected:\
 		ty(const ::std::string &prefix): \
 			base(prefix + ".Base"), prefix(prefix)\
@@ -85,13 +84,13 @@ namespace bee
 		static gl::ShaderControllerInfo *getShaderControllerInfo() \
 		{\
 			static gl::ShaderControllerInfo info {\
-				gl::Shader::uniform<int>("g" #ty "Count"),\
+				gl::Shader::uniform<int>("g" #ty ".Count"),\
 				#ty,\
 			};\
 			return & info;\
 		}\
 	private:\
-		const ::std::string &prefix = base::isMulti ? #ty "[]" : #ty
+		const ::std::string prefix = #ty ".Instance[]"
 
 #define BEE_SC_SUPER() \
 		Super(SuperParam)

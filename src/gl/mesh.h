@@ -84,10 +84,10 @@ public:
 		vertices.template invoke<bitg3>(mesh->HasTangentsAndBitangents());
 		vertices.template invoke<tex3>(mesh->HasTextureCoords(0));
 		vertices.alloc();
-		BEE_LOG("read ", mesh->mVertices, " vertices");
+		// BEE_LOG("read ", mesh->mVertices, " vertices");
 		if (mesh->HasPositions())
 		{
-			BEE_LOG("has positions");
+			// BEE_LOG("has positions");
 			auto fp = mesh->mVertices;
 			for (auto i = 0u; i != mesh->mNumVertices; ++i)
 			{
@@ -97,7 +97,7 @@ public:
 		}
 		if (mesh->HasVertexColors(0))
 		{
-			BEE_LOG("has colors");
+			// BEE_LOG("has colors");
 			auto fp = mesh->mColors[0];
 			for (auto i = 0u; i != mesh->mNumVertices; ++i)
 			{
@@ -107,7 +107,7 @@ public:
 		}
 		if (mesh->HasNormals())
 		{
-			BEE_LOG("has normals");
+			// BEE_LOG("has normals");
 			auto fp = mesh->mNormals;
 			for (auto i = 0u; i != mesh->mNumVertices; ++i)
 			{
@@ -117,7 +117,7 @@ public:
 		}
 		if (mesh->HasTangentsAndBitangents())
 		{
-			BEE_LOG("has tangent");
+			// BEE_LOG("has tangent");
 			auto fp = mesh->mTangents;
 			for (auto i = 0u; i != mesh->mNumVertices; ++i)
 			{
@@ -127,7 +127,7 @@ public:
 		}
 		if (mesh->HasTangentsAndBitangents())
 		{
-			BEE_LOG("has bitangent");
+			// BEE_LOG("has bitangent");
 			auto fp = mesh->mBitangents;
 			for (auto i = 0u; i != mesh->mNumVertices; ++i)
 			{
@@ -137,7 +137,7 @@ public:
 		}
 		if (mesh->HasTextureCoords(0))
 		{
-			BEE_LOG("has texcoords");
+			// BEE_LOG("has texcoords");
 			auto fp = mesh->mTextureCoords[0];
 			for (auto i = 0u; i != mesh->mNumVertices; ++i)
 			{

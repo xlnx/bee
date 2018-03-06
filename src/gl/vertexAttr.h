@@ -83,6 +83,7 @@ using tg3 = VertexAttrElem<tangent, ::glm::vec3>;
 using tg4 = VertexAttrElem<tangent, ::glm::vec4>;
 using bitg3 = VertexAttrElem<bitangent, ::glm::vec3>;
 using bitg4 = VertexAttrElem<bitangent, ::glm::vec4>;
+using tex2 = VertexAttrElem<textureCoord, ::glm::vec2>;
 using tex3 = VertexAttrElem<textureCoord, ::glm::vec3>;
 using tex4 = VertexAttrElem<textureCoord, ::glm::vec4>;
 

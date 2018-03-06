@@ -13,6 +13,7 @@ namespace gl
 ::std::vector<::std::pair<::std::string, ::std::string>> *Shader::registeredUniformArrays = nullptr;
 
 Shader *Shader::currShader = nullptr;
+Shader *Shader::bindShader = nullptr;
 Shader::ShaderRec Shader::shaderHead;
 
 template <>

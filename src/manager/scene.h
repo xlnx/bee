@@ -5,6 +5,7 @@
 #include "bufferControllers.h"
 #include "viewPort.h"
 #include "windowBase.h"
+#include "lighting.h"
 #include <vector>
 
 namespace bee
@@ -12,8 +13,21 @@ namespace bee
 
 class Scene
 {
+	BEE_UNIFORM_GLOB(int, ShadowMap);
+	BEE_UNIFORM_GLOB(::glm::mat4, LightWVP);
 public:
-	Scene() = default;
+	Scene()
+	{
+		static int n = [this]()
+		{
+			Object::onSetViewMatrices([this](Object &self, ViewPort &camera)
+			{
+				gShadowMap = 0;
+				gLightWVP = ::glm::transpose(camera.getTrans() * self.getTrans());//majorLight->getViewMatrix();
+			});
+			return 0;
+		}();
+	}
 	virtual ~Scene()
 	{
 		clear();
@@ -49,12 +63,12 @@ public:
 	void render()
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		gl::ShaderControllers::setControllers(controllers);
 		depthFramebuffer.invoke(0);
 		for (auto camera: cameras)
 		{
 			for (auto object: objects)
 			{
-				gl::ShaderControllers::setControllers(controllers);
 				object->render(*camera);
 			}
 		}
@@ -63,11 +77,22 @@ public:
 	{
 		depthFramebuffer.bind();
 		glClear(GL_DEPTH_BUFFER_BIT);
+		gl::ShaderControllers::setControllers(controllers);
+		// if (auto direct = dynamic_cast<DirectionalLight*>(majorLight))
+		// {
+		// 	majorLightCamera.setPosition(majorLight->getPosition);
+
+		// }
+		// else
+		// {
+
+		// }
+		gl::Shader::bind(*shadowShader);
 		for (auto object: objects)
 		{
-			gl::ShaderControllers::setControllers(controllers);
-			object->render(majorLightCamera);
+			object->render(*cameras[0]);//majorLightCamera);
 		}
+		gl::Shader::unbind();
 		depthFramebuffer.unbind();
 	}
 	void clear()
@@ -81,6 +106,21 @@ public:
 			delete controller;
 		});
 	}
+	void setMajorLight(const LightBase &light)
+	{
+		majorLight = &light;
+	}
+private:
+	static gl::Shader *getShadowShader()
+	{
+		static auto var = new gl::Shader(
+			gl::VertexShader("shadow-vs.glsl"),
+			gl::FragmentShader("shadow-fs.glsl")
+		);
+		return var;
+	}
+private:
+	gl::Shader *shadowShader = getShadowShader();
 private:
 	::std::vector<Object*> objects;
 	::std::vector<ViewPort*> cameras;
@@ -88,6 +128,7 @@ private:
 	gl::DepthFramebuffer depthFramebuffer;
 	ViewPort majorLightCamera = ViewPort(0, 0, 
 		GLWindowBase::getWidth(), GLWindowBase::getHeight());
+	const LightBase *majorLight = nullptr;
 };
 
 }

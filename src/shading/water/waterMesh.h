@@ -12,9 +12,9 @@ namespace bee
 class WaterMeshBase;
 
 class WaveBase:
-	public gl::ShaderControllerMulti
+	public gl::ShaderController
 {
-	BEE_SC_INHERIT(WaveBase, gl::ShaderControllerMulti);
+	BEE_SC_INHERIT(WaveBase, gl::ShaderController);
 	friend class WaterMeshBase;
 };
 

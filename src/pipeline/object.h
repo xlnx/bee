@@ -5,6 +5,8 @@
 #include "property.h"
 #include <glm/glm.hpp>
 #include <utility>
+#include <vector>
+#include <functional>
 
 namespace bee
 {
@@ -14,7 +16,7 @@ class ObjectBase
 protected:
 	ObjectBase() = default;
 	virtual ~ObjectBase() = default;
-
+public:
 	const ::glm::mat4 &getTrans()
 	{
 		if (translateModified || rotateModified || scaleModified)
@@ -116,17 +118,35 @@ class Object: public ObjectBase
 	BEE_UNIFORM_GLOB(::glm::mat4, World);
 	BEE_UNIFORM_GLOB(::glm::mat4, VP);
 	BEE_UNIFORM_GLOB(::glm::vec3, CameraWorldPos);
+	BEE_UNIFORM_GLOB(float, Time);
 protected:
 	Object() = default;
 	void setViewMatrices(ViewPort &viewPort)
 	{
+		gTime = float(glfwGetTime());
 		gWVP = ::glm::transpose(viewPort.getTrans() * getTrans());
 		gWorld = ::glm::transpose(getTrans());
 		gVP = ::glm::transpose(viewPort.getTrans());
 		gCameraWorldPos = viewPort.getPosition();
+		for (auto &f: getSetCallbacks())
+		{
+			f(*this, viewPort);
+		}
+	}
+private:
+	static ::std::vector<::std::function<void(Object&, ViewPort&)>> &
+		getSetCallbacks()
+	{
+		static ::std::vector<::std::function<void(Object&, ViewPort&)>> r;
+		return r;
 	}
 public:
 	virtual void render(ViewPort &viewPort) = 0;
+public:
+	static void onSetViewMatrices(const ::std::function<void(Object&, ViewPort&)> &f)
+	{
+		getSetCallbacks().emplace_back(f);
+	}
 };
 
 }

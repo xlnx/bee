@@ -231,39 +231,18 @@ using ShaderControllerInfoGetter = ShaderControllerInfo *(*)();
 class ShaderController
 {
 protected:
-	ShaderController() = default;
+	ShaderController(const ::std::string &prefix): 
+		prefix(prefix)
+	{
+	}
 public:
 	virtual ~ShaderController() = default;
 	
 	virtual ShaderControllerInfoGetter getInfoFunc() = 0;
 public:
 	virtual bool invoke(int index) = 0;
-};
-
-class ShaderControllerSingle: public ShaderController
-{
-protected:
-	static constexpr bool isMulti = false;
-protected:
-	ShaderControllerSingle(const ::std::string &prefix): 
-		prefix(prefix)
-	{
-	}
 private:
-	const ::std::string &prefix = "ShaderControllerSingle";
-};
-
-class ShaderControllerMulti: public ShaderController
-{
-protected:
-	static constexpr bool isMulti = true;
-protected:
-	ShaderControllerMulti(const ::std::string &prefix): 
-		prefix(prefix)
-	{
-	}
-private:
-	const ::std::string &prefix = "ShaderControllerMulti[]";
+	const ::std::string &prefix = "ShaderController";
 };
 
 // template <typename T = ShaderController, typename = typename 
@@ -277,17 +256,10 @@ public:
 		::std::map<ShaderControllerInfo*, int> ptrs;
 		for (auto & controller: controllers)
 		{
-			if (auto multi = dynamic_cast<ShaderControllerMulti*>(controller))
+			auto info = controller->getInfoFunc()();
+			if (controller->invoke(ptrs[info]))
 			{
-				auto info = multi->getInfoFunc()();
-				if (multi->invoke(ptrs[info]))
-				{
-					++ptrs[info];
-				}
-			}
-			else
-			{
-				controller->invoke(0);
+				++ptrs[info];
 			}
 		}
 		for (auto &pair: ptrs)
@@ -394,13 +366,19 @@ public:
 	}
 	void use()
 	{
-		glUseProgram(shader);
-		currShader = this;
-		gTime = float(glfwGetTime());
-		if (auto controllers = ShaderControllers::getCurrent())
+		if (!bindShader)
 		{
-			controllers->invoke();
+			glUseProgram(shader);
+			currShader = this;
+			if (auto controllers = ShaderControllers::getCurrent())
+			{
+				controllers->invoke();
+			}
 		}
+	}
+	void unuse()
+	{
+		glUseProgram(0);
 	}
 	template <typename ...Types>
 	void setTransformFeedbackVaryings(Types ...varyings)
@@ -420,6 +398,18 @@ public:
 		link();
 	}
 public:
+	static void bind(Shader &shader)
+	{
+		if (!bindShader)
+		{
+			shader.use();
+			bindShader = &shader;
+		}
+	}
+	static void unbind()
+	{
+		bindShader = nullptr;
+	}
 	static void setFilePath(const char *path)
 	{
 		VertexShader::shaderPath = path;
@@ -551,9 +541,9 @@ private:
 	ShaderRec *prec;
 	GLuint *uniforms;
 	::std::pair<GLint, GLint> *uniformArrays;
-	BEE_UNIFORM_GLOB(float, Time);
 private:
 	static Shader *currShader;
+	static Shader *bindShader;
 	static ShaderRec shaderHead;
 	// ::std::map<::std::string, GLuint> bufferedUniforms;
 	static ::std::map<::std::string, int> *uniformIndex;
@@ -565,7 +555,7 @@ private:
 
 inline GLuint UniformRefHack::handle() const
 {
-	if (UniformRefBase::index > 0)
+	if (UniformRefBase::index >= 0)
 	{
 		return Shader::current().uniforms[UniformRefBase::index];
 	}

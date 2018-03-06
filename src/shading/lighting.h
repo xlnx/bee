@@ -6,32 +6,9 @@
 namespace bee
 {
 
-class LightBaseSingle:
-	public gl::ShaderControllerSingle
+class LightBase: public gl::ShaderController
 {
-	BEE_SC_INHERIT(LightBaseSingle, gl::ShaderControllerSingle);
-public:
-	bool invoke(int index) override
-	{
-		gColor = fColor;
-		gAmbientIntensity = fAmbientIntensity;
-		gIntensity = fIntensity;
-		return true;
-	}
-protected:
-	BEE_SC_UNIFORM(::glm::vec3, Color);
-	BEE_SC_UNIFORM(float, AmbientIntensity);
-	BEE_SC_UNIFORM(float, Intensity);
-public:
-	BEE_PROPERTY(glm::vec3, Color) = { 1, 1, 1 };
-	BEE_PROPERTY(float, AmbientIntensity) = .5f;
-	BEE_PROPERTY(float, Intensity) = 1.f;
-};
-
-class LightBaseMulti:
-	public gl::ShaderControllerMulti
-{
-	BEE_SC_INHERIT(LightBaseMulti, gl::ShaderControllerMulti);
+	BEE_SC_INHERIT(LightBase, gl::ShaderController);
 public:
 	bool invoke(int index) override
 	{
@@ -50,10 +27,9 @@ public:
 	BEE_PROPERTY(float, Intensity) = 1.f;
 };
 
-class DirectionalLight:
-	public LightBaseSingle
+class DirectionalLight: public LightBase
 {
-	BEE_SC_INHERIT(DirectionalLight, LightBaseSingle);
+	BEE_SC_INHERIT(DirectionalLight, LightBase);
 public:
 	DirectionalLight(const ::glm::vec3 &direction):
 		BEE_SC_SUPER(), fDirection(direction)
@@ -63,18 +39,17 @@ public:
 	bool invoke(int index) override
 	{
 		Super::invoke(index);
-		gDirection = fDirection;
+		gDirection[index] = fDirection;
 		return true;
 	}
-	BEE_SC_UNIFORM(::glm::vec3, Direction);
+	BEE_SC_UNIFORM(::glm::vec3[], Direction);
 public:
 	BEE_PROPERTY(::glm::vec3, Direction) = { 0, 0, -1 };
 };
 
-class PointLight:
-	public LightBaseMulti
+class PointLight: public LightBase
 {
-	BEE_SC_INHERIT(PointLight, LightBaseMulti);
+	BEE_SC_INHERIT(PointLight, LightBase);
 public:
 	PointLight(const ::glm::vec3 &position):
 		BEE_SC_SUPER(), fPosition(position)
@@ -85,7 +60,6 @@ public:
 	{
 		Super::invoke(index);
 		gPosition[index] = fPosition;
-
 		gAttenConstant[index] = fAttenConstant;
 		gAttenLinear[index] = fAttenLinear;
 		gAttenExp[index] = fAttenExp;
@@ -104,8 +78,7 @@ public:
 	BEE_PROPERTY(float, AttenExp) = .5f;
 };
 
-class SpotLight:
-	public PointLight
+class SpotLight: public PointLight
 {
 	BEE_SC_INHERIT(SpotLight, PointLight);
 public:
