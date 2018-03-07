@@ -281,71 +281,8 @@ template <typename A, typename E>
 	glVertexAttribPointer(A::type, A::size, 
  		VertexAttrSignature<typename A::elemType>::value, GL_FALSE, sizeof(E), 
 		 	(void*)&((E*)nullptr)->template get<A::type>());
-	glDisableVertexAttribArray(A::type);
 	return 0;
 }
-template <typename A, typename E>
-	int dummyExpandAux2()
-{
-	glEnableVertexAttribArray(A::type);
-	glVertexAttribPointer(A::type, A::size, 
- 		VertexAttrSignature<typename A::elemType>::value, GL_FALSE, sizeof(E), 
-		 	(void*)&((E*)nullptr)->template get<A::type>());
-	return 0;
-}
-
-struct VertexAttrTypeDyn
-{
-	VertexAttrType type;
-	::std::size_t size;
-	GLenum elemType;
-	char *offset;
-};
-
-template <typename ...>
-struct VertexAttrs;
-
-struct VertexAttrEnabledInfo
-{
-	friend class VertexAttrs<any>;
-	VertexAttrEnabledInfo():
-		v{false}, dynamic(true)
-	{}
-	constexpr VertexAttrEnabledInfo(const ::std::initializer_list<VertexAttrType> &l):
-		l(l), v{false}, dynamic(false)
-	{}
-	void invoke() const
-	{
-		if (!dynamic)
-		{
-			for (auto i = vertexAttrTypeBegin; i != vertexAttrTypeEnd; ++i)
-				glDisableVertexAttribArray(i);
-			for (auto type: l) glEnableVertexAttribArray(type);
-		}
-		else
-		{
-			for (auto i = vertexAttrTypeBegin; i != vertexAttrTypeEnd; ++i)
-			{
-				if (!v[i])
-				{
-					glDisableVertexAttribArray(i);
-				}
-				else
-				{
-					glEnableVertexAttribArray(i);
-				}
-			}
-		}
-	}
-	void push(VertexAttrType type)
-	{
-		v[type] = true;
-	}
-private:
-	::std::initializer_list<VertexAttrType> l;
-	::std::array<bool, vertexAttrTypeEnd> v;
-	bool dynamic;
-};
 
 template <typename ...Attrs>
 struct VertexAttrs: public ArrayMemoryManager<VertexAttr<Attrs...>>
@@ -355,16 +292,15 @@ struct VertexAttrs: public ArrayMemoryManager<VertexAttr<Attrs...>>
 	// typename elemType::value_type
 	constexpr VertexAttrs(const ::std::initializer_list<typename elemType::value_type> &l):
 		Super(reinterpret_cast<const ::std::initializer_list<elemType>&>(l))
-	{}
+	{
+	}
 	constexpr VertexAttrs(::std::size_t size):
 		Super(size)
-	{}
-	constexpr static void performSetVertexAttribute()
-	{ dummyExpand(dummyExpandAux<Attrs, elemType>()...); }
+	{
+	}
 	constexpr static void setVertexAttribute()
-	{ for (auto i = vertexAttrTypeBegin; i != vertexAttrTypeEnd; ++i) glDisableVertexAttribArray(i);
-		dummyExpand(dummyExpandAux2<Attrs, elemType>()...); }
-	const VertexAttrEnabledInfo info = {Attrs::type...};
+	{ dummyExpand(dummyExpandAux<Attrs, elemType>()...); }
+	// const VertexAttrEnabledInfo info = {Attrs::type...};
 };
 
 template <>
@@ -434,58 +370,46 @@ struct VertexAttrs<any>
 		dataptr = new char[num * elemSize];
 	}
 	::std::size_t size() const
-	{ return num; }
-	// elemType &operator [] (::std::size_t index) noexcept;
-	// { return *reinterpret_cast<elemType*>(dataptr + index * elemSize); }
-	// const elemType &operator [] (::std::size_t index) const noexcept;
-	// { return *reinterpret_cast<const elemType*>(dataptr + index * elemSize); }
-	char *begin() const noexcept
-	{ return dataptr; }
-	// const elemType *begin() const noexcept
-	// { return dataptr; }
-	// elemType *end() noexcept
-	// { return dataptr + num * elemSize; }
-	// const elemType *end() const noexcept
-	// { return dataptr + num * elemSize; }
-	void performSetVertexAttribute() const
 	{
-		for (auto i = vertexAttrTypeBegin; i != vertexAttrTypeEnd; ++i)
-		{
-			auto &a = dyninfo[i];
-			if (info.v[i])
-			{
-				glEnableVertexAttribArray(a.type);
-				glVertexAttribPointer(a.type, a.size, a.elemType, GL_FALSE, elemSize, (void*)a.offset);
-				glDisableVertexAttribArray(a.type);
-			}
-		}
+		return num;
+	}
+	char *begin() const noexcept
+	{
+		return dataptr;
 	}
 	void setVertexAttribute() const
 	{
 		for (auto i = vertexAttrTypeBegin; i != vertexAttrTypeEnd; ++i)
 		{
-			glDisableVertexAttribArray(i);
 			auto &a = dyninfo[i];
 			if (info.v[i])
 			{
+				glVertexAttribPointer(a.type, a.size, a.elemType, GL_FALSE, elemSize, (void*)a.offset);;
 				glEnableVertexAttribArray(a.type);
-				glVertexAttribPointer(a.type, a.size, a.elemType, GL_FALSE, elemSize, (void*)a.offset);
 			}
 		}
 	}
-	VertexAttrEnabledInfo info;
 	::std::size_t elemSize;
+private:
+	struct
+	{
+		void push(VertexAttrType type)
+		{
+			v[type] = true;
+		}
+		bool v[vertexAttrTypeEnd] = {false};
+	} info;
+	struct
+	{
+		VertexAttrType type;
+		::std::size_t size;
+		GLenum elemType;
+		char *offset;
+	} dyninfo[vertexAttrTypeEnd];
 private:
 	char *dataptr;
 	::std::size_t num;
-	::std::array<VertexAttrTypeDyn, vertexAttrTypeEnd> dyninfo;
 };
-
-// template <typename ...Attrs>
-// 	void use()
-// {
-// 	dummyExpand(dummyExpandAux<Attrs, VertexAttr<Attrs...>>()...);
-// }
 
 }
 

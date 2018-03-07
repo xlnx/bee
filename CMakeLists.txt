@@ -16,7 +16,7 @@ if (WIN32)
 	find_package(OpenGL REQUIRED)
 	link_libraries(glew32.lib glfw3.dll ${OPENGL_LIBRARIES})
 	link_libraries(bfd iberty imagehlp z)
-	set(CMAKE_CXX_FLAGS_DEBUG "-Wall -DDEBUG -g")
+	set(CMAKE_CXX_FLAGS_DEBUG "-Wall -pg -DDEBUG -g")
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3 -mwindows")
 endif ()
 
