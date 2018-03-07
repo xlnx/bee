@@ -314,17 +314,17 @@ struct VertexAttrs<any>
 	{}
 	VertexAttrs(const VertexAttrs &other):
 		elemSize(other.elemSize),
+		dyninfo(other.dyninfo),
 		dataptr(new char [other.num * other.elemSize]),
-		num(other.num),
-		dyninfo(other.dyninfo)
+		num(other.num)
 	{
 		::memcpy(dataptr, other.dataptr, num * elemSize);
 	}
 	VertexAttrs(VertexAttrs &&other):
 		elemSize(other.elemSize),
+		dyninfo(other.dyninfo),
 		dataptr(other.dataptr),
-		num(other.num),
-		dyninfo(other.dyninfo)
+		num(other.num)
 	{
 		other.dataptr = nullptr;
 	}

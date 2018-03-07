@@ -21,7 +21,7 @@ enum TextureDim {
 class TextureBase
 {
 protected:
-	TextureBase(bool isValid = false): isValid(isValid)
+	TextureBase()
 	{
 		glGenTextures(1, &handle);
 	}
@@ -30,25 +30,16 @@ public:
 	{
 		return handle;
 	}
-	bool valid() const
-	{
-		return isValid;
-	}
 protected:
 	static unsigned char *loadImage(::std::string path, int &width, int &height, int &comp);
 	static void freeImage(unsigned char *data);
 protected:
 	GLuint handle;
-	bool isValid = false;
 };
 
 template <TextureDim Dim>
 class TextureNDBase: public TextureBase
 {
-protected:
-	TextureNDBase(bool isValid = false): TextureBase(isValid)
-	{
-	}
 public:
 	void invoke(int i) const
 	{
@@ -70,8 +61,7 @@ class Texture1D: public TextureNDBase<Tex1D>
 {
 public:
 	Texture1D() = default;
-	Texture1D(const std::vector<::glm::vec3> &points): 
-		TextureNDBase<Tex1D>(true)
+	Texture1D(const std::vector<::glm::vec3> &points)
 	{
 		glBindTexture(Tex1D, handle);
 			glTexImage1D(Tex1D, 0, GL_RGB, points.size(), 0.f, GL_RGB, GL_FLOAT, &points[0]);
@@ -107,8 +97,7 @@ class Texture2D: public TextureNDBase<Tex2D>
 {
 public:
 	Texture2D() = default;
-	Texture2D(const ::std::string &path, bool useMipmap = true): 
-		TextureNDBase<Tex2D>(true)
+	Texture2D(const ::std::string &path, bool useMipmap = true)
 	{
 		int width, height, componentCount;
 		auto data = loadImage(path, width, height, componentCount);
@@ -145,8 +134,7 @@ public:
 class DepthTexture: public TextureNDBase<Tex2D>
 {
 public:
-	DepthTexture():
-		TextureNDBase<Tex2D>(true)
+	DepthTexture()
 	{
 		bind();
 			glTexImage2D(Tex2D, 0, GL_DEPTH_COMPONENT, 

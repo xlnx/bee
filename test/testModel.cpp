@@ -15,10 +15,10 @@ int Main(int argc, char **argv)
 	camera.setTarget(-1, 0, -0.5);
 	CameraCarrier cc(camera);
 
-	scene.createController<PointLight>(vec3(0, 0, 2));
+	scene.setMajorLight(scene.createController<PointLight>(vec3(0, 0, 2)));
 	scene.createObject<ModelObject>("chess/chess.obj")
 		.scale(0.02, 0.02, 0.02);
-	scene.createObject<OceanMesh>();
+	// scene.createObject<OceanMesh>();
 	window.dispatch<RenderEvent>([&]() -> bool{
 		scene.renderDepth();
 		scene.render();

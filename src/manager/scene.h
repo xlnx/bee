@@ -23,7 +23,7 @@ public:
 			Object::onSetViewMatrices([this](Object &self, ViewPort &camera)
 			{
 				gShadowMap = 0;
-				gLightWVP = ::glm::transpose(camera.getTrans() * self.getTrans());//majorLight->getViewMatrix();
+				gLightWVP = ::glm::transpose(majorLightCamera.getTrans() * self.getTrans());//majorLight->getViewMatrix();
 			});
 			return 0;
 		}();
@@ -65,6 +65,7 @@ public:
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		gl::ShaderControllers::setControllers(controllers);
 		depthFramebuffer.invoke(0);
+
 		for (auto camera: cameras)
 		{
 			for (auto object: objects)
@@ -72,25 +73,37 @@ public:
 				object->render(*camera);
 			}
 		}
+
+		// gl::Shader::bind(*shadowShader);
+		// for (auto camera: cameras)
+		// {
+		// 	static MeshObject mesh = MeshObject(
+		// 		*new gl::Mesh(gl::VertexAttrs<gl::pos3, gl::tex2>{
+		// 			{{0, -1, 1}, {0, 1}},
+		// 			{{0, 1, 1}, {1, 1}},
+		// 			{{0, 1, -1}, {1, 0}},
+		// 			{{0, -1, -1}, {0, 0}}
+		// 		}, gl::Faces{
+		// 			{0, 1, 2},
+		// 			{2, 3, 0}
+		// 		})
+		// 	);
+		// 	mesh.render(*cameras[0]);
+		// }
+		// gl::Shader::unbind();
 	}
 	void renderDepth()
 	{
 		depthFramebuffer.bind();
 		glClear(GL_DEPTH_BUFFER_BIT);
 		gl::ShaderControllers::setControllers(controllers);
-		// if (auto direct = dynamic_cast<DirectionalLight*>(majorLight))
-		// {
-		// 	majorLightCamera.setPosition(majorLight->getPosition);
-
-		// }
-		// else
-		// {
-
-		// }
+		majorLightCamera.setPosition(0, 0, 2);
+		majorLightCamera.setTarget(0, 0, -1);
+		majorLightCamera.setUp(1, 0, 0);
 		gl::Shader::bind(*shadowShader);
 		for (auto object: objects)
 		{
-			object->render(*cameras[0]);//majorLightCamera);
+			object->render(majorLightCamera);//majorLightCamera);
 		}
 		gl::Shader::unbind();
 		depthFramebuffer.unbind();
@@ -106,7 +119,7 @@ public:
 			delete controller;
 		});
 	}
-	void setMajorLight(const LightBase &light)
+	void setMajorLight(const PointLight &light)
 	{
 		majorLight = &light;
 	}
@@ -128,7 +141,7 @@ private:
 	gl::DepthFramebuffer depthFramebuffer;
 	ViewPort majorLightCamera = ViewPort(0, 0, 
 		GLWindowBase::getWidth(), GLWindowBase::getHeight());
-	const LightBase *majorLight = nullptr;
+	const PointLight *majorLight = nullptr;
 };
 
 }

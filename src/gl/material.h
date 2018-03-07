@@ -6,6 +6,7 @@
 #include "configure.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
+#include <map>
 
 namespace bee
 {
@@ -79,10 +80,10 @@ public:
 		}
 	}
 	
-	template <aiTextureType type>
-	const Texture2D &getTexture() const
+	template <aiTextureType Type>
+	const Texture2D &getTexture()
 	{
-		return textures[type];
+		return textures[Type];
 	}
 	template <aiTextureType Type>
 	void addTexture(const ::std::string &path, bool useMipmap = true)
@@ -91,13 +92,10 @@ public:
 	}
 	void use() const
 	{
-		for (int i = 0; i != TextureTypeSize; ++i)
+		for (auto &texture: textures)
 		{
-			if (textures[i].valid())
-			{
-				textures[i].invoke(i);
-				textureControllers[i] = i;
-			}
+			texture.second.invoke(texture.first);
+			textureControllers[texture.first] = texture.first;
 		}
 		gSpecularPower = fSpecularPower;
 		gSpecularIntensity = fSpecularIntensity;
@@ -118,7 +116,8 @@ public:
 		return path; 
 	}
 protected:
-	Texture2D textures[TextureTypeSize];
+	// Texture2D textures[TextureTypeSize];
+	::std::map<aiTextureType, Texture2D> textures;
 	UniformRef<int> textureControllers[TextureTypeSize];
 public:
 	BEE_PROPERTY(float, SpecularPower) = .5f;

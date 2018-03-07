@@ -12,7 +12,6 @@ namespace gl
 ::std::map<::std::string, int> *Shader::uniformArrayIndex = nullptr;
 ::std::vector<::std::pair<::std::string, ::std::string>> *Shader::registeredUniformArrays = nullptr;
 
-Shader *Shader::currShader = nullptr;
 Shader *Shader::bindShader = nullptr;
 Shader::ShaderRec Shader::shaderHead;
 
