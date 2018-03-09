@@ -488,15 +488,15 @@ private:
 			os << "Shader link failed." << std::endl << infoLog;
 			BEE_RAISE(GLFatal, os.str());
 		}
-		glValidateProgram(shader);
-		glGetProgramiv(shader, GL_VALIDATE_STATUS, &success);
-		if (!success)
-		{
-			glGetProgramInfoLog(shader, sizeof(infoLog), nullptr, infoLog);
-			std::ostringstream os;
-			os << "Invalid shader program." << std::endl << infoLog;
-			BEE_RAISE(GLFatal, os.str());
-		}
+		// glValidateProgram(shader);
+		// glGetProgramiv(shader, GL_VALIDATE_STATUS, &success);
+		// if (!success)
+		// {
+		// 	glGetProgramInfoLog(shader, sizeof(infoLog), nullptr, infoLog);
+		// 	std::ostringstream os;
+		// 	os << "Invalid shader program." << std::endl << infoLog;
+		// 	BEE_RAISE(GLFatal, os.str());
+		// }
 	}
 	void init()
 	{

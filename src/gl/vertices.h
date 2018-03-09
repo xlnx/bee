@@ -1,7 +1,6 @@
 #pragma once
 
 #include "buffers.h"
-#include "texture.h"
 
 namespace bee
 {
@@ -57,35 +56,6 @@ public:
 	}
 private:
 	VAO vao; VBO vbo;
-};
-
-class DepthFramebuffer
-{
-public:
-	DepthFramebuffer()
-	{
-		fbo.bind();
-			texture.attachTo(fbo);
-			glDrawBuffer(GL_NONE);
-			glReadBuffer(GL_NONE);
-			fbo.validate();
-		fbo.unbind();
-	}
-	void bind() const
-	{
-		fbo.bind();
-	}
-	void unbind() const
-	{
-		fbo.unbind();
-	}
-	void invoke(int i) const
-	{
-		return texture.invoke(i);
-	}
-private:
-	FBO fbo;
-	DepthTexture texture;
 };
 
 }

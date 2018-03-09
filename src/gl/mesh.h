@@ -1,8 +1,7 @@
 #pragma once
 
 #include "common.h"
-#include "buffers.h"
-#include "vertexAttr.h"
+#include "vertices.h"
 #include "material.h"
 #include "shader.h"
 #include "property.h"

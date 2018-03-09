@@ -139,10 +139,10 @@ public:
 		bind();
 			glTexImage2D(Tex2D, 0, GL_DEPTH_COMPONENT, 
 				WindowBase::getWidth(), WindowBase::getHeight(), 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameterf(Tex2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameterf(Tex2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameterf(Tex2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameterf(Tex2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		unbind();
 	}
 	void attachTo(const FBO &fbo) const
@@ -194,6 +194,31 @@ public:
 		glTexParameteri(Tex3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 		
 		unbind();
+	}
+};
+
+class CubeDepthTexture: public TextureNDBase<Tex3D>
+{
+public:
+	CubeDepthTexture()
+	{
+		bind();
+			glTexParameterf(Tex3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameterf(Tex3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameterf(Tex3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameterf(Tex3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameterf(Tex3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+			
+			for (auto i = 0; i != 6; ++i)
+			{
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_R32F, 
+					WindowBase::getWidth(), WindowBase::getHeight(), 0, GL_RED, GL_FLOAT, nullptr);
+			}
+		unbind();
+	}
+	void attachTo(const FBO &fbo) const
+	{
+		fbo.addTexture<GL_DEPTH_ATTACHMENT>(handle);
 	}
 };
 
