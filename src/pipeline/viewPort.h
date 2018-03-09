@@ -2,7 +2,6 @@
 
 #include "common.h"
 #include "camera.h"
-#include "window.h"
 
 namespace bee
 {
@@ -28,8 +27,7 @@ public:
 			if (perspectiveModified)
 			{
 				perspectiveModified = false;
-				perspectiveTrans = ::glm::perspective(::glm::radians(fov), 
-					float(WindowBase::getWidth()) / WindowBase::getHeight(), zNear, zFar);
+				perspectiveTrans = ::glm::perspective(fov, float(width) / height, zNear, zFar);
 			}
 			trans = perspectiveTrans * Camera::getTrans();
 		}
@@ -69,7 +67,7 @@ protected:
 		return port;
 	}
 private:
-	GLfloat fov = 60.f, zNear = 1e-3f, zFar = 1e5f;//100.f;
+	GLfloat fov = ::glm::radians(60.f), zNear = 1e-3f, zFar = 1e5f;//100.f;
 	GLint left = 0, top = 0, 
 		width = WindowBase::getWidth(), height = WindowBase::getHeight();
 	bool perspectiveModified = true;

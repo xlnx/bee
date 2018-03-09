@@ -68,7 +68,7 @@ class Scene
 public:
 	Scene()
 	{
-		majorLightCamera.setPerspectiveFov(90.f);
+		majorLightCamera.setPerspectiveFov(::glm::radians(90.f));
 		static int n = [this]()
 		{
 			Object::onSetViewMatrices([this](Object &self, ViewPort &camera)
