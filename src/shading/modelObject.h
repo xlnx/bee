@@ -21,6 +21,7 @@ public:
 		shader->use();
 		setViewMatrices(viewPort);
 		fMesh->render();
+		shader->unuse();
 	}
 private:
 	static gl::Shader *getShader()
@@ -55,6 +56,7 @@ public:
 		shader->use();
 		setViewMatrices(viewPort);
 		fModel->render();
+		shader->unuse();
 	}
 private:
 	static gl::Shader *getShader()

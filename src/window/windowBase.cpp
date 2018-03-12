@@ -42,7 +42,7 @@ unsigned WindowBase::width = 0;
 
 unsigned WindowBase::height = 0;
 
-WindowBase::WindowBase(const std::string &title, bool fullscreen, unsigned width, unsigned height)
+WindowBase::WindowBase(int major, int minor, const std::string &title, bool fullscreen, unsigned width, unsigned height)
 {
 	if (instance)
 	{
@@ -65,6 +65,10 @@ WindowBase::WindowBase(const std::string &title, bool fullscreen, unsigned width
 		os << "GLError 0x" << std::hex << errCode << ": " << log;
 		BEE_RAISE(GLFatal, os.str());
 	});
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, major);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minor);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
 	GLFWmonitor *pMonitor = nullptr;
@@ -77,7 +81,10 @@ WindowBase::WindowBase(const std::string &title, bool fullscreen, unsigned width
 	window = glfwCreateWindow(width, height, title.c_str(), pMonitor, nullptr);
 	this->width = width; this->height = height;
 	glfwMakeContextCurrent(window);
-	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+	{
+		BEE_RAISE(Fatal, "Failed to initialize GLAD");
+	}
 	instance = this;
 }
 
@@ -85,5 +92,4 @@ WindowBase::~WindowBase()
 {
 	glfwTerminate();
 }
-
 }

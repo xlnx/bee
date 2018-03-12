@@ -105,15 +105,15 @@ public:
 			millis = curr; curr = glfwGetTime();
 		}
 	}
-	// template <typename T, typename ...Types, typename = typename
-	// 	::std::enable_if<::std::is_constructible<T, GLWindowBase &, Types...>::value &&
-	// 		::std::is_base_of<WindowController, T>::value>::type>
-	// T &createController(Types &&...args)
-	// {
-	// 	auto controller = new T(*this, ::std::forward<Types>(args)...);
-	// 	controllers.push_back(controller);
-	// 	return *controller;
-	// }
+	template <typename T, typename ...Types, typename = typename
+		::std::enable_if<::std::is_constructible<T, GLWindowBase &, Types...>::value &&
+			::std::is_base_of<WindowController, T>::value>::type>
+	T &createController(Types &&...args)
+	{
+		auto controller = new T(*this, ::std::forward<Types>(args)...);
+		controllers.push_back(controller);
+		return *controller;
+	}
 	void deleteControllers()
 	{
 		for (auto controller: controllers)
@@ -134,15 +134,10 @@ class Window: public GLWindowBase
 {
 public:
 	template <typename ...Types, typename = typename
-		::std::enable_if<::std::is_constructible<GLWindowBase, Types...>::value>::type >
+		::std::enable_if<::std::is_constructible<GLWindowBase, int, int, Types...>::value>::type >
 	Window(Types &&...args): 
-		GLWindowBase(::std::forward<Types>(args)...)
+		GLWindowBase(Major, Minor, ::std::forward<Types>(args)...)
 	{
-		// Specify OpenGL Version
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, Major);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, Minor);
-		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 		glClearColor(0.f, 0.f, 0.f, 0.f);
 		// glEnable(GL_BLEND);
 		// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

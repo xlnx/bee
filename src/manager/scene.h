@@ -39,7 +39,7 @@ public:
 	}
 	void invoke(int i) const
 	{
-		return texture.invoke(i);
+		texture.invoke(i);
 	}
 	void configureCamera(ViewPort &viewPort)
 	{
@@ -117,7 +117,7 @@ public:
 		gl::ShaderControllers::setControllers(controllers);
 		shadowFramebuffer.invoke(0);
 
-		for (auto camera: cameras)
+		for (auto camera : cameras)
 		{
 			for (auto object: objects)
 			{
@@ -154,8 +154,6 @@ public:
 			shadowFramebuffer.bind(i);
 			glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 			shadowFramebuffer.configureCamera(majorLightCamera);
-			// majorLightCamera.setTarget(0, 0, -1);
-			// majorLightCamera.setUp(1, 0, 0);
 			
 			for (auto object: objects)
 			{

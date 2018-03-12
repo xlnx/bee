@@ -277,6 +277,7 @@ public:
 		shader->use();
 		material.use();
 		WaterMeshBase::render(viewPort);
+		shader->unuse();
 	}
 protected:
 	static gl::Shader *getShader()

@@ -363,7 +363,10 @@ public:
 	}
 	void unuse()
 	{
-		glUseProgram(0);
+		if (!bindShader)
+		{
+			glUseProgram(0);
+		}
 	}
 	template <typename ...Types>
 	void setTransformFeedbackVaryings(Types ...varyings)

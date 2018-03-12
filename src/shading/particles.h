@@ -92,6 +92,7 @@ public:
 		shader->use();
 		setViewMatrices(viewPort);
 		renderParticles();
+		shader->unuse();
 		
 		idxTFB = !idxTFB;
 	}

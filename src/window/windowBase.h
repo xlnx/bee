@@ -9,7 +9,8 @@ namespace bee
 class WindowBase
 {
 public:
-	WindowBase(const std::string &title = "bee~", 
+	WindowBase(int major, int minor,
+		const std::string &title = "bee~", 
 			bool fullscreen = false, 
 			unsigned width = 1024, 
 			unsigned height = 768);

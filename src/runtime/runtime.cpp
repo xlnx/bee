@@ -5,6 +5,7 @@
 #	include <direct.h>
 #else
 #	include <unistd.h>
+#	include <signal.h>
 #endif
 
 namespace bee
@@ -135,6 +136,9 @@ Runtime::Runtime()
 	SetUnhandledExceptionFilter(handleException);
 #	else
 //#		warn Coredump not fully supported on this platform.
+	signal(SIGSEGV, [](int err){
+		BEE_RAISE(Fatal, "Segment fault.");
+	});
 #	endif
 	if (Runtime::haveInstance)
 	{

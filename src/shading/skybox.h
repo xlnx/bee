@@ -32,6 +32,7 @@ public:
 		cubeTexture.invoke(1);
 		gCubemapTexture = 1;
 		skybox.render();
+		shader->unuse();
 
 		glCullFace(oldCullFaceMode);
 		glDepthFunc(oldDepthFuncMode);

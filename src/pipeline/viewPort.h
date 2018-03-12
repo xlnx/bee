@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "windowBase.h"
 #include "camera.h"
 
 namespace bee
@@ -20,7 +21,11 @@ public:
 		if (activePort() != this)
 		{
 			activePort() = this;
-			glViewport(left, top, width, height);
+#			ifdef __APPLE__
+			int w, h;
+			glfwGetFramebufferSize(WindowBase::getInstance(), &w, &h);
+			glViewport(left, top, w, h);
+#			endif
 		}
 		if (modified())
 		{
