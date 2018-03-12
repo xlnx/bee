@@ -49,10 +49,10 @@ template <typename T, ::glm::precision P>
 struct GlmVectorInfo<::glm::tvec4<T, P>>
 { using type = T; static constexpr ::glm::precision prec = P; static constexpr ::std::size_t size = 4; };
 
-template <typename V, template <typename, ::glm::precision> typename T>
+template <typename V, template <typename, ::glm::precision> class T>
 struct IsInstanceOfAux
 { static constexpr bool value = false; };
-template <template <typename, ::glm::precision> typename T, typename Ty, ::glm::precision P>
+template <template <typename, ::glm::precision> class T, typename Ty, ::glm::precision P>
 struct IsInstanceOfAux<T<Ty, P>, T>
 { static constexpr bool value = true; };
 
@@ -397,22 +397,25 @@ struct VertexAttrs<any>
 	}
 	::std::size_t elemSize;
 private:
-	struct
+	struct InfoType
 	{
 		void push(VertexAttrType type)
 		{
 			v[type] = true;
 		}
 		bool v[vertexAttrTypeEnd] = {false};
-	} info;
-	struct
+	};
+	InfoType info;
+	struct DynInfoType
 	{
 		VertexAttrType type;
 		::std::size_t size;
 		GLenum elemType;
 		char *offset;
-	} dyninfo[vertexAttrTypeEnd];
-private:
+	};
+	::std::array<DynInfoType, vertexAttrTypeEnd> dyninfo;
+
+  private:
 	char *dataptr;
 	::std::size_t num;
 };

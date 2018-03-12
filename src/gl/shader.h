@@ -33,7 +33,7 @@ public:
 	ShaderObj(std::string filename):
 		shader(glCreateShader(ShaderType))
 	{
-		filename = shaderPath + filename;
+		filename = getShaderPath() + filename;
 		if (!shader)
 		{
 			BEE_RAISE(GLFatal, "Failed to create shader.");
@@ -77,8 +77,13 @@ public:
 		return shader;
 	}
 private:
+	static ::std::string &getShaderPath()
+	{
+		static ::std::string shaderPath;
+		return shaderPath;
+	}
+private:
 	GLuint shader;
-	static const char *shaderPath;
 };
 
 using VertexShader = ShaderObj<GL_VERTEX_SHADER>;
@@ -222,7 +227,7 @@ public:
 public:
 	virtual bool invoke(int index) = 0;
 private:
-	const ::std::string &prefix = "ShaderController";
+	const ::std::string prefix = "ShaderController";
 };
 
 // template <typename T = ShaderController, typename = typename 
@@ -392,9 +397,9 @@ public:
 	}
 	static void setFilePath(const char *path)
 	{
-		VertexShader::shaderPath = path;
-		GeometryShader::shaderPath = path;
-		FragmentShader::shaderPath = path;
+		VertexShader::getShaderPath() = path;
+		GeometryShader::getShaderPath() = path;
+		FragmentShader::getShaderPath() = path;
 	}
 	template <typename T>
 		static UniformRef<T> uniform(const ::std::string &name)

@@ -172,9 +172,9 @@ void Runtime::coredump(std::string logFileName) noexcept
 	}
 	else
 	{
-		stackTrace(writer, BEE_EXCEPTION_TRACE_DEPTH, 
+		stackTrace(writer, BEE_EXCEPTION_TRACE_DEPTH
 #		ifdef WIN32
-			exceptionContext
+			, exceptionContext
 #		endif
 		);
 	}

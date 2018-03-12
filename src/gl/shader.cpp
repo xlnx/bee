@@ -15,13 +15,6 @@ namespace gl
 Shader *Shader::bindShader = nullptr;
 Shader::ShaderRec Shader::shaderHead;
 
-template <>
-const char *VertexShader::shaderPath = nullptr;
-template <>
-const char *GeometryShader::shaderPath = nullptr;
-template <>
-const char *FragmentShader::shaderPath = nullptr;
-
 }
 
 }

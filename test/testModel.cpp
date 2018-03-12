@@ -9,6 +9,7 @@ Window<3, 3> window("testModel", false, 512, 512);
 
 int Main(int argc, char **argv)
 {
+	printf("Supported GLSL version is %s.\n", (char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
 	Scene scene;
 	auto &camera = scene.createCamera<FirstPersonCamera<>>();
 	camera.setPosition(4, 0, 2);
@@ -27,7 +28,6 @@ int Main(int argc, char **argv)
 		return false;
 	});
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	
 	window.dispatchMessages();
 	return 0;
 }

@@ -22,9 +22,15 @@ GLFatal::GLFatal(std::string info):
 {
 }
 
+static ::std::string getGLErrorMessage(GLenum err)
+{
+	::std::ostringstream os;
+	os << "glGetError() = 0x" << std::hex << err << std::dec << ": " << errorMessage[err & 0xff];
+	return os.str();
+}
+
 GLFatal::GLFatal(GLenum err):
-	Fatal(static_cast<std::ostringstream&>(std::ostringstream() << 
-		"glGetError() = 0x" << std::hex << err << std::dec << ": " << errorMessage[err & 0xff]).str())
+	Fatal(getGLErrorMessage(err))
 {
 }
 
