@@ -26,11 +26,13 @@ enum VertexAttrType {
 	normal = 2, 
 	tangent = 3, 
 	bitangent = 4, 
-	textureCoord = 5 
+	textureCoord = 5,
+	boneIndex = 6,
+	boneWeight = 7
 };
 
 constexpr GLenum vertexAttrTypeBegin = position; 
-constexpr GLenum vertexAttrTypeEnd = textureCoord + 1; 
+constexpr GLenum vertexAttrTypeEnd = boneWeight + 1; 
 
 template <typename V>
 struct GlmVectorInfo;
@@ -86,6 +88,10 @@ using bitg4 = VertexAttrElem<bitangent, ::glm::vec4>;
 using tex2 = VertexAttrElem<textureCoord, ::glm::vec2>;
 using tex3 = VertexAttrElem<textureCoord, ::glm::vec3>;
 using tex4 = VertexAttrElem<textureCoord, ::glm::vec4>;
+using ibone3 = VertexAttrElem<boneIndex, ::glm::ivec3>;
+using ibone4 = VertexAttrElem<boneIndex, ::glm::ivec4>;
+using wbone3 = VertexAttrElem<boneWeight, ::glm::vec3>;
+using wbone4 = VertexAttrElem<boneWeight, ::glm::vec4>;
 
 
 template <VertexAttrType T, VertexAttrType Y, VertexAttrType ...Types>

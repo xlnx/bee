@@ -112,6 +112,10 @@ private:
 	::glm::mat4 translateTrans, rotateTrans, scaleTrans, trans;
 };
 
+class Transform: public ObjectBase
+{
+};
+
 class Object: public ObjectBase
 {
 	BEE_UNIFORM_GLOB(::glm::mat4, WVP);

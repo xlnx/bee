@@ -4,6 +4,7 @@
 #include "vertices.h"
 #include "material.h"
 #include "shader.h"
+#include "object.h"
 #include "property.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -82,6 +83,8 @@ public:
 		vertices.template invoke<tg3>(mesh->HasTangentsAndBitangents());
 		vertices.template invoke<bitg3>(mesh->HasTangentsAndBitangents());
 		vertices.template invoke<tex3>(mesh->HasTextureCoords(0));
+		vertices.template invoke<ibone3>(mesh->HasBones());
+		vertices.template invoke<wbone3>(mesh->HasBones());
 		vertices.alloc();
 		// BEE_LOG("read ", mesh->mVertices, " vertices");
 		if (mesh->HasPositions())
@@ -144,6 +147,33 @@ public:
 				vec = *reinterpret_cast<typename ::std::remove_reference<decltype(vec)>::type*>(fp++);
 			}
 		}
+		// if (mesh->HasBones())
+		// {
+		// 	auto vertexBoneCount = new int [mesh->mNumVertices];
+		// 	memset(vertexBoneCount, 0, sizeof(int) * mesh->mNumVertices);
+		// 	for (auto i = 0u; i != mesh->mNumBones; ++i)
+		// 	{
+		// 		auto bid = boneMap[mesh->mBones[i]->name.data] = bones.size();
+		// 		bones.emplace_back(mesh->mBones[i]->mOffsetMatrix);
+		// 		for (auto j = 0u; j != mesh->mBones[i]->mNumWeights; ++j)
+		// 		{
+		// 			auto idx = mesh->mBones[i]->mWeights[j].mVertexId;
+		// 			auto currBone = vertexBoneCount[idx];
+		// 			if (currBone < 3)
+		// 			{
+		// 				vertices.template get<boneIndex>(idx)[currBone] = bid;
+		// 				vertices.template get<boneWeight>(idx)[currBone] = 
+		// 					mesh->mBones[i]->mWeights[j].mWeight;
+		// 			}
+		// 			else
+		// 			{
+		// 				BEE_RAISE(Fatal, "Too many bone infos per vertex.");
+		// 			}
+		// 			vertexBoneCount[idx]++;
+		// 		}
+		// 	}
+		// 	delete [] vertexBoneCount;
+		// }
 		if (mesh->HasFaces())
 		{
 			Faces faces(mesh->mNumFaces);
@@ -168,6 +198,28 @@ public:
 		MeshBase::render();
 	}
 private:
+	// void readNodeHeirarchy(float time, const aiNode *node, const ::glm::mat4 &parentTrans)
+	// {
+	// 	auto name = node->mName.data;
+	// 	auto *anim = scene->mAnimations[0];
+	// 	::glm::mat4 nodeTrans = reinterpret_cast<::glm::mat4&>(node->mTransformation);
+	// 	if (auto nodeAnim = findNodeAnim(anim, name))
+	// 	{
+	// 		Transform curr;
+	// 		curr.scale(interpolatedScale());
+	// 		curr.rotate(interpolatedRotate());
+	// 		curr.translate(interpolatedTranslate());
+	// 		nodeTrans = curr.getTrans();
+	// 	}
+	// 	auto trans = parentTrans * nodeTrans;
+	// 	for (auto i = 0u; i != node->mNumChildren; ++i)
+	// 	{
+	// 		readNodeHeirarchy(anim, node->mChildren[i], trans);
+	// 	}
+	// }
+private:
+	// ::std::vector<Bone> bones;
+	::std::map<::std::string, int> boneMap;
 	const Material *material = nullptr;
 };
 

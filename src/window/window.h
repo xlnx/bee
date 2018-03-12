@@ -141,8 +141,8 @@ public:
 		// Specify OpenGL Version
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, Major);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, Minor);
-		// glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-		// glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 		glClearColor(0.f, 0.f, 0.f, 0.f);
 		// glEnable(GL_BLEND);
 		// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

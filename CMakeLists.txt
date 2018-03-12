@@ -14,7 +14,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-parentheses")
 # endif ()
 if (WIN32)
 	find_package(OpenGL REQUIRED)
-	link_libraries(glew32.lib glfw3.dll ${OPENGL_LIBRARIES})
+	link_libraries(glfw3.dll ${OPENGL_LIBRARIES})
 	link_libraries(bfd iberty imagehlp z)
 	set(CMAKE_CXX_FLAGS_DEBUG "-Wall -pg -DDEBUG -g")
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3 -mwindows")
@@ -31,10 +31,12 @@ foreach (f ${BEE_DIR})
 			${BEE_INCLUDE_DIRS}
 			${f}
 		)
-		file(GLOB_RECURSE TEMP_V "${f}/*.cpp")
+		file(GLOB_RECURSE TEMP_CPP "${f}/*.cpp")
+		file(GLOB_RECURSE TEMP_C "${f}/*.c")
 		set(BEE_SOURCES
 			${BEE_SOURCES}
-			${TEMP_V}
+			${TEMP_CPP}
+			${TEMP_C}
 		)
 	endif ()
 endforeach ()

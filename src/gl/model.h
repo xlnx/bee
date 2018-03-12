@@ -62,7 +62,7 @@ public:
 #		ifdef WIN32
 		SetCurrentDirectory(path.c_str());
 #		else
-		setcwd(path.c_str());
+		chdir(path.c_str());
 #		endif
 
 		Assimp::Importer ass;
@@ -125,7 +125,7 @@ public:
 #		ifdef WIN32
 		SetCurrentDirectory(prevPath);
 #		else
-		setcwd(prevPath);
+		chdir(prevPath);
 #		endif
 	}
 

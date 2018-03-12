@@ -71,13 +71,7 @@ WindowBase::WindowBase(const std::string &title, bool fullscreen, unsigned width
 	window = glfwCreateWindow(width, height, title.c_str(), pMonitor, nullptr);
 	this->width = width; this->height = height;
 	glfwMakeContextCurrent(window);
-	GLenum err = glewInit();
-	if (err != GLEW_OK)
-	{
-		std::ostringstream os;
-		os << "glewInit failed: " << glewGetErrorString(err);
-		BEE_RAISE(GLFatal, os.str());
-	}
+	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 	instance = this;
 }
 

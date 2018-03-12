@@ -207,7 +207,7 @@ static void _backtrace(bfd_set *set, int depth , LPCONTEXT context)
 #		elif defined(__amd64) || defined(__x86_64__) || defined(_M_X64)
 			IMAGE_FILE_MACHINE_AMD64
 #		else 
-#			warn Unrecognized architecture.
+//#			warn Unrecognized architecture.
 #		endif
 		,
 		process, 
@@ -297,7 +297,7 @@ void stackTrace(std::ostream &os, unsigned depth
 			release_set(set);
 		}
 #	else
-#		warn stackTrace not implemented.
+//#		warn stackTrace not implemented.
 #	endif
 }
 

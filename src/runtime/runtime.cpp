@@ -79,8 +79,10 @@ Fatal::Fatal(std::string content):
 		, contextPtr
 #	endif
 	);
+#	ifdef WIN32
 	delete contextPtr;
 	contextPtr = nullptr;
+#	endif
 	runtime.traceBack = ss.str();
 }
 
@@ -132,7 +134,7 @@ Runtime::Runtime()
 	AddVectoredExceptionHandler(1, exception::veh);
 	SetUnhandledExceptionFilter(handleException);
 #	else
-#		warn Coredump not fully supported on this platform.
+//#		warn Coredump not fully supported on this platform.
 #	endif
 	if (Runtime::haveInstance)
 	{
