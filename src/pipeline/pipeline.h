@@ -4,3 +4,4 @@
 #include "camera.h"
 #include "viewPort.h"
 #include "firstPersonCamera.h"
+#include "scene.h"

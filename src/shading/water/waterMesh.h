@@ -279,17 +279,12 @@ public:
 		WaterMeshBase::render(viewPort);
 		shader->unuse();
 	}
-protected:
-	static gl::Shader *getShader()
-	{
-		static auto var = new gl::Shader(
-			gl::VertexShader("ocean-vs.glsl"),
-			gl::FragmentShader("ocean-fs.glsl")
-		);
-		return var;
-	}
 private:
-	gl::Shader *shader = getShader();
+	gl::Shader *shader = &gl::Shader::load(
+		"ocean",
+		gl::VertexShader("skybox-vs.glsl"),
+		gl::FragmentShader("skybox-fs.glsl")
+	);
 	gl::Material material = gl::Material("ocean");
 };
 

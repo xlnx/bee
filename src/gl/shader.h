@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <map>
 #include <vector>
+#include <stack>
 #include <functional>
 #include <initializer_list>
 
@@ -18,7 +19,7 @@ template <int ShaderType> class ShaderObj;
 
 class Shader;
 
-template <typename T> class UniformRef;
+template <typename T> struct UniformRef;
 
 class ShaderControllers;
 
@@ -355,6 +356,7 @@ public:
 		{
 			glUseProgram(shader);
 			getCurrShader() = this;
+			getShaders().push(this);
 			if (auto controllers = ShaderControllers::getCurrent())
 			{
 				controllers->invoke();
@@ -365,7 +367,18 @@ public:
 	{
 		if (!bindShader)
 		{
-			glUseProgram(0);
+			if (!getShaders().empty())
+			{
+				auto top = getShaders().top();
+				getShaders().pop();
+				getCurrShader() = top;
+				glUseProgram(*top);
+			}
+			else
+			{
+				getCurrShader() = nullptr;
+				glUseProgram(0);
+			}
 		}
 	}
 	template <typename ...Types>
@@ -396,7 +409,11 @@ public:
 	}
 	static void unbind()
 	{
-		bindShader = nullptr;
+		if (bindShader)
+		{
+			bindShader->unuse();
+			bindShader = nullptr;
+		}
 	}
 	static void setFilePath(const char *path)
 	{
@@ -464,11 +481,50 @@ public:
 		uniformArrayIndex = new ::std::map<::std::string, int>();
 		registeredUniformArrays = new ::std::vector<::std::pair<::std::string, ::std::string>>();
 	}
+	template <typename ...Types>
+	static Shader &load(const ::std::string &name, Types &&...args)
+	{
+		auto &loaded = getLoaded();
+		if (auto shader = loaded[name])
+		{
+			return *shader;
+		}
+		else
+		{
+			return *(loaded[name] = new Shader(::std::forward<Types>(args)...));
+		}
+	}
+	template <typename ...Types>
+	static Shader &loadTransformFeedback(const ::std::string &name, 
+		const ::std::initializer_list<::std::string> &l, Types &&...args)
+	{
+		auto &loaded = getLoaded();
+		if (auto shader = loaded[name])
+		{
+			return *shader;
+		}
+		else
+		{
+			shader = new Shader(::std::forward<Types>(args)...);
+			shader->setTransformFeedbackVaryings(l);
+			return *(loaded[name] = shader);
+		}
+	}
 private:
+	static ::std::map<::std::string, Shader*> &getLoaded()
+	{
+		static ::std::map<::std::string, Shader*> loaded;
+		return loaded;
+	}
 	static Shader *&getCurrShader()
 	{
 		static Shader *currShader = nullptr;
 		return currShader;
+	}
+	static ::std::stack<Shader *> getShaders()
+	{
+		static ::std::stack<Shader *> shaders;
+		return shaders;
 	}
 	template <typename T, typename ...Types, typename = typename
 		std::enable_if<std::is_constructible<GLuint, T>::value>::type>

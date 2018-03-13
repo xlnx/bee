@@ -2,9 +2,7 @@
 
 in vec2 TexCoord0;
 in vec3 Normal0;
-in vec3 Tangent0;
 in vec3 WorldPos0;
-// in vec3 Offset0;
 // in vec4 Color0;
 
 out vec4 FragColor;
@@ -19,13 +17,15 @@ struct Material
 
 	float SpecularIntensity;
 	float SpecularPower;
+
+	float DiffuseIntensity;
 };
 
 struct LightBase
 {
 	vec3 Color;
 	float AmbientIntensity;
-	float DiffuseIntensity;
+	float Intensity;
 };
 
 struct DirectionalLight
@@ -43,12 +43,23 @@ struct PointLight
 	float AttenExp;
 };
 
-uniform Material gMaterial;
-uniform DirectionalLight gDirectionalLight;
-uniform PointLight gPointLight[128];
+uniform struct
+{
+	DirectionalLight Instance[1];
+	int Count;
+} gDirectionalLight;
 
-uniform int gPointLightCount;
+uniform struct
+{
+	PointLight Instance[128];
+	int Count;
+} gPointLight;
+
+uniform Material gMaterial;
+
 uniform vec3 gCameraWorldPos;
+uniform float gMatSpecularIntensity;
+uniform float gSpecularPower;
 
 vec4 CalcLightInternal(LightBase Light, vec3 LightDirection, vec3 Normal)
 {
@@ -60,7 +71,7 @@ vec4 CalcLightInternal(LightBase Light, vec3 LightDirection, vec3 Normal)
 
 	if (DiffuseFactor > 0)
 	{
-		DiffuseColor = vec4(Light.Color * Light.DiffuseIntensity * DiffuseFactor, 1.0f);
+		DiffuseColor = vec4(Light.Color * gMaterial.DiffuseIntensity * DiffuseFactor, 1.0f);
 
 		vec3 VertexToEye = normalize(gCameraWorldPos - WorldPos0);
 		vec3 LightReflect = normalize(reflect(LightDirection, Normal));
@@ -71,54 +82,37 @@ vec4 CalcLightInternal(LightBase Light, vec3 LightDirection, vec3 Normal)
 			SpecularColor = vec4(SpecularFactor * gMaterial.SpecularIntensity * Light.Color, 1.0f);
 		}
 	}
-	return AmbientColor + DiffuseColor + SpecularColor;
+	return (AmbientColor + DiffuseColor + SpecularColor) * Light.Intensity;
 }
 
 vec4 CalcDirectionalLight(vec3 Normal)
 {
-	return CalcLightInternal(gDirectionalLight.Base, gDirectionalLight.Direction, Normal);
+	return CalcLightInternal(gDirectionalLight.Instance[0].Base, 
+		gDirectionalLight.Instance[0].Direction, Normal);
 }
 
 vec4 CalcPointLight(int Index, vec3 Normal)
 {
-	vec3 LightDirection = WorldPos0 - gPointLight[Index].Position;
+	vec3 LightDirection = WorldPos0 - gPointLight.Instance[Index].Position;
 	float Distance = length(LightDirection);
 	LightDirection = normalize(LightDirection);
 
-	vec4 Color = CalcLightInternal(gPointLight[Index].Base, LightDirection, Normal);
-	float Attenuation = gPointLight[Index].AttenConstant + 
-		gPointLight[Index].AttenLinear * Distance +
-		gPointLight[Index].AttenExp * Distance * Distance;
+	vec4 Color = CalcLightInternal(gPointLight.Instance[Index].Base, LightDirection, Normal);
+	float Attenuation = gPointLight.Instance[Index].AttenConstant + 
+		gPointLight.Instance[Index].AttenLinear * Distance +
+		gPointLight.Instance[Index].AttenExp * Distance * Distance;
 	return Color / Attenuation;
 }
 
-vec3 CalcBumpedNormal()
-{
-	vec3 Normal = normalize(Normal0);
-	vec3 Tangent = normalize(Tangent0);
-	Tangent = normalize(Tangent - dot(Tangent, Normal) * Normal);
-	vec3 Bitangent = cross(Tangent, Normal);
-	vec3 BumpMapNormal = texture(gMaterial.Normals, TexCoord0).xyz;
-	BumpMapNormal = 2.0 * BumpMapNormal - vec3(1.0, 1.0, 1.0);
-	vec3 NewNormal;
-	mat3 TBN = mat3(Tangent, Bitangent, Normal);
-	NewNormal = TBN * BumpMapNormal;
-	NewNormal = normalize(NewNormal);
-	return NewNormal;
-} 
-
 void main()
 {
-	vec3 Normal = CalcBumpedNormal();
+	vec3 Normal = normalize(Normal0);
 	vec4 Light = CalcDirectionalLight(Normal);
 
-	for (int i = 0; i < gPointLightCount; ++i)
+	for (int i = 0; i < gPointLight.Count; ++i)
 	{
 		Light += CalcPointLight(i, Normal);
 	}
 
-	// FragColor = vec4(Normal0, 1);
-	// FragColor = Light;
-	FragColor = vec4(0.2, 0.32, 0.45, 1)
-	/*texture2D(gMaterial.DigGerstnerWaveCountffuse, TexCoord0.xy)*/ * Light;
+	FragColor = texture(gMaterial.Diffuse, TexCoord0.xy) * Light;
 }

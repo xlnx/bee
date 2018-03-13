@@ -4,7 +4,6 @@
 #include "viewPort.h"
 #include "shader.h"
 #include "texture.h"
-#include "modelManager.h"
 
 namespace bee
 {
@@ -38,18 +37,13 @@ public:
 		glDepthFunc(oldDepthFuncMode);
 	}
 private:
-	static gl::Shader *getShader()
-	{
-		static gl::Shader *shader = new gl::Shader(
-			gl::VertexShader("skybox-vs.glsl"),
-			gl::FragmentShader("skybox-fs.glsl")
-		);
-		return shader;
-	}
-private:
-	gl::Model skybox = ModelManager::loadModel("skybox/skybox.obj");
+	gl::Model skybox = gl::Model::load("skybox/skybox.obj");
 	gl::Texture3D cubeTexture = gl::Texture3D("textures/skybox/bluesky.jpg");
-	gl::Shader *shader = getShader();
+	gl::Shader *shader = &gl::Shader::load(
+		"skybox",
+		gl::VertexShader("skybox-vs.glsl"),
+		gl::FragmentShader("skybox-fs.glsl")
+	);
 };
 
 }

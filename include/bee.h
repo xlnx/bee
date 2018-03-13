@@ -6,5 +6,4 @@
 #include "shading.h"
 #include "window.h"
 #include "configure.h"
-#include "manager.h"
-#include "event.h"
+#include "ext.h"

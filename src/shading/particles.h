@@ -165,39 +165,25 @@ protected:
 		glDrawTransformFeedback(GL_POINTS, transformFeedbacks[idxTFB]);
 		glDisableVertexAttribArray(0);
 	}
-private:
-	static gl::Shader *getParticleUpdater()
-	{
-		static auto var = [](){
-			auto shader = new gl::Shader(
-				gl::VertexShader("particleUpdate-vs.glsl"),
-				gl::GeometryShader("particleUpdate-gs.glsl"),
-				gl::FragmentShader("particleUpdate-fs.glsl")
-			);
-			shader->setTransformFeedbackVaryings(
-				"Type1", "Position1", "Velocity1", "Age1"
-			);
-			return shader;
-		} ();
-		return var;
-	}
-	static gl::Shader *getShader()
-	{
-		static auto var = new gl::Shader(
-			gl::VertexShader("billboard-vs.glsl"),
-			gl::GeometryShader("billboard-gs.glsl"),
-			gl::FragmentShader("billboard-fs.glsl")
-		);
-		return var;
-	}
 protected:
 	bool idxTFB = true;
 	bool initialize = true;
 	float prevRenderTime = glfwGetTime() * 1000;
 	::glm::vec3 fPosition;
 	GLuint transformFeedbacks[2], particleBuffers[2];
-	gl::Shader *shader = getShader();
-	gl::Shader *particleUpdater = getParticleUpdater();
+	gl::Shader *shader = &gl::Shader::load(
+		"particles",
+		gl::VertexShader("billboard-vs.glsl"),
+		gl::GeometryShader("billboard-gs.glsl"),
+		gl::FragmentShader("billboard-fs.glsl")
+	);
+	gl::Shader *particleUpdater = &gl::Shader::loadTransformFeedback(
+		"updateParticles",
+		{ "Type1", "Position1", "Velocity1", "Age1" },
+		gl::VertexShader("particleUpdate-vs.glsl"),
+		gl::GeometryShader("particleUpdate-gs.glsl"),
+		gl::FragmentShader("particleUpdate-fs.glsl")
+	);
 	gl::RandomTexture randomTexture = gl::RandomTexture(MaxParticlesCount);
 };
 

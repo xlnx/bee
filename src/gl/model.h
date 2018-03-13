@@ -137,6 +137,18 @@ public:
 	{
 		modelPath() = path;
 	}
+	static gl::Model &load(const ::std::string &name)
+	{
+		static ::std::map<::std::string, gl::Model*> loaded;
+		if (auto model = loaded[name])
+		{
+			return *model;
+		}
+		else
+		{
+			return *(loaded[name] = new gl::Model(name));
+		}
+	}
 private:
 	static ::std::string &modelPath()
 	{

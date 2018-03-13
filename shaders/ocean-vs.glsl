@@ -90,7 +90,7 @@ void main()
 	Position0 += offset;
 	gl_Position = gWVP * vec4(Position0, 1.0);
 
-	TexCoord0 = Position0.xy;
+	TexCoord0 = Position0.xy * 0.1;
 	Normal0 = (gWorld * vec4(normal, 0.0)).xyz;
 	Tangent0 = (gWorld * vec4(tangent, 0.0)).xyz;
 	

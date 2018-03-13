@@ -146,6 +146,7 @@ public:
 		glCullFace(GL_FRONT);
 		glClearColor(FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX);
 		majorLightCamera.setPosition(majorLight->getPosition());
+		
 		gl::Shader::bind(*shadowShader);
 		
 		gl::ShaderControllers::setControllers(controllers);
@@ -163,6 +164,7 @@ public:
 		shadowFramebuffer.unbind();
 		
 		gl::Shader::unbind();
+		
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glCullFace(GL_BACK);
 	}

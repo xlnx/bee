@@ -2,7 +2,6 @@
 
 #include "model.h"
 #include "object.h"
-#include "modelManager.h"
 
 namespace bee
 {
@@ -24,16 +23,11 @@ public:
 		shader->unuse();
 	}
 private:
-	static gl::Shader *getShader()
-	{
-		static auto var = new gl::Shader(
-			gl::VertexShader("model-vs.glsl"),
-			gl::FragmentShader("model-fs.glsl")
-		);
-		return var;
-	}
-private:
-	gl::Shader *shader = getShader();
+	gl::Shader *shader = &gl::Shader::load(
+		"model",
+		gl::VertexShader("model-vs.glsl"),
+		gl::FragmentShader("model-fs.glsl")
+	);
 public:
 	BEE_PROPERTY_REF(const gl::Mesh, Mesh) = nullptr;
 };
@@ -43,7 +37,7 @@ class ModelObject: public Object
 public:
 	ModelObject() = default;
 	ModelObject(const ::std::string &model): 
-		fModel(&ModelManager::loadModel(model))
+		fModel(&gl::Model::load(model))
 	{
 	}
 	ModelObject(const gl::Model &model): 
@@ -59,16 +53,11 @@ public:
 		shader->unuse();
 	}
 private:
-	static gl::Shader *getShader()
-	{
-		static auto var = new gl::Shader(
-			gl::VertexShader("model-vs.glsl"),
-			gl::FragmentShader("model-fs.glsl")
-		);
-		return var;
-	}
-private:
-	gl::Shader *shader = getShader();
+	gl::Shader *shader = &gl::Shader::load(
+		"model",
+		gl::VertexShader("model-vs.glsl"),
+		gl::FragmentShader("model-fs.glsl")
+	);
 public:
 	BEE_PROPERTY_REF(const gl::Model, Model) = nullptr;
 };
