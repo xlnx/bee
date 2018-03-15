@@ -59,14 +59,122 @@ uniform vec3 gCameraWorldPos;
 uniform vec3 gLightWorldPos;
 uniform samplerCube gShadowMap;
 
+const float shadowMapScale = 1.0 / 512.0;
+
+float ShadowMapOffsetLookup(vec3 plain, vec3 offset)
+{
+	return texture(gShadowMap, plain + offset * shadowMapScale).r;
+}
+
+vec3 Plainlize(vec3 LightDirection, out int channel)
+{
+	vec3 Pos = abs(LightDirection);
+	float maxD;
+	if (Pos.x > Pos.y)
+	{
+		if (Pos.x > Pos.z) 
+		{
+			channel = 0; maxD = Pos.x;
+		}
+		else
+		{
+			channel = 2; maxD = Pos.z;
+		}
+	}
+	else
+	{
+		if (Pos.y > Pos.z)
+		{
+			channel = 1; maxD = Pos.y;
+		}
+		else
+		{
+			channel = 2; maxD = Pos.z;
+		}
+	}
+	return LightDirection / maxD;
+}
+
+float ForcePCFShadowDistance4x4(vec3 LightDirection)
+{
+	int channel;
+	vec3 PosPlain = Plainlize(LightDirection, channel);
+	float SampledDistance = 0;
+	float x, y;
+	switch (channel)
+	{
+	case 0:
+		for (y = -1.5; y <= 1.5; y += 1.0)
+		{
+			for (x = -1.5; x <= 1.5; x += 1.0)
+			{
+				SampledDistance += ShadowMapOffsetLookup(PosPlain, vec3(0, x, y));
+			}
+		} break;
+	case 1:
+		for (y = -1.5; y <= 1.5; y += 1.0)
+		{
+			for (x = -1.5; x <= 1.5; x += 1.0)
+			{
+				SampledDistance += ShadowMapOffsetLookup(PosPlain, vec3(x, 0, y));
+			}
+		} break;
+	case 2:
+		for (y = -1.5; y <= 1.5; y += 1.0)
+		{
+			for (x = -1.5; x <= 1.5; x += 1.0)
+			{
+				SampledDistance += ShadowMapOffsetLookup(PosPlain, vec3(x, y, 0));
+			}
+		} break;
+	}
+	return SampledDistance * 0.0625;// / 16.0;
+}
+
+float PCFShadowDistance4(vec3 LightDirection)
+{
+	// int channel;
+	// vec3 PosPlain = Plainlize(LightDirection, channel);
+	// vec2 offset = (LightDirection.xy * 0.5) > 0.25;
+	// offset.y += offset.x;
+	// if (offset.y > 1.1)
+	// return (
+	// 	ShadowMapOffsetLookup(PosPlain, vec3())
+	// ) * 0.25;
+	return 1;
+}
+
+float SimpleShadowDistance(vec3 LightDirection)
+{
+	return texture(gShadowMap, LightDirection).r;
+}
+
 float CalcShadowFactor(vec3 LightDirection)
 {
-	float SampledDistance = texture(gShadowMap, LightDirection).r;
+	float SampledDistance = 
+		// SimpleShadowDistance(LightDirection);
+		ForcePCFShadowDistance4x4(LightDirection);
 	float Distance = length(LightDirection);
-	if (Distance < SampledDistance + 1e-1)
+	float diff = Distance - SampledDistance;
+	if (diff < 1e-1)
+	{
 		return 1.0;
+	}
 	else
+	{
 		return 0.4;
+		// if (diff < 1e-1)
+		// {
+		// 	if (diff < 1e-2)
+		// 	{
+		// 		return 0.9;
+		// 	}
+		// 	else
+		// 	{
+		// 		return 0.4;
+		// 	}
+		// }
+	}
 }
 
 vec4 CalcLightInternal(LightBase Light, vec3 LightDirection, vec3 Normal, float ShadowFactor)
