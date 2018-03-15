@@ -131,7 +131,7 @@ public:
 	}
 };
 
-class DepthTexture: public TextureNDBase<Tex2D>
+class DepthTexture: public Texture2D
 {
 public:
 	DepthTexture()
@@ -153,6 +153,8 @@ public:
 
 class Texture3D: public TextureNDBase<Tex3D>
 {
+protected:
+	Texture3D() = default;
 public:
 	Texture3D(::std::string path)
 	{
@@ -197,7 +199,7 @@ public:
 	}
 };
 
-class CubeDepthTexture: public TextureNDBase<Tex3D>
+class CubeDepthTexture: public Texture3D
 {
 public:
 	CubeDepthTexture()

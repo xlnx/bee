@@ -5,7 +5,7 @@ using namespace bee::gl;
 using namespace std;
 using namespace glm;
 
-Window<3, 3> window("testModel", false, 1024, 1024);
+Window<3, 3> window("testModel", false, 512, 512);
 
 int Main(int argc, char **argv)
 {

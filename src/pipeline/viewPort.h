@@ -46,9 +46,9 @@ public:
 		fov = v[0]; zNear = v[1]; zFar = v[2];
 		perspectiveModified = true;
 	}
-	void setPerspectiveFov(GLfloat degree)
+	void setPerspectiveFov(GLfloat radians)
 	{
-		fov = degree;
+		fov = radians;
 		perspectiveModified = true;
 	}
 	void setPerspectiveZNear(GLfloat z)

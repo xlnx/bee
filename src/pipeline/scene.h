@@ -8,6 +8,7 @@
 #include "lighting.h"
 #include "texture.h"
 #include "viewPort.h"
+#include "testTextureObject.h"
 #include <vector>
 
 namespace bee
@@ -53,6 +54,10 @@ public:
 		};
 		viewPort.setTarget(cameraInfos[cubeface][0]);
 		viewPort.setUp(cameraInfos[cubeface][1]);
+	}
+	const gl::CubeDepthTexture &getTexture() const 
+	{
+		return texture;
 	}
 private:
 	gl::FBO fbo;
@@ -124,21 +129,12 @@ public:
 				object->render(*camera);
 			}
 		}
-
+		
+		// static TestTexture3DObject test3D(shadowFramebuffer.getTexture());
+		// test3D.setTarget(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
 		// for (auto camera: cameras)
 		// {
-		// 	static MeshObject mesh = MeshObject(
-		// 		*new gl::Mesh(gl::VertexAttrs<gl::pos3, gl::tex2>{
-		// 			{{0, -1, 1}, {0, 1}},
-		// 			{{0, 1, 1}, {1, 1}},
-		// 			{{0, 1, -1}, {1, 0}},
-		// 			{{0, -1, -1}, {0, 0}}
-		// 		}, gl::Faces{
-		// 			{0, 1, 2},
-		// 			{2, 3, 0}
-		// 		})
-		// 	);
-		// 	mesh.render(*cameras[0]);
+		// 	test3D.render(*camera);
 		// }
 	}
 	void renderDepth()
@@ -184,16 +180,11 @@ public:
 		majorLight = &light;
 	}
 private:
-	static gl::Shader *getShadowShader()
-	{
-		static auto var = new gl::Shader(
-			gl::VertexShader("shadow-vs.glsl"),
-			gl::FragmentShader("shadow-fs.glsl")
-		);
-		return var;
-	}
-private:
-	gl::Shader *shadowShader = getShadowShader();
+	gl::Shader *shadowShader = &gl::Shader::load(
+		"shadow",
+		gl::VertexShader("shadow-vs.glsl"),
+		gl::FragmentShader("shadow-fs.glsl")
+	);
 private:
 	::std::vector<Object*> objects;
 	::std::vector<ViewPort*> cameras;
