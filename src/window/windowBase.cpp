@@ -92,4 +92,5 @@ WindowBase::~WindowBase()
 {
 	glfwTerminate();
 }
+
 }
