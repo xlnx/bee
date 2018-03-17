@@ -282,8 +282,8 @@ public:
 private:
 	gl::Shader *shader = &gl::Shader::load(
 		"ocean",
-		gl::VertexShader("skybox-vs.glsl"),
-		gl::FragmentShader("skybox-fs.glsl")
+		gl::VertexShader("ocean-vs.glsl"),
+		gl::FragmentShader("ocean-fs.glsl")
 	);
 	gl::Material material = gl::Material("ocean");
 };

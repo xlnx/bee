@@ -67,8 +67,10 @@ WindowBase::WindowBase(int major, int minor, const std::string &title, bool full
 	});
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, major);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minor);
+#	ifdef BEE_OPENGL_CORE_PROFILE
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#	endif
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
 	GLFWmonitor *pMonitor = nullptr;
@@ -81,10 +83,17 @@ WindowBase::WindowBase(int major, int minor, const std::string &title, bool full
 	window = glfwCreateWindow(width, height, title.c_str(), pMonitor, nullptr);
 	this->width = width; this->height = height;
 	glfwMakeContextCurrent(window);
+#	ifdef BEE_OPENGL_LOADER_GLAD
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
-		BEE_RAISE(Fatal, "Failed to initialize GLAD");
+		BEE_RAISE(GLFatal, "Failed to initialize GLAD");
 	}
+#	else
+	if (glewInit())
+	{
+		BEE_RAISE(GLFatal, "Failed to initialize GLEW");
+	}
+#	endif
 	instance = this;
 }
 

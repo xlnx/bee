@@ -1,7 +1,10 @@
 #pragma once
 
-// #include <GL/glew.h>
+#ifdef BEE_OPENGL_LOADER_GLAD
 #include <glad/glad.h>
+#else
+#include <GL/glew.h>
+#endif
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>

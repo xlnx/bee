@@ -26,7 +26,7 @@ private:
 	gl::Shader *shader = &gl::Shader::load(
 		"model",
 		gl::VertexShader("model-vs.glsl"),
-		gl::FragmentShader("model-fs.glsl")
+		gl::FragmentShader("phong-fs.glsl")
 	);
 public:
 	BEE_PROPERTY_REF(const gl::Mesh, Mesh) = nullptr;
@@ -56,7 +56,7 @@ private:
 	gl::Shader *shader = &gl::Shader::load(
 		"model",
 		gl::VertexShader("model-vs.glsl"),
-		gl::FragmentShader("model-fs.glsl")
+		gl::FragmentShader("phong-fs.glsl")
 	);
 public:
 	BEE_PROPERTY_REF(const gl::Model, Model) = nullptr;

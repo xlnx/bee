@@ -70,6 +70,7 @@ class Scene
 {
 	BEE_UNIFORM_GLOB(int, ShadowMap);
 	BEE_UNIFORM_GLOB(::glm::vec3, LightWorldPos);
+	BEE_UNIFORM_GLOB(::glm::vec2, ShadowMapScale);
 public:
 	Scene()
 	{
@@ -80,6 +81,8 @@ public:
 			{
 				gShadowMap = 0;
 				gLightWorldPos = majorLight->getPosition();
+				gShadowMapScale = ::glm::vec2(
+					1.0 / WindowBase::getWidth(), 1.0 / WindowBase::getHeight());
 			});
 			return 0;
 		}();
