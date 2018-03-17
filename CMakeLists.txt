@@ -27,6 +27,8 @@ if (WIN32)
 elseif (APPLE)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -framework Cocoa -framework IOKit -framework CoreVideo")
 	find_library(GLEW glew)
+elseif (UNIX)
+	link_libraries(X11 m dl Xxf86vm Xrandr Xi Xcursor Xinerama pthread)
 endif ()
 
 if (${OPENGL_LOADER_GLAD})

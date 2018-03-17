@@ -34,10 +34,10 @@ private:
 	);
 	gl::Mesh mesh = gl::Mesh(
 		gl::VertexAttrs<gl::pos2>{
-			{{ -1, 1 }},
-			{{ 1, 1 }},
-			{{ 1, -1 }},
-			{{ -1, -1 }}
+			::std::tuple<::glm::vec2>{{ -1, 1 }},
+			::std::tuple<::glm::vec2>{{ 1, 1 }},
+			::std::tuple<::glm::vec2>{{ 1, -1 }},
+			::std::tuple<::glm::vec2>{{ -1, -1 }}
 		},
 		gl::Faces{
 			{ 0, 1, 2 },
@@ -89,10 +89,10 @@ private:
 	);
 	gl::Mesh mesh = gl::Mesh(
 		gl::VertexAttrs<gl::pos2>{
-			{{ -1, 1 }},
-			{{ 1, 1 }},
-			{{ 1, -1 }},
-			{{ -1, -1 }}
+			::std::tuple<::glm::vec2>{{ -1, 1 }},
+			::std::tuple<::glm::vec2>{{ 1, 1 }},
+			::std::tuple<::glm::vec2>{{ 1, -1 }},
+			::std::tuple<::glm::vec2>{{ -1, -1 }}
 		},
 		gl::Faces{
 			{ 0, 1, 2 },

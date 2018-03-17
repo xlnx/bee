@@ -295,6 +295,9 @@ struct VertexAttrs: public ArrayMemoryManager<VertexAttr<Attrs...>>
 {
 	using Super = ArrayMemoryManager<VertexAttr<Attrs...>>;
 	using elemType = typename Super::elemType;
+	constexpr VertexAttrs(const VertexAttrs &) = default;
+	constexpr VertexAttrs(VertexAttrs &&) = default;
+
 	// typename elemType::value_type
 	constexpr VertexAttrs(const ::std::initializer_list<typename elemType::value_type> &l):
 		Super(reinterpret_cast<const ::std::initializer_list<elemType>&>(l))
