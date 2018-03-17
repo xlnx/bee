@@ -21,7 +21,7 @@ int Main(int argc, char **argv)
 	auto &object = scene.createObject<ModelObject>("chess/chess.obj");
 	object.scale(0.02, 0.02, 0.02);
 	// auto &board = scene.createObject<ModelObject>("board/board.obj");
-	board.scale(0.02, 0.02, 0.02);
+	// board.scale(0.02, 0.02, 0.02);
 	// object.rotate(::glm::radians(180.f), 0, 0);
 	// object.translate(0, 0, 2);
 	scene.createObject<OceanMesh>();
