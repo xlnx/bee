@@ -3006,6 +3006,8 @@ Value& Path::make(Value& root) const {
 #include <float.h>
 #define isfinite _finite
 #define snprintf _snprintf
+#else
+#define isfinite ::std::isfinite
 #endif
 
 #if defined(_MSC_VER) && _MSC_VER >= 1400 // VC++ 8.0
