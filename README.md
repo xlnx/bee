@@ -7,34 +7,12 @@ Contains a relatively **safe** runtime, which can:
 * generate dump file (containing callstack info) automatically when the application craches. 
 * provide access to your custom log.
 
-### Create your application runtime
-A recommended way to create your own application runtime is **deriving from class `bee::RuntimeBase`**. Create an instance of derived class like this:
-```cpp
-#pragma once 
-#include "bee/runtimeBase.h"
-class Runtime final: public bee::RuntimeBase
-{
-public:
-  Runtime() { /* auto initialize here */ }
-  ~Runtime() { /* auto finalize here */ }
-public:
-  // other operations.
-};
-extern Runtime runtime; // extern from .cpp file
-```
-
 ### Capturing exceptions
-If you expect runtime to capture C++ exceptions, then the exception must be derived from **`bee::exception::Fatal`**. Capture C++ exceptions like this:
-```cpp
-void Runtime::doSomething()
-{
-BEE_EXCEPTION_BEGIN
-  // put your code here.
-BEE_EXCEPTION_END
-}
-```
+Any exception derived from **`bee::exception::Fatal`** will provide a call stack info. Other exception is also allowed and both of them provides a dump call when crashes.
 
-Other exceptions are conditionally supported, (currently SEH exceptions, the linux version is under construction) e.g. `Integer div by zero`, `Segment fault` ...
+you may call bee::Runtime::onDump() to set your dump callback.
+
+Capturing signals are also allowed, it won't provide call stack info (currently SEH exceptions, the linux version is under construction) e.g. `Integer div by zero`, `Segment fault` ...
 
 ### Producing dump files
 If any exception is captured, the dump file will be produced in `log/` dir (by default, you can modify it). The file may seem like this: 
@@ -72,7 +50,7 @@ Whenever you add a property, the getter and setter are automatically generated, 
 
 ## Lighting & Modeling
 
-![doc/img/phong-chess.png]()
+![](doc/img/phong-chess.png)
 
-Phong model for lighting by default.
+A chess demo for the Phong lighting model.
 
