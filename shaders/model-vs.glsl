@@ -7,7 +7,6 @@ layout (location = 5) in vec2 TexCoord;
 out vec2 TexCoord0;
 out vec3 Normal0;
 out vec3 WorldPos0;
-out vec4 LightSpacePos0;
 // out vec4 Color0;
 
 uniform mat4 gWVP;

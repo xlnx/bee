@@ -11,7 +11,7 @@ struct LightBase
 {
 	vec3 Color;
 	float AmbientIntensity;
-	float Intensity;
+	float DiffuseIntensity;
 };
 
 struct DirectionalLight
@@ -51,8 +51,6 @@ uniform struct
 
 	float SpecularIntensity;
 	float SpecularPower;
-
-	float DiffuseIntensity;
 } gMaterial;
 
 uniform vec3 gCameraWorldPos;
@@ -114,7 +112,7 @@ float ForcePCFShadowDistance4x4(vec3 LightDirection)
 		{
 			for (x = -1.5; x <= 1.5; x += 1.0)
 			{
-				SampledDistance += ShadowMapOffsetLookup(PosPlain, vec3(x, y, 0));
+				SampledDistance += ShadowMapOffsetLookup(PosPlain, vec3(0, x, y));
 				// vec2 coord = gShadowMapScale * vec2(x, y);
 				// SampledDistance += ShadowMapOffsetLookup(PosPlain, vec3(0, coord.x, coord.y));
 			}
@@ -185,7 +183,7 @@ float CalcShadowFactor(vec3 LightDirection)
 	}
 }
 
-vec4 CalcLightInternal(LightBase Light, vec3 LightDirection, vec3 Normal, float ShadowFactor)
+void CalcLightInternal(LightBase Light, vec3 LightDirection, vec3 Normal, float ShadowFactor, out vec4 Light0, out vec4 LightSpec0)
 {
 	vec4 AmbientColor = vec4(Light.Color * Light.AmbientIntensity, 1.0f);
 	float DiffuseFactor = dot(Normal, -LightDirection);
@@ -195,7 +193,7 @@ vec4 CalcLightInternal(LightBase Light, vec3 LightDirection, vec3 Normal, float 
 
 	if (DiffuseFactor > 0)
 	{
-		DiffuseColor = vec4(Light.Color * gMaterial.DiffuseIntensity * DiffuseFactor, 1.0f);
+		DiffuseColor = vec4(Light.Color * Light.DiffuseIntensity * DiffuseFactor, 1.0f);
 
 		vec3 VertexToEye = normalize(gCameraWorldPos - WorldPos0);
 		vec3 LightReflect = normalize(reflect(LightDirection, Normal));
@@ -206,43 +204,49 @@ vec4 CalcLightInternal(LightBase Light, vec3 LightDirection, vec3 Normal, float 
 			SpecularColor = vec4(SpecularFactor * gMaterial.SpecularIntensity * Light.Color, 1.0f);
 		}
 	}
-	return (AmbientColor + ShadowFactor * (DiffuseColor + SpecularColor)) * Light.Intensity;
+	// return AmbientColor + ShadowFactor * (DiffuseColor + SpecularColor);
+	Light0 = AmbientColor + ShadowFactor * DiffuseColor;
+	LightSpec0 = ShadowFactor * SpecularColor;
 }
 
-vec4 CalcDirectionalLight(int Index, vec3 Normal)
+void CalcDirectionalLight(int Index, vec3 Normal, out vec4 Light, out vec4 LightSpec)
 {
-	return CalcLightInternal(gDirectionalLight.Instance[Index].Base, 
-		gDirectionalLight.Instance[Index].Direction, Normal, 1.0);
+	vec4 Light0, LightSpec0;
+	CalcLightInternal(gDirectionalLight.Instance[Index].Base, 
+		gDirectionalLight.Instance[Index].Direction, Normal, 1.0, Light0, LightSpec0);
+	Light += Light0; LightSpec += LightSpec0;
 }
 
-vec4 CalcPointLight(int Index, vec3 Normal, float ShadowFactor)
+void CalcPointLight(int Index, vec3 Normal, float ShadowFactor, out vec4 Light, out vec4 LightSpec)
 {
 	vec3 LightDirection = WorldPos0 - gPointLight.Instance[Index].Position;
 	float Distance = length(LightDirection);
 	LightDirection = normalize(LightDirection);
 
-	vec4 Color = CalcLightInternal(gPointLight.Instance[Index].Base, LightDirection, Normal, ShadowFactor);
+	vec4 Light0, LightSpec0;
+	CalcLightInternal(gPointLight.Instance[Index].Base, LightDirection, Normal, ShadowFactor, Light0, LightSpec0);
 	float Attenuation = gPointLight.Instance[Index].AttenConstant + 
 		gPointLight.Instance[Index].AttenLinear * Distance +
 		gPointLight.Instance[Index].AttenExp * Distance * Distance;
-	return Color / Attenuation;
+	Light += Light0 / Attenuation; LightSpec += LightSpec0;
 }
 
 void main()
 {
 	vec3 Normal = normalize(Normal0);
 	float ShadowFactor = CalcShadowFactor(WorldPos0 - gLightWorldPos);
-	vec4 Light = vec4(0, 0, 0, 1);
+	vec4 Light = vec4(0, 0, 0, 1), LightSpec = vec4(0, 0, 0, 1);
 	
 	for (int i = 0; i < gDirectionalLight.Count; ++i)
 	{
-		Light += CalcDirectionalLight(i, Normal);
+		CalcDirectionalLight(i, Normal, Light, LightSpec);
 	}
 
 	for (int i = 0; i < gPointLight.Count; ++i)
 	{
-		Light += CalcPointLight(i, Normal, ShadowFactor);
+		CalcPointLight(i, Normal, ShadowFactor, Light, LightSpec);
 	}
 
-	FragColor = vec4(0.12, 0.23, 0.34, 1) * Light;
+	FragColor = texture(gMaterial.Diffuse, TexCoord0.xy) * Light + LightSpec;
+	// FragColor = vec4(1);
 }

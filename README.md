@@ -69,3 +69,10 @@ Shader controller class aims at transmitting data from CPU to GPU(shaders).
 It is a great flexibility that **unknown variables will be ignored rather than prompting an error**.
 
 Whenever you add a property, the getter and setter are automatically generated, and the data member will be protected.
+
+## Lighting & Modeling
+
+![doc/img/phong-chess.png]()
+
+Phong model for lighting by default.
+

@@ -26,56 +26,91 @@ class Material
 {
 	BEE_UNIFORM(float, SpecularIntensity, "Material");
 	BEE_UNIFORM(float, SpecularPower, "Material");
-	BEE_UNIFORM(float, DiffuseIntensity, "Material");
 public:
-	Material(::std::string name = "")
+	Material()
 	{
 		textureControllers[Diffuse] = gl::Shader::uniform<int>("gMaterial.Diffuse");
 		textureControllers[Specular] = gl::Shader::uniform<int>("gMaterial.Specular");
 		textureControllers[Ambient] = gl::Shader::uniform<int>("gMaterial.Ambient");
 		textureControllers[Emissive] = gl::Shader::uniform<int>("gMaterial.Emissive");
 		textureControllers[Normals] = gl::Shader::uniform<int>("gMaterial.Normals");
-		
-		if (name != "")
+	}
+	Material(::std::string name):
+		Material()
+	{
+		name = getFilePath() + name + "/";
+		Configure cfg(name + "config.json");
 		{
-			name = getFilePath() + name + "/";
-			Configure cfg(name + "config.json");
+			auto texture = cfg["texture"];
+			if (texture.isObject())
 			{
-				auto texture = cfg["texture"];
-				if (texture.isObject())
+				auto normal = texture["normal"];
+				if (normal.isString())
 				{
-					auto normal = texture["normal"];
-					if (normal.isString())
-					{
-						textures[Normals] = Texture2D(name + normal.asString(), false);
-					}
+					textures[Normals] = Texture2D(name + normal.asString(), false);
 				}
 			}
+		}
+		{
+			auto specular = cfg["specular"];
+			if (specular.isObject())
 			{
-				auto specular = cfg["specular"];
-				if (specular.isObject())
+				auto power = specular["power"];
+				if (power.isDouble())
 				{
-					auto power = specular["power"];
-					if (power.isDouble())
-					{
-						fSpecularPower = power.asDouble();
-					}
-					auto intensity = specular["intensity"];
-					if (intensity.isDouble())
-					{
-						fSpecularIntensity = intensity.asDouble();
-					}
+					fSpecularPower = power.asDouble();
 				}
-
-				auto diffuse = cfg["diffuse"];
-				if (diffuse.isObject())
+				auto intensity = specular["intensity"];
+				if (intensity.isDouble())
 				{
-					auto intensity = diffuse["intensity"];
-					if (intensity.isDouble())
-					{
-						fDiffuseIntensity = intensity.asDouble();
-					}
+					fSpecularIntensity = intensity.asDouble();
 				}
+			}
+		}
+	}
+	Material(const aiMaterial *material):
+		Material()
+	{
+		{	// params
+			material->Get(AI_MATKEY_SHININESS_STRENGTH, &fSpecularIntensity, nullptr);
+			material->Get(AI_MATKEY_SHININESS, &fSpecularPower, nullptr);
+			// BEE_LOG(fSpecularIntensity, " ", fSpecularPower);
+		}
+		{	// textures
+			if (material->GetTextureCount(Diffuse) > 0)
+			{
+				// BEE_LOG("Diffuse");
+				aiString path;
+				material->GetTexture(Diffuse, 0, &path);
+				addTexture<Diffuse>(path.C_Str());
+			}
+			if (material->GetTextureCount(Specular) > 0)
+			{
+				// BEE_LOG("Specular");
+				aiString path;
+				material->GetTexture(Specular, 0, &path);
+				addTexture<Specular>(path.C_Str());
+			}
+			if (material->GetTextureCount(Ambient) > 0)
+			{
+				// BEE_LOG("Ambient");
+				aiString path;
+				material->GetTexture(Ambient, 0, &path);
+				addTexture<Ambient>(path.C_Str());
+			}
+			if (material->GetTextureCount(Emissive) > 0)
+			{
+				// BEE_LOG("Emissive");
+				aiString path;
+				material->GetTexture(Emissive, 0, &path);
+				addTexture<Emissive>(path.C_Str());
+			}
+			if (material->GetTextureCount(Normals) > 0)
+			{
+				// BEE_LOG("Normals");
+				aiString path;
+				material->GetTexture(Normals, 0, &path);
+				addTexture<Normals>(path.C_Str());
 			}
 		}
 	}
@@ -99,7 +134,6 @@ public:
 		}
 		gSpecularPower = fSpecularPower;
 		gSpecularIntensity = fSpecularIntensity;
-		gDiffuseIntensity = fDiffuseIntensity;
 	}
 	static void setFilePath(const ::std::string &path)
 	{
@@ -120,9 +154,8 @@ protected:
 	::std::map<aiTextureType, Texture2D> textures;
 	UniformRef<int> textureControllers[TextureTypeSize];
 public:
-	BEE_PROPERTY(float, SpecularPower) = .5f;
+	BEE_PROPERTY(float, SpecularPower) = 0.f;
 	BEE_PROPERTY(float, SpecularIntensity) = 1.f;
-	BEE_PROPERTY(float, DiffuseIntensity) = .5f;
 };
 
 }

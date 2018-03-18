@@ -76,45 +76,10 @@ public:
 		// {
 
 		// }
-		materials.resize(scene->mNumMaterials);
+		// materials.resize(scene->mNumMaterials);
 		for (auto i = 0u; i != scene->mNumMaterials; ++i)
 		{
-			auto material = scene->mMaterials[i];
-			if (material->GetTextureCount(Diffuse) > 0)
-			{
-				// BEE_LOG("Diffuse");
-				aiString path;
-				material->GetTexture(Diffuse, 0, &path);
-				materials[i].addTexture<Diffuse>(path.C_Str());
-			}
-			if (material->GetTextureCount(Specular) > 0)
-			{
-				// BEE_LOG("Specular");
-				aiString path;
-				material->GetTexture(Specular, 0, &path);
-				materials[i].addTexture<Specular>(path.C_Str());
-			}
-			if (material->GetTextureCount(Ambient) > 0)
-			{
-				// BEE_LOG("Ambient");
-				aiString path;
-				material->GetTexture(Ambient, 0, &path);
-				materials[i].addTexture<Ambient>(path.C_Str());
-			}
-			if (material->GetTextureCount(Emissive) > 0)
-			{
-				// BEE_LOG("Emissive");
-				aiString path;
-				material->GetTexture(Emissive, 0, &path);
-				materials[i].addTexture<Emissive>(path.C_Str());
-			}
-			if (material->GetTextureCount(Normals) > 0)
-			{
-				// BEE_LOG("Normals");
-				aiString path;
-				material->GetTexture(Normals, 0, &path);
-				materials[i].addTexture<Normals>(path.C_Str());
-			}
+			materials.emplace_back(scene->mMaterials[i]);
 		}
 		// auto root = scene->mRootNode;
 		for (auto i = 0u; i != scene->mNumMeshes; ++i)
