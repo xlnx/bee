@@ -32,8 +32,8 @@ int Main(int argc, char **argv)
 	// object.translate(0, 0, 2);
 	// scene.createObject<OceanMesh>();
 	window.dispatch<RenderEvent>([&]() -> bool{
-		scene.renderDepth();
-		scene.render();
+		scene.shadowPass();
+		scene.renderPass();
 		return false;
 	});
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);

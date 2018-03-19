@@ -24,10 +24,19 @@ template <typename T> struct UniformRef;
 class ShaderControllers;
 
 
-
+class ShaderObjBase
+{
+	friend class Shader;
+protected:
+	static ::std::string &getShaderPath()
+	{
+		static ::std::string shaderPath;
+		return shaderPath;
+	}
+};
 
 template <int ShaderType>
-	class ShaderObj final
+	class ShaderObj final: private ShaderObjBase
 {
 	friend class Shader;
 public:
@@ -78,18 +87,13 @@ public:
 		return shader;
 	}
 private:
-	static ::std::string &getShaderPath()
-	{
-		static ::std::string shaderPath;
-		return shaderPath;
-	}
-private:
 	GLuint shader;
 };
 
 using VertexShader = ShaderObj<GL_VERTEX_SHADER>;
 using GeometryShader = ShaderObj<GL_GEOMETRY_SHADER>;
 using FragmentShader = ShaderObj<GL_FRAGMENT_SHADER>;
+using ComputeShader = ShaderObj<GL_COMPUTE_SHADER>;
 
 class UniformRefBase
 {
@@ -417,9 +421,7 @@ public:
 	}
 	static void setFilePath(const char *path)
 	{
-		VertexShader::getShaderPath() = path;
-		GeometryShader::getShaderPath() = path;
-		FragmentShader::getShaderPath() = path;
+		ShaderObjBase::getShaderPath() = path;
 	}
 	template <typename T>
 		static UniformRef<T> uniform(const ::std::string &name)

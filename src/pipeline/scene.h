@@ -8,86 +8,20 @@
 #include "lighting.h"
 #include "texture.h"
 #include "viewPort.h"
+#include "offscreen.h"
 #include "testTextureObject.h"
 #include <vector>
 
 namespace bee
 {
 
-class ShadowFramebuffer
+namespace scene_impl
 {
-public:
-	ShadowFramebuffer()
-	{
-		fbo.bind();
-			texture2D.attachTo(fbo);
-			glDrawBuffer(GL_NONE);
-			glReadBuffer(GL_NONE);
-			fbo.validate();
-		fbo.unbind();
-	}
-	void bind(int i)
-	{
-		fbo.bind();
-		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
-			GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, texture, 0);
-		glDrawBuffer(GL_COLOR_ATTACHMENT0);
-		cubeface = i;
-	}
-	void unbind()
-	{
-		fbo.unbind();
-	}
-	void invoke(int i) const
-	{
-		texture.invoke(i);
-	}
-	void configureCamera(ViewPort &viewPort)
-	{
-		static const ::glm::vec3 cameraInfos[][2] = {
-			{ {1.f, 0.f, 0.f},  {0.f, -1.f, 0.f} },
-			{ {-1.f, 0.f, 0.f}, {0.f, -1.f, 0.f} },
-			{ {0.f, 1.f, 0.f},  {0.f, 0.f, 1.f} },
-			{ {0.f, -1.f, 0.f}, {0.f, 0.f, -1.f} },
-			{ {0.f, 0.f, 1.f},  {0.f, -1.f, 0.f} },
-			{ {0.f, 0.f, -1.f}, {0.f, -1.f, 0.f} }
-		};
-		viewPort.setTarget(cameraInfos[cubeface][0]);
-		viewPort.setUp(cameraInfos[cubeface][1]);
-	}
-	const gl::CubeDepthTexture &getTexture() const 
-	{
-		return texture;
-	}
-private:
-	gl::FBO fbo;
-	gl::DepthTexture texture2D;
-	gl::CubeDepthTexture texture;
-	int cubeface = 0;
-};
 
-class Scene
+class SceneBase
 {
-	BEE_UNIFORM_GLOB(int, ShadowMap);
-	BEE_UNIFORM_GLOB(::glm::vec3, LightWorldPos);
-	BEE_UNIFORM_GLOB(::glm::vec2, ShadowMapScale);
 public:
-	Scene()
-	{
-		majorLightCamera.setPerspectiveFov(::glm::radians(90.f));
-		static int n = [this]()
-		{
-			Object::onSetViewMatrices([this](Object &self, ViewPort &camera)
-			{
-				gShadowMap = 0;
-				gLightWorldPos = majorLight->getPosition();
-				gShadowMapScale = ::glm::vec2(
-					1.0 / WindowBase::getWidth(), 1.0 / WindowBase::getHeight());
-			});
-			return 0;
-		}();
-	}
-	virtual ~Scene()
+	virtual ~SceneBase()
 	{
 		clear();
 	}
@@ -119,11 +53,46 @@ public:
 		cameras.push_back(camera);
 		return *camera;
 	}
-	void render()
+	void clear()
+	{
+		for (auto object: objects)
+		{ delete object; }
+		controllers.foreach([](gl::ShaderController *controller)
+		{ delete controller; });
+	}
+protected:
+	::std::vector<Object*> objects;
+	::std::vector<ViewPort*> cameras;
+	gl::ShaderControllers controllers;
+};
+
+class Scene final: public SceneBase
+{
+	BEE_UNIFORM_GLOB(int, ShadowMap);
+	BEE_UNIFORM_GLOB(::glm::vec3, LightWorldPos);
+	BEE_UNIFORM_GLOB(::glm::vec2, ShadowMapScale);
+public:
+	Scene()
+	{
+		majorLightCamera.setPerspectiveFov(::glm::radians(90.f));
+		static int n = [this]()
+		{
+			Object::onSetViewMatrices([this](Object &self, ViewPort &camera)
+			{
+				gShadowMap = 0;
+				gLightWorldPos = majorLight->getPosition();
+				gShadowMapScale = ::glm::vec2(
+					1.0 / WindowBase::getWidth(), 1.0 / WindowBase::getHeight());
+			});
+			return 0;
+		}();
+	}
+
+	void renderPass()
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		gl::ShaderControllers::setControllers(controllers);
-		shadowFramebuffer.invoke(0);
+		shadowTexture.invoke(0);
 
 		for (auto camera : cameras)
 		{
@@ -132,15 +101,20 @@ public:
 				object->render(*camera);
 			}
 		}
-		
-		// static TestTexture3DObject test3D(shadowFramebuffer.getTexture());
-		// test3D.setTarget(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
-		// for (auto camera: cameras)
-		// {
-		// 	test3D.render(*camera);
-		// }
 	}
-	void renderDepth()
+	void cursorPass()
+	{
+		// gl::Shader::bind(*cursorShader);
+
+		// gl::ShaderControllers::setControllers(controllers);
+		// for (auto object: objects)
+		// {
+		// 	object->render(majorCamera);
+		// }
+
+		// gl::Shader::unbind();
+	}
+	void shadowPass()
 	{
 		glCullFace(GL_FRONT);
 		glClearColor(FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX);
@@ -151,32 +125,21 @@ public:
 		gl::ShaderControllers::setControllers(controllers);
 		for (int i = 0; i != 6; ++i)
 		{
-			shadowFramebuffer.bind(i);
+			shadowTexture.bind(i);
 			glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-			shadowFramebuffer.configureCamera(majorLightCamera);
+			shadowTexture.configureCamera(majorLightCamera);
 			
 			for (auto object: objects)
 			{
 				object->render(majorLightCamera);//majorLightCamera);
 			}
 		}
-		shadowFramebuffer.unbind();
+		shadowTexture.unbind();
 		
 		gl::Shader::unbind();
 		
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glCullFace(GL_BACK);
-	}
-	void clear()
-	{
-		for (auto object: objects)
-		{
-			delete object;
-		}
-		controllers.foreach([](gl::ShaderController *controller)
-		{
-			delete controller;
-		});
 	}
 	void setMajorLight(const PointLight &light)
 	{
@@ -189,13 +152,14 @@ private:
 		gl::FragmentShader("shadow-fs.glsl")
 	);
 private:
-	::std::vector<Object*> objects;
-	::std::vector<ViewPort*> cameras;
-	gl::ShaderControllers controllers;
-	ShadowFramebuffer shadowFramebuffer;
+	gl::CubeDepthFBT shadowTexture;
 	ViewPort majorLightCamera = ViewPort(0, 0, 
 		GLWindowBase::getWidth(), GLWindowBase::getHeight());
 	const PointLight *majorLight = nullptr;
 };
+
+}
+
+using scene_impl::Scene;
 
 }

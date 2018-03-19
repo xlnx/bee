@@ -130,8 +130,8 @@ int Main(int argc, char **argv)
 	};
 
 	auto render = [&]() {
-		scene.renderDepth();
-		scene.render();
+		scene.shadowPass();
+		scene.renderPass();
 	};
 
 	auto &camera = scene.createCamera<FirstPersonCamera<>>();//ViewPort>();
