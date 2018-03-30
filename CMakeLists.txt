@@ -3,6 +3,8 @@ project(bee)
 set(CMAKE_CXX_STANDARD 14)
 
 option(BUILD_TESTS "Build tests" ON)
+
+option(SMOOTH_COREDUMP "Use smooth coredump" ON)
 option(OPENGL_CORE_PROFILE "Core profile" ON)
 option(OPENGL_LOADER_GLAD "Use glad instead of glew" ON)
 
@@ -11,8 +13,11 @@ add_definitions(-DBEE_RUNTIME_INTRUSIVE)
 if (${OPENGL_CORE_PROFILE})
 	add_definitions(-DBEE_OPENGL_CORE_PROFILE)
 endif ()
+if (${SMOOTH_COREDUMP})
+	add_definitions(-DBEE_SMOOTH_COREDUMP)
+endif ()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-parentheses")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-parentheses -Wno-noexcept-type -Wno-unused-variable")
 
 find_package(OpenGL REQUIRED)
 link_libraries(glfw3 assimp ${OPENGL_LIBRARIES})

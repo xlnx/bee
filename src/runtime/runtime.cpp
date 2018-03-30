@@ -38,7 +38,9 @@ LONG WINAPI handleException(LPEXCEPTION_POINTERS info)
 		BEE_LOG("<", errorLookup[info->ExceptionRecord->ExceptionCode & 0x3F], "> Exception code:",
 			std::hex, info->ExceptionRecord->ExceptionCode, std::dec);
 		bee::exceptionContext = info->ContextRecord;
+#		ifndef DEBUG
 		runtime.coredump();
+#		endif
 #	ifndef BEE_RUNTIME_INTRUSIVE
 	}
 #	endif
@@ -183,7 +185,25 @@ void Runtime::coredump(std::string logFileName) noexcept
 		);
 	}
 	writer.close();
+	::std::cerr << "\n\n\n**bee** built " << __DATE__ << " " << __TIME__ << std::endl << std::endl;
+	::std::cerr << dumpWriter.str() << std::endl;
+	if (traceBack != "")
+	{
+		::std::cerr << traceBack;
+	}
+	else
+	{
+		stackTrace(::std::cerr, BEE_EXCEPTION_TRACE_DEPTH
+#		ifdef WIN32
+			, exceptionContext
+#		endif
+		);
+	}
+#	if defined(BEE_SMOOTH_COREDUMP)
+	exit(1);
+#	else
 	std::terminate();
+#	endif
 }
 
 std::ofstream Runtime::getDumpStream(const std::string &logFileName)

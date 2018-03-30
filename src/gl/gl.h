@@ -9,3 +9,4 @@
 #include "mesh.h"
 #include "model.h"
 #include "property.h"
+#include "offscreen.h"

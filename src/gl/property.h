@@ -18,22 +18,14 @@ namespace bee
 	protected:\
 		ty f##name
 
-#define BEE_PROPERTY_LARGE(ty, name) \
+#define BEE_PROPERTY_R(ty, name) \
 	public:\
-		template <typename ...Types, typename = typename\
-			::std::enable_if<::std::is_constructible<ty, Types...>::value>::type>\
-		void set##name(Types &&...args)\
-		{\
-			f##name = ty(::std::forward<Types>(args)...);\
-		}\
-		const ty &get##name() const\
+		ty get##name() const\
 		{\
 			return f##name;\
 		}\
 	protected:\
 		ty f##name
-
-
 
 #define BEE_PROPERTY_REF(ty, name) \
 	public:\
@@ -52,6 +44,14 @@ namespace bee
 	protected:\
 		ty *f##name
 
+#define BEE_PROPERTY_REF_R(ty, name) \
+	public:\
+		ty &get##name() const\
+		{\
+			return *f##name;\
+		}\
+	protected:\
+		ty *f##name
 
 
 #define BEE_UNIFORM(ty, name, section) \

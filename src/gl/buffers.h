@@ -117,10 +117,15 @@ public:
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
-	template <GLuint AttachType>
+	template <GLuint AttachType, GLuint FrameBufferType = GL_FRAMEBUFFER>
 	void addTexture(GLuint texture) const
 	{
-		glFramebufferTexture2D(GL_FRAMEBUFFER, AttachType, GL_TEXTURE_2D, texture, 0);
+		glFramebufferTexture2D(FrameBufferType, AttachType, GL_TEXTURE_2D, texture, 0);
+	}
+	template <GLuint AttachType>
+	void addRenderBuffer(GLuint renderBuffer) const
+	{
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, AttachType, GL_RENDERBUFFER, renderBuffer);
 	}
 	void validate() const
 	{
@@ -131,6 +136,27 @@ public:
 			os << "Framebuffer validation failed: " << status;
 			BEE_RAISE(GLFatal, os.str());
 		}
+	}
+};
+
+class RBO: public BufferBase
+{
+public:
+	RBO()
+	{
+		glGenRenderbuffers(1, &handle);
+	}
+	~RBO()
+	{
+		glDeleteRenderbuffers(1, &handle);
+	}
+	void bind() const
+	{
+		glBindRenderbuffer(GL_RENDERBUFFER, handle);
+	}
+	void unbind() const
+	{
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	}
 };
 

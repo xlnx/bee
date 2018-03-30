@@ -6,6 +6,31 @@
 namespace bee
 {
 
+class TestMeshObject: public Object
+{
+public:
+	TestMeshObject() = default;
+	TestMeshObject(const gl::Mesh &mesh): 
+		fMesh(mesh)
+	{
+	}
+
+	void render(ViewPort &viewPort) override
+	{
+		shader->use();
+		fMesh.render();
+		shader->unuse();
+	}
+private:
+	gl::Shader *shader = &gl::Shader::load(
+		"testMesh",
+		gl::VertexShader("testMesh-vs.glsl"),
+		gl::FragmentShader("testMesh-fs.glsl")
+	);
+public:
+	BEE_PROPERTY(gl::Mesh, Mesh);
+};
+
 class MeshObject: public Object
 {
 public:

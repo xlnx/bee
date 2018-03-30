@@ -59,7 +59,7 @@ int initialize[8][8] = {
 
 Pawn *board[8][8];
 
-Window<3, 3> window("Simple Chess", false, 768, 768);
+Window<4, 2> window("Simple Chess", false, 768, 768);
 
 int Main(int argc, char **argv)
 {
@@ -131,6 +131,7 @@ int Main(int argc, char **argv)
 
 	auto render = [&]() {
 		scene.shadowPass();
+		scene.cursorPass();
 		scene.renderPass();
 	};
 

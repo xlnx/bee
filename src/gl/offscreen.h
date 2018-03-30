@@ -11,7 +11,7 @@ namespace bee
 namespace gl
 {
 
-class CubeDepthFBT: public CubeDepthTexture
+class CubeDepthFBT: public CubeDepthTexture//, private FBO
 {
 public:
 	CubeDepthFBT():
@@ -36,6 +36,7 @@ public:
 	{
 		fbo.unbind();
 	}
+	// using fbo.unbind;
 	void configureCamera(ViewPort &viewPort)
 	{
 		static const ::glm::vec3 cameraInfos[][2] = {
@@ -55,28 +56,61 @@ private:
 	int cubeface = 0;
 };
 
-class SingleChannelFBT: public SingleChannelTexture
+class SingleChannelFBT: public SingleChannelTexture//, private FBO
 {
 public:
 	SingleChannelFBT():
 		SingleChannelTexture(WindowBase::getWidth(), WindowBase::getHeight())
 	{
 		fbo.bind();
-		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
-			GL_TEXTURE_2D, *this, 0);
+			glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
+				GL_TEXTURE_2D, *this, 0);
 		fbo.unbind();
 	}
 
-	void bind()
+	// using fbo.bind, fbo.unbind;
+	void bind() const
 	{
 		fbo.bind();
 	}
-	void unbind()
+	void unbind() const
 	{
 		fbo.unbind();
 	}
 private:
 	FBO fbo;
+};
+
+class SingleChannelFBRB //, private RBO, private FBO
+{
+public:
+	SingleChannelFBRB()
+	{
+		fbo.bind();
+			rbo.bind();
+				glRenderbufferStorage(GL_RENDERBUFFER, GL_R32F, 
+					WindowBase::getWidth(), WindowBase::getHeight());
+				fbo.addRenderBuffer<GL_COLOR_ATTACHMENT0>(rbo);
+			rbo.unbind();
+			dbo.bind();
+				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 
+					WindowBase::getWidth(), WindowBase::getHeight());
+				fbo.addRenderBuffer<GL_DEPTH_ATTACHMENT>(dbo);
+			dbo.unbind();
+		fbo.unbind();
+	}
+
+	// using fbo.bind, fbo.unbind;
+	void bind() const
+	{
+		fbo.bind(); //rbo.bind();
+	}
+	void unbind() const
+	{
+		fbo.unbind(); //rbo.unbind(); 
+	}
+private:
+	RBO rbo, dbo; FBO fbo;
 };
 
 }

@@ -67,6 +67,7 @@ WindowBase::WindowBase(int major, int minor, const std::string &title, bool full
 	});
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, major);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minor);
+	glfwWindowHint(GLFW_SAMPLES, 4);
 #	ifdef BEE_OPENGL_CORE_PROFILE
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);

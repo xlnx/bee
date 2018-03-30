@@ -144,9 +144,10 @@ public:
 			glTexParameterf(Tex2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		unbind();
 	}
+	template <GLuint FrameBufferType = GL_FRAMEBUFFER>
 	void attachTo(const FBO &fbo) const
 	{
-		fbo.addTexture<GL_DEPTH_ATTACHMENT>(handle);
+		fbo.addTexture<GL_DEPTH_ATTACHMENT, FrameBufferType>(handle);
 	}
 };
 
@@ -163,9 +164,10 @@ public:
 			glTexParameterf(Tex2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		unbind();
 	}
+	template <GLuint FrameBufferType = GL_FRAMEBUFFER>
 	void attachTo(const FBO &fbo) const
 	{
-		fbo.addTexture<GL_COLOR_ATTACHMENT0>(handle);
+		fbo.addTexture<GL_COLOR_ATTACHMENT0, FrameBufferType>(handle);
 	}
 };
 
@@ -236,9 +238,10 @@ public:
 			}
 		unbind();
 	}
+	template <GLuint FrameBufferType = GL_FRAMEBUFFER>
 	void attachTo(const FBO &fbo) const
 	{
-		fbo.addTexture<GL_DEPTH_ATTACHMENT>(handle);
+		fbo.addTexture<GL_DEPTH_ATTACHMENT, FrameBufferType>(handle);
 	}
 };
 

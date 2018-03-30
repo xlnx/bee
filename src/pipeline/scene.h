@@ -71,6 +71,7 @@ class Scene final: public SceneBase
 	BEE_UNIFORM_GLOB(int, ShadowMap);
 	BEE_UNIFORM_GLOB(::glm::vec3, LightWorldPos);
 	BEE_UNIFORM_GLOB(::glm::vec2, ShadowMapScale);
+	BEE_UNIFORM_GLOB(float, ObjectIndex);
 public:
 	Scene()
 	{
@@ -104,15 +105,41 @@ public:
 	}
 	void cursorPass()
 	{
-		// gl::Shader::bind(*cursorShader);
+		cursorRenderBuffer.bind();
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+		gl::Shader::bind(*cursorShader);
+		gl::ShaderControllers::setControllers(controllers);
 
-		// gl::ShaderControllers::setControllers(controllers);
-		// for (auto object: objects)
-		// {
-		// 	object->render(majorCamera);
-		// }
+		int x = GLWindowBase::getCursorX();
+		int y = GLWindowBase::getCursorY();
 
-		// gl::Shader::unbind();
+		for (auto iter = cameras.rbegin(); iter != cameras.rend(); ++iter)
+		{
+			int left = (*iter)->getLeft();
+			int top = (*iter)->getTop();
+			int width = (*iter)->getWidth();
+			int height = (*iter)->getHeight();
+			if (top <= y && left <= x && left + width> x && top + height > y)
+			{	// max is 0x1fffffff
+				for (unsigned i = 1; i <= objects.size(); ++i)
+				{
+					gObjectIndex = reinterpret_cast<float&>(i);
+					objects[i - 1]->render(**iter);
+				}
+				break;
+			}
+		}
+
+		int currentPos;
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
+		glReadPixels(x, WindowBase::getHeight() - 1 - y, 1, 1, 
+			GL_RED, GL_FLOAT, &currentPos);
+		BEE_LOG(currentPos);
+
+		gl::Shader::unbind();
+		
+		cursorRenderBuffer.unbind();
 	}
 	void shadowPass()
 	{
@@ -151,8 +178,15 @@ private:
 		gl::VertexShader("shadow-vs.glsl"),
 		gl::FragmentShader("shadow-fs.glsl")
 	);
+	gl::Shader *cursorShader = &gl::Shader::load(
+		"cursor",
+		gl::VertexShader("cursor-vs.glsl"),
+		gl::FragmentShader("cursor-fs.glsl")
+	);
 private:
 	gl::CubeDepthFBT shadowTexture;
+	gl::SingleChannelFBRB cursorRenderBuffer;
+	
 	ViewPort majorLightCamera = ViewPort(0, 0, 
 		GLWindowBase::getWidth(), GLWindowBase::getHeight());
 	const PointLight *majorLight = nullptr;

@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "windowBase.h"
+#include "property.h"
 #include <glm/glm.hpp>
 #include <utility>
 
@@ -99,7 +100,7 @@ class ViewPort: public ViewPortBase
 public:
 	ViewPort() = default;
 	ViewPort(GLint left, GLint top, GLint width, GLint height):
-		left(left), top(top), width(width), height(height)
+		fLeft(left), fTop(top), fWidth(width), fHeight(height)
 	{
 	}
 	
@@ -111,7 +112,7 @@ public:
 #			ifdef __APPLE__
 			int w, h;
 			glfwGetFramebufferSize(WindowBase::getInstance(), &w, &h);
-			glViewport(left, top, w, h);
+			glViewport(fLeft, fTop, w, h);
 #			endif
 		}
 		if (modified())
@@ -119,7 +120,7 @@ public:
 			if (perspectiveModified)
 			{
 				perspectiveModified = false;
-				perspectiveTrans = ::glm::perspective(fov, float(width) / height, zNear, zFar);
+				perspectiveTrans = ::glm::perspective(fov, float(fWidth) / fHeight, zNear, zFar);
 			}
 			trans = perspectiveTrans * ViewPortBase::getTrans();
 		}
@@ -160,8 +161,10 @@ protected:
 	}
 private:
 	GLfloat fov = ::glm::radians(60.f), zNear = 1e-3f, zFar = 1e5f;//100.f;
-	GLint left = 0, top = 0, 
-		width = WindowBase::getWidth(), height = WindowBase::getHeight();
+	BEE_PROPERTY_R(GLint, Left) = 0;
+	BEE_PROPERTY_R(GLint, Top) = 0;
+	BEE_PROPERTY_R(GLint, Width) = WindowBase::getWidth();
+	BEE_PROPERTY_R(GLint, Height) = WindowBase::getHeight();
 	bool perspectiveModified = true;
 	::glm::mat4 perspectiveTrans, trans;
 };
