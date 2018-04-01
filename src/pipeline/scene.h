@@ -32,8 +32,22 @@ public:
 	T &createObject(Types &&...args)
 	{
 		auto object = new T(::std::forward<Types>(args)...);
+		object->scale(scaleFactor);
 		objects.push_back(object);
 		return *object;
+	}
+	void deleteObject(Object &object)
+	{
+		auto iter = ::std::find(objects.begin(), objects.end(), &object);
+		if (iter != objects.end())
+		{
+			objects.erase(iter);
+			delete &object;
+		}
+		else
+		{
+			BEE_RAISE(Fatal, "Cannot delete object.");
+		}
 	}
 	template <typename T, typename ...Types, typename = typename
 		::std::enable_if<::std::is_constructible<T, Types...>::value &&
@@ -44,6 +58,19 @@ public:
 		controllers.addController(*controller);
 		return *controller;
 	}
+	// void deleteController(gl::ShaderController &object)
+	// {
+	// 	auto iter = ::std::find(controllers.begin(), controllers.end(), &object);
+	// 	if (iter != objects.end())
+	// 	{
+	// 		objects.erase(iter);
+	// 		delete &object;
+	// 	}
+	// 	else
+	// 	{
+	// 		BEE_RAISE(Fatal, "Cannot delete object.");
+	// 	}
+	// }
 	template <typename T, typename ...Types, typename = typename
 		::std::enable_if<::std::is_constructible<T, Types...>::value &&
 			::std::is_base_of<ViewPort, T>::value>::type>
@@ -53,6 +80,19 @@ public:
 		cameras.push_back(camera);
 		return *camera;
 	}
+	void deleteCamera(ViewPort &camera)
+	{
+		auto iter = ::std::find(cameras.begin(), cameras.end(), &camera);
+		if (iter != cameras.end())
+		{
+			cameras.erase(iter);
+			delete &camera;
+		}
+		else
+		{
+			BEE_RAISE(Fatal, "Cannot delete camera.");
+		}
+	}
 	void clear()
 	{
 		for (auto object: objects)
@@ -60,10 +100,20 @@ public:
 		controllers.foreach([](gl::ShaderController *controller)
 		{ delete controller; });
 	}
+	void setControllers() 
+	{
+		gl::ShaderControllers::setControllers(controllers);
+	}
+	void setScaleFactor(float e)
+	{
+		scaleFactor = e;
+	}
 protected:
 	::std::vector<Object*> objects;
 	::std::vector<ViewPort*> cameras;
 	gl::ShaderControllers controllers;
+private:
+	float scaleFactor = 1;
 };
 
 class Scene final: public SceneBase
@@ -91,8 +141,8 @@ public:
 
 	void renderPass()
 	{
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		gl::ShaderControllers::setControllers(controllers);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		setControllers();
 		shadowTexture.invoke(0);
 
 		for (auto camera : cameras)
@@ -109,7 +159,7 @@ public:
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		gl::Shader::bind(*cursorShader);
-		gl::ShaderControllers::setControllers(controllers);
+		setControllers();
 
 		int x = GLWindowBase::getCursorX();
 		int y = GLWindowBase::getCursorY();
@@ -131,11 +181,33 @@ public:
 			}
 		}
 
-		int currentPos;
+		int currentPos = 0;
 		glReadBuffer(GL_COLOR_ATTACHMENT0);
 		glReadPixels(x, WindowBase::getHeight() - 1 - y, 1, 1, 
 			GL_RED, GL_FLOAT, &currentPos);
-		BEE_LOG(currentPos);
+		// BEE_LOG(currentPos);
+		
+		auto &window = WindowBase::getInstance();
+		int left = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+		int right = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
+		int mouse = (left == GLFW_PRESS? 1 : 0) | (right == GLFW_PRESS ? 2 : 0);
+		
+		if (currentPos != 0)
+		{
+			mouseHover(objects[currentPos - 1]);
+			if (mouse)
+			{
+				mouseClick(objects[currentPos - 1], mouse);
+			}
+		}
+		else
+		{
+			mouseHover(nullptr);
+			if (mouse)
+			{
+				mouseClick(nullptr, mouse);
+			}
+		}
 
 		gl::Shader::unbind();
 		
@@ -148,8 +220,8 @@ public:
 		majorLightCamera.setPosition(majorLight->getPosition());
 		
 		gl::Shader::bind(*shadowShader);
+		setControllers();
 		
-		gl::ShaderControllers::setControllers(controllers);
 		for (int i = 0; i != 6; ++i)
 		{
 			shadowTexture.bind(i);
@@ -172,6 +244,14 @@ public:
 	{
 		majorLight = &light;
 	}
+	void onMouseHover(const ::std::function<void(Object *)> &fn)
+	{
+		mouseHover = fn;
+	}
+	void onMouseClick(const ::std::function<void(Object *, int)> &fn)
+	{
+		mouseClick = fn;
+	}
 private:
 	gl::Shader *shadowShader = &gl::Shader::load(
 		"shadow",
@@ -185,11 +265,14 @@ private:
 	);
 private:
 	gl::CubeDepthFBT shadowTexture;
-	gl::SingleChannelFBRB cursorRenderBuffer;
 	
 	ViewPort majorLightCamera = ViewPort(0, 0, 
 		GLWindowBase::getWidth(), GLWindowBase::getHeight());
 	const PointLight *majorLight = nullptr;
+
+	gl::SingleChannelFBRB cursorRenderBuffer;
+	::std::function<void(Object *)> mouseHover;
+	::std::function<void(Object *, int)> mouseClick;
 };
 
 }
