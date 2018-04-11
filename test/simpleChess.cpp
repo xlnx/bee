@@ -37,15 +37,15 @@ public:
 	}
 	void onHover() override
 	{
-		ring(true); fRingColor = ::glm::vec3(0, 0, 1);
+		ring(true); fRingColor = selected() ? ::glm::vec3(1, 0, 0) : ::glm::vec3(0, 0, 1);
 	}
 	void onUnselect() override
 	{
-		ring(false);
+		ring(hovered()); if (hovered()) fRingColor = ::glm::vec3(0, 0, 1);
 	}
 	void onUnhover() override
 	{
-		ring(false);
+		ring(selected());
 	}
 private:
 	static Model &getModel(int type)

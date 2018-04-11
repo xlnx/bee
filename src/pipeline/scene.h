@@ -289,43 +289,54 @@ public:
 			
 			if (currentPos != 0)
 			{
-				// mouseHover(objects[currentPos - 1]);
-				// if (mouse)
-				// {
-				// 	mouseClick(objects[currentPos - 1], mouse);
-				// }
-				// if (auto obj = dynamic_cast<SelectiveModelObject*>(objects[currentPos - 1]))
-				// {
-				// 	obj->select(true);
-				// 	obj->onSelect();
-				// }
-				
-
-
 				if (auto obj = dynamic_cast<SelectUtil*>(index[currentPos - 1]->first))
 				{
-					obj->hover(true);
+					if (hoverObject != obj)
+					{
+						if (hoverObject)
+						{
+							hoverObject->hover(false);
+						}
+						obj->hover(true);
+						hoverObject = obj;
+					}
 					if (mouse)
 					{
-						obj->select(true);
-						selectedObject = obj;
+						if (selectedObject != obj)
+						{
+							if (selectedObject)
+							{
+								selectedObject->select(false);
+							}
+							obj->select(true);
+							selectedObject = obj;
+						}
 					}
 					// if (!multiSelection)
 					// {
 					// 	sele
 					// }
 				}
+				else
+				{
+					if (hoverObject)
+					{
+						hoverObject->hover(false);
+						hoverObject = nullptr;
+					}
+				}
 			}
 			else
 			{
-				// mouseHover(nullptr);
-				// if (mouse)
-				// {
-				// 	mouseClick(nullptr, mouse);
-				// }
+				if (hoverObject)
+				{
+					hoverObject->hover(false);
+					hoverObject = nullptr;
+				}
 				if (mouse && selectedObject)
 				{
 					selectedObject->select(false);
+					selectedObject = nullptr;
 				}
 			}
 
