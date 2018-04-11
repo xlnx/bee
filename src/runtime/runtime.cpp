@@ -11,15 +11,12 @@
 namespace bee
 {
 
-std::ostringstream Runtime::dumpWriter;
-std::string Runtime::traceBack;
+// std::string Runtime::traceBack;
 #ifndef BEE_RUNTIME_INTRUSIVE
 int Runtime::execDepth;
 #endif
-std::stack<std::function<void() noexcept>> Runtime::dumpCallback;
-bool Runtime::haveInstance;
-
-static Runtime runtime;
+// std::stack<std::function<void()>> Runtime::dumpCallback;
+Runtime *Runtime::haveInstance = nullptr;
 
 // Runtime Startup
 
@@ -32,14 +29,14 @@ static LPCONTEXT exceptionContext = nullptr;
 LONG WINAPI handleException(LPEXCEPTION_POINTERS info)
 {
 #	ifndef BEE_RUNTIME_INTRUSIVE
-	if (runtime.execDepth > 0)
+	if (Runtime::execDepth > 0)
 	{
 #	endif
 		BEE_LOG("<", errorLookup[info->ExceptionRecord->ExceptionCode & 0x3F], "> Exception code:",
 			std::hex, info->ExceptionRecord->ExceptionCode, std::dec);
 		bee::exceptionContext = info->ContextRecord;
 #		ifndef DEBUG
-		runtime.coredump();
+		Runtime::coredump();
 #		endif
 #	ifndef BEE_RUNTIME_INTRUSIVE
 	}
@@ -86,7 +83,7 @@ Fatal::Fatal(std::string content):
 	delete contextPtr;
 	contextPtr = nullptr;
 #	endif
-	runtime.traceBack = ss.str();
+	Runtime::haveInstance->traceBack = ss.str();
 }
 
 }
@@ -148,7 +145,7 @@ Runtime::Runtime()
 	}
 	else
 	{
-		Runtime::haveInstance = true;
+		Runtime::haveInstance = this;
 	}
 }
 
@@ -159,22 +156,22 @@ Runtime::~Runtime()
 void Runtime::dump(std::string logFileName) noexcept
 {
 	auto writer(getDumpStream(logFileName));
-	writer << dumpWriter.str() << std::endl;
+	writer << haveInstance->dumpWriter.str() << std::endl;
 }
 
 void Runtime::coredump(std::string logFileName) noexcept
 {
-	while (!dumpCallback.empty())
+	while (!haveInstance->dumpCallback.empty())
 	{
-		dumpCallback.top()();
-		dumpCallback.pop();
+		haveInstance->dumpCallback.top()();
+		haveInstance->dumpCallback.pop();
 	}
 	auto writer(getDumpStream(logFileName));
 	writer << "**bee** built " << __DATE__ << " " << __TIME__ << std::endl << std::endl;
-	writer << dumpWriter.str() << std::endl;
-	if (traceBack != "")
+	writer << haveInstance->dumpWriter.str() << std::endl;
+	if (haveInstance->traceBack != "")
 	{
-		writer << traceBack;
+		writer << haveInstance->traceBack;
 	}
 	else
 	{
@@ -186,10 +183,10 @@ void Runtime::coredump(std::string logFileName) noexcept
 	}
 	writer.close();
 	::std::cerr << "\n\n\n**bee** built " << __DATE__ << " " << __TIME__ << std::endl << std::endl;
-	::std::cerr << dumpWriter.str() << std::endl;
-	if (traceBack != "")
+	::std::cerr << haveInstance->dumpWriter.str() << std::endl;
+	if (haveInstance->traceBack != "")
 	{
-		::std::cerr << traceBack;
+		::std::cerr << haveInstance->traceBack;
 	}
 	else
 	{
@@ -222,9 +219,9 @@ std::ofstream Runtime::getDumpStream(const std::string &logFileName)
 	return std::ofstream("log/" + logFileName);
 }
 
-void Runtime::onCoredump(std::function<void() noexcept> callback)
+void Runtime::onCoredump(std::function<void()> callback)
 {
-	dumpCallback.emplace(callback);
+	haveInstance->dumpCallback.emplace(callback);
 }
 
 #ifdef BEE_RUNTIME_INTRUSIVE

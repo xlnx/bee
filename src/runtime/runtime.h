@@ -51,7 +51,7 @@ protected:
 
 }
 
-class Runtime final
+class Runtime
 {
 	friend class exception::Fatal;
 #	ifdef WIN32
@@ -62,21 +62,21 @@ class Runtime final
 #	endif
 public:
 	Runtime();
-	~Runtime();
+	virtual ~Runtime();
 
 	template <typename ... Types>
 		static void log(Types... messages) noexcept
 		{
 			auto s = genTimeStamp();
-			std::cerr << "[" << s << "] "; dumpWriter << "[" << s << "] ";
+			std::cerr << "[" << s << "] "; haveInstance->dumpWriter << "[" << s << "] ";
 			logUtil(messages...);
-			std::cerr << std::endl; dumpWriter << std::endl;
+			std::cerr << std::endl; haveInstance->dumpWriter << std::endl;
 		}
 	static void dump(std::string logFileName = "") noexcept;
 #	ifndef BEE_RUNTIME_INTRUSIVE
 	static void exec(std::function<void()> target) noexcept;
 #	endif
-	static void onCoredump(std::function<void() noexcept> callback);
+	static void onCoredump(std::function<void()> callback);
 private:
 	static std::string genTimeStamp() noexcept
 	{
@@ -87,24 +87,24 @@ private:
 	template <typename T, typename ... Types>
 		static void logUtil(T &&message, Types... other) noexcept
 		{
-			std::cerr << std::forward<T>(message); dumpWriter << std::forward<T>(message);
+			std::cerr << std::forward<T>(message); haveInstance->dumpWriter << std::forward<T>(message);
 			logUtil(other...);
 		}
 	template <typename T>
 		static void logUtil(T &&message) noexcept
 		{
-			std::cerr << std::forward<T>(message); dumpWriter << std::forward<T>(message);
+			std::cerr << std::forward<T>(message); haveInstance->dumpWriter << std::forward<T>(message);
 		}
 	static std::ofstream getDumpStream(const std::string &logFileName);
 	static void coredump(std::string logFileName = "") noexcept;
 private:
-	static std::ostringstream dumpWriter;
-	static std::string traceBack;
+	std::ostringstream dumpWriter;
+	std::string traceBack;
 #	ifndef BEE_RUNTIME_INTRUSIVE
 	static int execDepth;
 #	endif
-	static std::stack<std::function<void() noexcept>> dumpCallback;
-	static bool haveInstance;
+	std::stack<std::function<void()>> dumpCallback;
+	static Runtime *haveInstance;
 };
 
 constexpr inline const char *shortenFileName(const char str[])

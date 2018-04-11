@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <map>
 #include <vector>
+#include <list>
 #include <stack>
 #include <functional>
 #include <initializer_list>
@@ -257,9 +258,14 @@ public:
 			pair.first->counter = pair.second;
 		}
 	}
-	void addController(ShaderController &controller)
+	typename ::std::list<ShaderController*>::iterator 
+		addController(ShaderController &controller)
 	{
-		controllers.push_back(&controller);
+		return controllers.insert(controllers.end(), &controller);
+	}
+	void removeController(typename ::std::list<ShaderController*>::iterator iter)
+	{
+		controllers.erase(iter);
 	}
 	void foreach(const ::std::function<void(ShaderController*)> &f)
 	{
@@ -283,7 +289,7 @@ private:
 		return current;
 	}
 protected:
-	::std::vector<ShaderController *> controllers;
+	::std::list<ShaderController *> controllers;
 };
 
 class Shader final
@@ -356,33 +362,25 @@ public:
 	}
 	void use()
 	{
-		if (!bindShader)
+		if (getShaders().empty())
 		{
-			glUseProgram(shader);
-			getCurrShader() = this;
-			getShaders().push(this);
-			if (auto controllers = ShaderControllers::getCurrent())
+			if (getUseShaders().empty())
 			{
-				controllers->invoke();
+				getUseShaders().push(this);
+				glUseProgram(shader);
+				getCurrShader() = this;
+				if (auto controllers = ShaderControllers::getCurrent())
+				{
+					controllers->invoke();
+				}
 			}
 		}
 	}
 	void unuse()
 	{
-		if (!bindShader)
+		if (!getUseShaders().empty())
 		{
-			if (!getShaders().empty())
-			{
-				auto top = getShaders().top();
-				getShaders().pop();
-				getCurrShader() = top;
-				glUseProgram(*top);
-			}
-			else
-			{
-				getCurrShader() = nullptr;
-				glUseProgram(0);
-			}
+			getUseShaders().pop();
 		}
 	}
 	template <typename ...Types>
@@ -405,18 +403,36 @@ public:
 public:
 	static void bind(Shader &shader)
 	{
-		if (!bindShader)
+		glUseProgram(shader);
+		getCurrShader() = &shader;
+		getShaders().push(&shader);
+		if (auto controllers = ShaderControllers::getCurrent())
 		{
-			shader.use();
-			bindShader = &shader;
+			controllers->invoke();
 		}
 	}
 	static void unbind()
 	{
-		if (bindShader)
+		if (getShaders().empty())
 		{
-			bindShader->unuse();
-			bindShader = nullptr;
+			BEE_RAISE(Fatal, "No existing shader program.");
+		}
+		else
+		{
+			getShaders().pop();
+			if (!getShaders().empty())
+			{
+				getCurrShader() = getShaders().top();
+				glUseProgram(*getCurrShader());
+				if (auto controllers = ShaderControllers::getCurrent())
+				{
+					controllers->invoke();
+				}
+			}
+			else
+			{
+				getCurrShader() = nullptr;
+			}
 		}
 	}
 	static void setFilePath(const char *path)
@@ -523,7 +539,12 @@ private:
 		static Shader *currShader = nullptr;
 		return currShader;
 	}
-	static ::std::stack<Shader *> getShaders()
+	static ::std::stack<Shader *> &getShaders()
+	{
+		static ::std::stack<Shader *> shaders;
+		return shaders;
+	}
+	static ::std::stack<Shader *> &getUseShaders()
 	{
 		static ::std::stack<Shader *> shaders;
 		return shaders;
@@ -589,7 +610,7 @@ private:
 	GLuint *uniforms;
 	::std::pair<GLint, GLint> *uniformArrays;
 private:
-	static Shader *bindShader;
+	// static Shader *bindShader;
 	static ShaderRec shaderHead;
 	// ::std::map<::std::string, GLuint> bufferedUniforms;
 	static ::std::map<::std::string, int> *uniformIndex;

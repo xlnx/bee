@@ -6,7 +6,7 @@
 namespace bee
 {
 
-class WindowBase
+class WindowBase: private Runtime
 {
 public:
 	WindowBase(int major, int minor,

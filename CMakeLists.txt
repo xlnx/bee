@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 project(bee)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 option(BUILD_TESTS "Build tests" ON)
 
@@ -17,7 +17,7 @@ if (${SMOOTH_COREDUMP})
 	add_definitions(-DBEE_SMOOTH_COREDUMP)
 endif ()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-parentheses -Wno-noexcept-type -Wno-unused-variable")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-parentheses -Wno-noexcept-type -Wno-unused-variable -static-libgcc -static-libstdc++")
 
 find_package(OpenGL REQUIRED)
 link_libraries(glfw3 assimp ${OPENGL_LIBRARIES})

@@ -49,12 +49,14 @@ WindowBase::WindowBase(int major, int minor, const std::string &title, bool full
 		BEE_RAISE(Fatal, "Could not instantiate SINGLETON object 'bee::runtime::window'.");
 	}
 
-	Runtime::onCoredump([]() noexcept
-	{
-		if (auto err = glGetError())
-			BEE_LOG("glGetError() = 0x", std::hex, err, std::dec, ": ", errorMessage[err & 0xff]);
-		glfwTerminate();
-	});
+	Runtime::onCoredump(
+		[]()
+		{
+			if (auto err = glGetError())
+				BEE_LOG("glGetError() = 0x", std::hex, err, std::dec, ": ", errorMessage[err & 0xff]);
+			glfwTerminate();
+		}
+	);
 	if (!glfwInit())
 	{
 		BEE_RAISE(GLFatal, "GLFW failed to init!");

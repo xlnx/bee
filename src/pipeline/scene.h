@@ -9,8 +9,13 @@
 #include "texture.h"
 #include "viewPort.h"
 #include "offscreen.h"
+
+#include "sceneWidgets.h"
+#include "widgets.h"
+
 #include "testTextureObject.h"
 #include <vector>
+#include <list>
 
 namespace bee
 {
@@ -20,6 +25,103 @@ namespace scene_impl
 
 class SceneBase
 {
+	// template <typename>
+private:
+	template <bool X, typename A, typename B>
+	struct SwitchType
+	{
+		using type = A;
+	};
+	template<typename A, typename B>
+	struct SwitchType<false, A, B>
+	{
+		using type = B;
+	};
+	template <typename T>
+	struct CreateType
+	{
+		using type = typename SwitchType<
+			::std::is_base_of<Object, T>::value,
+			Object,
+			typename SwitchType<
+				::std::is_base_of<gl::ShaderController, T>::value,
+				gl::ShaderController,
+				ViewPort
+			>::type
+		>::type;
+	};
+	template <typename BaseType>
+	struct GetListElemType
+	{
+		using type = typename SwitchType<
+			::std::is_same<BaseType, Object>::value,
+			::std::pair<BaseType*, int>,
+			BaseType*
+		>::type;
+	};
+public:
+	template <typename T>
+	class Ref
+	{
+		friend class SceneBase;
+		using ListElemType = typename GetListElemType<
+			typename CreateType<T>::type>::type;
+		static constexpr auto ElemIsObject = ::std::is_same<
+			ListElemType, ::std::pair<
+				typename CreateType<T>::type*, int>
+		>::value;
+	public:
+		Ref() = default;
+		Ref(const typename ::std::list<ListElemType>::iterator &iter):
+			iter(iter), valid(true)
+		{
+		}
+
+		bool isValid()
+		{
+			return this->valid;
+		}
+		void invalidate()
+		{
+			valid = false;
+		}
+		T *operator -> ()
+		{
+			if constexpr (ElemIsObject)
+			{
+				return static_cast<T*>(iter->first);
+			}
+			else
+			{
+				return static_cast<T*>(*iter);
+			}
+		}
+		T &operator * ()
+		{
+			if constexpr (ElemIsObject)
+			{
+				return static_cast<T&>(*iter->first);
+			}
+			else
+			{
+				return static_cast<T&>(**iter);
+			}
+		}
+		operator T *()
+		{
+			if constexpr (ElemIsObject)
+			{
+				return static_cast<T*>(iter->first);
+			}
+			else
+			{
+				return static_cast<T*>(*iter);
+			}
+		}
+	private:
+		typename ::std::list<ListElemType>::iterator iter;
+		bool valid = false;
+	};
 public:
 	virtual ~SceneBase()
 	{
@@ -27,78 +129,67 @@ public:
 	}
 
 	template <typename T, typename ...Types, typename = typename
-		::std::enable_if<::std::is_constructible<T, Types...>::value &&
-			::std::is_base_of<Object, T>::value>::type>
-	T &createObject(Types &&...args)
+		::std::enable_if<::std::is_constructible<T, Types...>::value && 
+				::std::is_base_of<Object, T>::value ||
+				::std::is_base_of<gl::ShaderController, T>::value || 
+				::std::is_base_of<ViewPort, T>::value
+			>::type>
+	Ref<T> create(Types &&...args)
 	{
-		auto object = new T(::std::forward<Types>(args)...);
-		object->scale(scaleFactor);
-		objects.push_back(object);
-		return *object;
-	}
-	void deleteObject(Object &object)
-	{
-		auto iter = ::std::find(objects.begin(), objects.end(), &object);
-		if (iter != objects.end())
+		auto t = new T(::std::forward<Types>(args)...);
+		if constexpr (::std::is_base_of<Object, T>::value)
 		{
-			objects.erase(iter);
-			delete &object;
+			auto iter = objects.insert(objects.end(), ::std::make_pair(t, int(index.size())));
+			t->scale(scaleFactor); 
+			index.push_back(iter);
+			return Ref<T>(iter);
 		}
-		else
+		if constexpr (::std::is_base_of<gl::ShaderController, T>::value)
 		{
-			BEE_RAISE(Fatal, "Cannot delete object.");
+			return Ref<T>(controllers.addController(*t));
+		}
+		if constexpr (::std::is_base_of<ViewPort, T>::value)
+		{
+			return Ref<T>(cameras.insert(cameras.end(), t));
 		}
 	}
-	template <typename T, typename ...Types, typename = typename
-		::std::enable_if<::std::is_constructible<T, Types...>::value &&
-			::std::is_base_of<gl::ShaderController, T>::value>::type>
-	T &createController(Types &&...args)
+
+	template <typename T, typename = typename
+		::std::enable_if<
+				::std::is_base_of<Object, T>::value ||
+				::std::is_base_of<gl::ShaderController, T>::value || 
+				::std::is_base_of<ViewPort, T>::value
+			>::type>
+	void destroy(Ref<T> &elem)
 	{
-		auto controller = new T(::std::forward<Types>(args)...);
-		controllers.addController(*controller);
-		return *controller;
-	}
-	// void deleteController(gl::ShaderController &object)
-	// {
-	// 	auto iter = ::std::find(controllers.begin(), controllers.end(), &object);
-	// 	if (iter != objects.end())
-	// 	{
-	// 		objects.erase(iter);
-	// 		delete &object;
-	// 	}
-	// 	else
-	// 	{
-	// 		BEE_RAISE(Fatal, "Cannot delete object.");
-	// 	}
-	// }
-	template <typename T, typename ...Types, typename = typename
-		::std::enable_if<::std::is_constructible<T, Types...>::value &&
-			::std::is_base_of<ViewPort, T>::value>::type>
-	T &createCamera(Types &&...args)
-	{
-		auto camera = new T(::std::forward<Types>(args)...);
-		cameras.push_back(camera);
-		return *camera;
-	}
-	void deleteCamera(ViewPort &camera)
-	{
-		auto iter = ::std::find(cameras.begin(), cameras.end(), &camera);
-		if (iter != cameras.end())
+		if constexpr (::std::is_base_of<Object, T>::value)
 		{
-			cameras.erase(iter);
-			delete &camera;
+			auto back = objects.end(); back--;
+			::std::swap(index[elem.iter->second], index.back());
+			::std::swap(*elem.iter, *back);
+			delete static_cast<Object*>(elem); objects.erase(back);
 		}
-		else
+		if constexpr (::std::is_base_of<gl::ShaderController, T>::value)
 		{
-			BEE_RAISE(Fatal, "Cannot delete camera.");
+			delete static_cast<gl::ShaderController*>(elem); controllers.removeController(elem.iter);
+		}
+		if constexpr (::std::is_base_of<ViewPort, T>::value)
+		{
+			delete static_cast<ViewPort*>(elem); cameras.erase(elem.iter);
 		}
 	}
 	void clear()
 	{
 		for (auto object: objects)
-		{ delete object; }
-		controllers.foreach([](gl::ShaderController *controller)
-		{ delete controller; });
+		{
+			delete object.first;
+		}
+		controllers.foreach(
+			[](gl::ShaderController *controller)
+			{
+				delete controller; 
+			}
+		);
 	}
 	void setControllers() 
 	{
@@ -109,8 +200,10 @@ public:
 		scaleFactor = e;
 	}
 protected:
-	::std::vector<Object*> objects;
-	::std::vector<ViewPort*> cameras;
+	::std::list<::std::pair<Object*, int>> objects;
+	::std::vector<typename ::std::list<
+		::std::pair<Object*, int>>::iterator> index;
+	::std::list<ViewPort*> cameras;
 	gl::ShaderControllers controllers;
 private:
 	float scaleFactor = 1;
@@ -149,7 +242,7 @@ public:
 		{
 			for (auto object: objects)
 			{
-				object->render(*camera);
+				object.first->render(*camera);
 			}
 		}
 	}
@@ -159,55 +252,82 @@ public:
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		gl::Shader::bind(*cursorShader);
-		setControllers();
 
-		int x = GLWindowBase::getCursorX();
-		int y = GLWindowBase::getCursorY();
+			setControllers();
 
-		for (auto iter = cameras.rbegin(); iter != cameras.rend(); ++iter)
-		{
-			int left = (*iter)->getLeft();
-			int top = (*iter)->getTop();
-			int width = (*iter)->getWidth();
-			int height = (*iter)->getHeight();
-			if (top <= y && left <= x && left + width> x && top + height > y)
-			{	// max is 0x1fffffff
-				for (unsigned i = 1; i <= objects.size(); ++i)
-				{
-					gObjectIndex = reinterpret_cast<float&>(i);
-					objects[i - 1]->render(**iter);
+			int x = GLWindowBase::getCursorX();
+			int y = GLWindowBase::getCursorY();
+
+			for (auto iter = cameras.rbegin(); iter != cameras.rend(); ++iter)
+			{
+				int left = (*iter)->getLeft();
+				int top = (*iter)->getTop();
+				int width = (*iter)->getWidth();
+				int height = (*iter)->getHeight();
+				if (top <= y && left <= x && left + width> x && top + height > y)
+				{	// max is 0x1fffffff
+					for (auto object: objects)
+					{
+						auto idx = object.second + 1;
+						gObjectIndex = reinterpret_cast<float&>(idx);
+						object.first->render(**iter);
+					}
+					break;
 				}
-				break;
 			}
-		}
 
-		int currentPos = 0;
-		glReadBuffer(GL_COLOR_ATTACHMENT0);
-		glReadPixels(x, WindowBase::getHeight() - 1 - y, 1, 1, 
-			GL_RED, GL_FLOAT, &currentPos);
-		// BEE_LOG(currentPos);
-		
-		auto &window = WindowBase::getInstance();
-		int left = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
-		int right = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
-		int mouse = (left == GLFW_PRESS? 1 : 0) | (right == GLFW_PRESS ? 2 : 0);
-		
-		if (currentPos != 0)
-		{
-			mouseHover(objects[currentPos - 1]);
-			if (mouse)
+			int currentPos = 0;
+			glReadBuffer(GL_COLOR_ATTACHMENT0);
+			glReadPixels(x, WindowBase::getHeight() - 1 - y, 1, 1, 
+				GL_RED, GL_FLOAT, &currentPos);
+			// BEE_LOG(currentPos);
+			
+			auto &window = WindowBase::getInstance();
+			int left = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+			int right = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
+			int mouse = (left == GLFW_PRESS? 1 : 0) | (right == GLFW_PRESS ? 2 : 0);
+			
+			if (currentPos != 0)
 			{
-				mouseClick(objects[currentPos - 1], mouse);
+				// mouseHover(objects[currentPos - 1]);
+				// if (mouse)
+				// {
+				// 	mouseClick(objects[currentPos - 1], mouse);
+				// }
+				// if (auto obj = dynamic_cast<SelectiveModelObject*>(objects[currentPos - 1]))
+				// {
+				// 	obj->select(true);
+				// 	obj->onSelect();
+				// }
+				
+
+
+				if (auto obj = dynamic_cast<SelectUtil*>(index[currentPos - 1]->first))
+				{
+					obj->hover(true);
+					if (mouse)
+					{
+						obj->select(true);
+						selectedObject = obj;
+					}
+					// if (!multiSelection)
+					// {
+					// 	sele
+					// }
+				}
 			}
-		}
-		else
-		{
-			mouseHover(nullptr);
-			if (mouse)
+			else
 			{
-				mouseClick(nullptr, mouse);
+				// mouseHover(nullptr);
+				// if (mouse)
+				// {
+				// 	mouseClick(nullptr, mouse);
+				// }
+				if (mouse && selectedObject)
+				{
+					selectedObject->select(false);
+				}
 			}
-		}
 
 		gl::Shader::unbind();
 		
@@ -220,20 +340,21 @@ public:
 		majorLightCamera.setPosition(majorLight->getPosition());
 		
 		gl::Shader::bind(*shadowShader);
-		setControllers();
-		
-		for (int i = 0; i != 6; ++i)
-		{
-			shadowTexture.bind(i);
-			glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-			shadowTexture.configureCamera(majorLightCamera);
+
+			setControllers();
 			
-			for (auto object: objects)
+			for (int i = 0; i != 6; ++i)
 			{
-				object->render(majorLightCamera);//majorLightCamera);
+				shadowTexture.bind(i);
+				glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+				shadowTexture.configureCamera(majorLightCamera);
+				
+				for (auto object: objects)
+				{
+					object.first->render(majorLightCamera);//majorLightCamera);
+				}
 			}
-		}
-		shadowTexture.unbind();
+			shadowTexture.unbind();
 		
 		gl::Shader::unbind();
 		
@@ -243,14 +364,6 @@ public:
 	void setMajorLight(const PointLight &light)
 	{
 		majorLight = &light;
-	}
-	void onMouseHover(const ::std::function<void(Object *)> &fn)
-	{
-		mouseHover = fn;
-	}
-	void onMouseClick(const ::std::function<void(Object *, int)> &fn)
-	{
-		mouseClick = fn;
 	}
 private:
 	gl::Shader *shadowShader = &gl::Shader::load(
@@ -271,8 +384,9 @@ private:
 	const PointLight *majorLight = nullptr;
 
 	gl::SingleChannelFBRB cursorRenderBuffer;
-	::std::function<void(Object *)> mouseHover;
-	::std::function<void(Object *, int)> mouseClick;
+
+	SelectUtil *hoverObject = nullptr;
+	SelectUtil *selectedObject = nullptr;
 };
 
 }

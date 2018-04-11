@@ -139,8 +139,7 @@ public:
 		GLWindowBase(Major, Minor, ::std::forward<Types>(args)...)
 	{
 		glClearColor(0.f, 0.f, 0.f, 0.f);
-		// glEnable(GL_BLEND);
-		// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_STENCIL_TEST);
 
