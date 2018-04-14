@@ -78,7 +78,7 @@ public:
 		return fPosition;
 	}
 
-	void render(ViewPort &viewPort) override
+	void render(Viewport &viewport) override
 	{
 		particleUpdater->use();
 		float renderTime = glfwGetTime() * 1000;
@@ -90,7 +90,7 @@ public:
 		updateParticles();
 
 		shader->use();
-		setViewMatrices(viewPort);
+		setViewMatrices(viewport);
 		renderParticles();
 		shader->unuse();
 		

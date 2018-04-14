@@ -1,7 +1,7 @@
 #pragma once
 
 #include "shader.h"
-#include "viewPort.h"
+#include "viewport.h"
 #include "property.h"
 #include <glm/glm.hpp>
 #include <utility>
@@ -125,29 +125,29 @@ class Object: public ObjectBase
 	BEE_UNIFORM_GLOB(float, Time);
 protected:
 	Object() = default;
-	void setViewMatrices(ViewPort &viewPort)
+	void setViewMatrices(Viewport &viewport)
 	{
 		gTime = float(glfwGetTime());
-		gWVP = ::glm::transpose(viewPort.getTrans() * getTrans());
+		gWVP = ::glm::transpose(viewport.getTrans() * getTrans());
 		gWorld = ::glm::transpose(getTrans());
-		gVP = ::glm::transpose(viewPort.getTrans());
-		gCameraWorldPos = viewPort.getPosition();
+		gVP = ::glm::transpose(viewport.getTrans());
+		gCameraWorldPos = viewport.getPosition();
 		for (auto &f: getSetCallbacks())
 		{
-			f(*this, viewPort);
+			f(*this, viewport);
 		}
 	}
 private:
-	static ::std::vector<::std::function<void(Object&, ViewPort&)>> &
+	static ::std::vector<::std::function<void(Object&, Viewport&)>> &
 		getSetCallbacks()
 	{
-		static ::std::vector<::std::function<void(Object&, ViewPort&)>> r;
+		static ::std::vector<::std::function<void(Object&, Viewport&)>> r;
 		return r;
 	}
 public:
-	virtual void render(ViewPort &viewPort) = 0;
+	virtual void render(Viewport &viewport) = 0;
 public:
-	static void onSetViewMatrices(const ::std::function<void(Object&, ViewPort&)> &f)
+	static void onSetViewMatrices(const ::std::function<void(Object&, Viewport&)> &f)
 	{
 		getSetCallbacks().emplace_back(f);
 	}

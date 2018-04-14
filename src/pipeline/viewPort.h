@@ -95,11 +95,11 @@ private:
 	::glm::mat4 rotateTrans, translateTrans, trans;
 }; 
 
-class ViewPort: public ViewPortBase
+class Viewport: public ViewPortBase
 {
 public:
-	ViewPort() = default;
-	ViewPort(GLint left, GLint top, GLint width, GLint height):
+	Viewport() = default;
+	Viewport(GLint left, GLint top, GLint width, GLint height):
 		fLeft(left), fTop(top), fWidth(width), fHeight(height)
 	{
 	}
@@ -154,9 +154,9 @@ protected:
 	{
 		return perspectiveModified || ViewPortBase::modified();
 	}
-	static ViewPort *&activePort()
+	static Viewport *&activePort()
 	{
-		static ViewPort *port = nullptr;
+		static Viewport *port = nullptr;
 		return port;
 	}
 private:

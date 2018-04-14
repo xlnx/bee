@@ -3,11 +3,11 @@
 #include "object.h"
 #include "shading.h"
 #include "vertices.h"
-#include "viewPort.h"
+#include "viewport.h"
 #include "windowBase.h"
 #include "lighting.h"
 #include "texture.h"
-#include "viewPort.h"
+#include "viewport.h"
 #include "offscreen.h"
 
 #include "sceneWidgets.h"
@@ -46,7 +46,7 @@ private:
 			typename SwitchType<
 				::std::is_base_of<gl::ShaderController, T>::value,
 				gl::ShaderController,
-				ViewPort
+				Viewport
 			>::type
 		>::type;
 	};
@@ -132,7 +132,7 @@ public:
 		::std::enable_if<::std::is_constructible<T, Types...>::value && 
 				::std::is_base_of<Object, T>::value ||
 				::std::is_base_of<gl::ShaderController, T>::value || 
-				::std::is_base_of<ViewPort, T>::value
+				::std::is_base_of<Viewport, T>::value
 			>::type>
 	Ref<T> create(Types &&...args)
 	{
@@ -148,7 +148,7 @@ public:
 		{
 			return Ref<T>(controllers.addController(*t));
 		}
-		if constexpr (::std::is_base_of<ViewPort, T>::value)
+		if constexpr (::std::is_base_of<Viewport, T>::value)
 		{
 			return Ref<T>(cameras.insert(cameras.end(), t));
 		}
@@ -158,7 +158,7 @@ public:
 		::std::enable_if<
 				::std::is_base_of<Object, T>::value ||
 				::std::is_base_of<gl::ShaderController, T>::value || 
-				::std::is_base_of<ViewPort, T>::value
+				::std::is_base_of<Viewport, T>::value
 			>::type>
 	void destroy(Ref<T> &elem)
 	{
@@ -173,9 +173,9 @@ public:
 		{
 			delete static_cast<gl::ShaderController*>(elem); controllers.removeController(elem.iter);
 		}
-		if constexpr (::std::is_base_of<ViewPort, T>::value)
+		if constexpr (::std::is_base_of<Viewport, T>::value)
 		{
-			delete static_cast<ViewPort*>(elem); cameras.erase(elem.iter);
+			delete static_cast<Viewport*>(elem); cameras.erase(elem.iter);
 		}
 	}
 	void clear()
@@ -203,7 +203,7 @@ protected:
 	::std::list<::std::pair<Object*, int>> objects;
 	::std::vector<typename ::std::list<
 		::std::pair<Object*, int>>::iterator> index;
-	::std::list<ViewPort*> cameras;
+	::std::list<Viewport*> cameras;
 	gl::ShaderControllers controllers;
 private:
 	float scaleFactor = 1;
@@ -221,7 +221,7 @@ public:
 		majorLightCamera.setPerspectiveFov(::glm::radians(90.f));
 		static int n = [this]()
 		{
-			Object::onSetViewMatrices([this](Object &self, ViewPort &camera)
+			Object::onSetViewMatrices([this](Object &self, Viewport &camera)
 			{
 				gShadowMap = 0;
 				gLightWorldPos = majorLight->getPosition();
@@ -390,7 +390,7 @@ private:
 private:
 	gl::CubeDepthFBT shadowTexture;
 	
-	ViewPort majorLightCamera = ViewPort(0, 0, 
+	Viewport majorLightCamera = Viewport(0, 0, 
 		GLWindowBase::getWidth(), GLWindowBase::getHeight());
 	const PointLight *majorLight = nullptr;
 

@@ -17,10 +17,10 @@ public:
 	{
 	}
 
-	void render(ViewPort &viewPort) override
+	void render(Viewport &viewport) override
 	{
 		shader->use();
-		setViewMatrices(viewPort);
+		setViewMatrices(viewport);
 		fTexture->invoke(1);
 		gSampler = 1;
 		mesh.render();
@@ -71,10 +71,10 @@ public:
 		}
 		this->target = target;
 	}
-	void render(ViewPort &viewPort) override
+	void render(Viewport &viewport) override
 	{
 		shader->use();
-		setViewMatrices(viewPort);
+		setViewMatrices(viewport);
 		fTexture->invoke(1);
 		gSampler = 1;
 		gTarget = target;

@@ -18,31 +18,31 @@ public:
 	{
 	}
 
-	virtual void renderSelected(ViewPort &viewPort)
+	virtual void renderSelected(Viewport &viewport)
 	{
-		ObjectType::render(viewPort);
+		ObjectType::render(viewport);
 	}
-	virtual void renderHovered(ViewPort &viewPort)
+	virtual void renderHovered(Viewport &viewport)
 	{
-		ObjectType::render(viewPort);
+		ObjectType::render(viewport);
 	}
-	virtual void renderNormal(ViewPort &viewPort)
+	virtual void renderNormal(Viewport &viewport)
 	{
-		ObjectType::render(viewPort);
+		ObjectType::render(viewport);
 	}
-	void render(ViewPort &viewPort) final override
+	void render(Viewport &viewport) final override
 	{
 		if (selected())
 		{
-			renderSelected(viewPort);
+			renderSelected(viewport);
 		}
 		else if(hovered())
 		{
-			renderHovered(viewPort);
+			renderHovered(viewport);
 		}
 		else
 		{
-			renderNormal(viewPort);
+			renderNormal(viewport);
 		}
 	}
 };
@@ -60,38 +60,23 @@ public:
 	{
 	}
 
-	void render(ViewPort &viewPort) override
+	void render(Viewport &viewport) override
 	{
-		if (enableRing)
-		{
-			glStencilFunc(GL_ALWAYS, 0, 0xff);
-			glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
-			ObjectType::render(viewPort);
-			glStencilFunc(GL_EQUAL, 0, 0xff);
-			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-			// gl::Shader::bind(*ringShader);
-			ringShader->use();
-			gColor = fRingColor;
-			ObjectType::render(viewPort);
-			// gl::Shader::unbind();
-			glStencilFunc(GL_ALWAYS, 0, 0xff);
-			glStencilOp(GL_ZERO, GL_KEEP, GL_KEEP);
-			ObjectType::render(viewPort);
-			glStencilFunc(GL_ALWAYS, 0, 0xff);
-			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-		}
-		else
-		{
-			ObjectType::render(viewPort);
-		}
-	}
-	void ring(bool value)
-	{
-		enableRing = value;
-	}
-	void filpRing()
-	{
-		enableRing = !enableRing;
+		glStencilFunc(GL_ALWAYS, 0, 0xff);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
+		ObjectType::render(viewport);
+		glStencilFunc(GL_EQUAL, 0, 0xff);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+		// gl::Shader::bind(*ringShader);
+		ringShader->use();
+		gColor = fRingColor;
+		ObjectType::render(viewport);
+		// gl::Shader::unbind();
+		glStencilFunc(GL_ALWAYS, 0, 0xff);
+		glStencilOp(GL_ZERO, GL_KEEP, GL_KEEP);
+		ObjectType::render(viewport);
+		glStencilFunc(GL_ALWAYS, 0, 0xff);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 	}
 protected:
 	gl::Shader *ringShader = &gl::Shader::load(
@@ -101,7 +86,6 @@ protected:
 	);
 public:
 	BEE_PROPERTY(::glm::vec3, RingColor) = ::glm::vec3(1, 0, 0);
-	bool enableRing = false;
 };
 
 }

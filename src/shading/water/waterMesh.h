@@ -32,9 +32,9 @@ protected:
 		static int n = init();
 	}
 public:
-	void render(ViewPort &viewPort) override
+	void render(Viewport &viewport) override
 	{
-		setViewMatrices(viewPort);
+		setViewMatrices(viewport);
 		waves.invoke();
 		quads[0][0]->render();
 		for (int i = 1; i != stageCount; ++i)
@@ -272,11 +272,11 @@ protected:
 class OceanMesh: public WaterMeshBase
 {
 public:
-	void render(ViewPort &viewPort) override
+	void render(Viewport &viewport) override
 	{
 		shader->use();
 		material.use();
-		WaterMeshBase::render(viewPort);
+		WaterMeshBase::render(viewport);
 		shader->unuse();
 	}
 private:

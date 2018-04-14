@@ -1,6 +1,6 @@
 #pragma once
 
-#include "viewPort.h"
+#include "viewport.h"
 #include "window.h"
 
 namespace bee
@@ -10,7 +10,7 @@ class CameraCarrier: public WindowController
 {
 	static constexpr auto velocity = 0.05f;
 public:
-	CameraCarrier(ViewPort &camera, float uVelocity = velocity, float vVelocity = velocity):
+	CameraCarrier(Viewport &camera, float uVelocity = velocity, float vVelocity = velocity):
 		camera(camera), uVelocity(uVelocity), vVelocity(vVelocity),
 		updateEvent(
 			GLWindowBase::dispatch<UpdateEvent>(
@@ -58,7 +58,7 @@ private:
 	float rightward = 0.f;
 	float backward = 0.f;
 
-	ViewPort &camera;
+	Viewport &camera;
 	float uVelocity, vVelocity;
 
 	typename UpdateEvent::type &updateEvent;

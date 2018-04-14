@@ -1,7 +1,7 @@
 #pragma once 
 
 #include "object.h"
-#include "viewPort.h"
+#include "viewport.h"
 #include "shader.h"
 #include "texture.h"
 
@@ -17,7 +17,7 @@ public:
 		scale(1e5, 1e5, 1e5);
 	}
 
-	void render(ViewPort &viewPort) override
+	void render(Viewport &viewport) override
 	{
 		shader->use();
 		GLint oldCullFaceMode, oldDepthFuncMode;
@@ -27,7 +27,7 @@ public:
 		glCullFace(GL_FRONT);
 		glDepthFunc(GL_LEQUAL);
 
-		setViewMatrices(viewPort);
+		setViewMatrices(viewport);
 		cubeTexture.invoke(1);
 		gCubemapTexture = 1;
 		skybox.render();

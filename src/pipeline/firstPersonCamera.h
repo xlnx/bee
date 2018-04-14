@@ -1,21 +1,21 @@
 #pragma once
 
-#include "viewPort.h"
+#include "viewport.h"
 #include "window.h"
 
 namespace bee
 {
 
 template <int cursorSensitivityLevels = 10>
-class FirstPersonCamera: public ViewPort
+class FirstPersonCamera: public Viewport
 {
 	static_assert(cursorSensitivityLevels >= 5, "cursor sensitive level muse be >= 5");
 	static constexpr auto cursorStepBase = .002f;
 public:
 	template <typename ...Types, typename = typename
-		::std::enable_if<::std::is_constructible<ViewPort, Types...>::value>::type >
+		::std::enable_if<::std::is_constructible<Viewport, Types...>::value>::type >
 	FirstPersonCamera(Types &&...args): 
-		ViewPort(::std::forward<Types>(args)...),
+		Viewport(::std::forward<Types>(args)...),
 		cursorPosEvent(
 			GLWindowBase::dispatch<CursorPosEvent>(
 				[this](double x, double y) -> bool {

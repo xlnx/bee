@@ -2,7 +2,7 @@
 
 #include "buffers.h"
 #include "texture.h"
-#include "viewPort.h"
+#include "viewport.h"
 #include "windowBase.h"
 
 namespace bee
@@ -37,7 +37,7 @@ public:
 		fbo.unbind();
 	}
 	// using fbo.unbind;
-	void configureCamera(ViewPort &viewPort)
+	void configureCamera(Viewport &viewport)
 	{
 		static const ::glm::vec3 cameraInfos[][2] = {
 			{ {1.f, 0.f, 0.f},  {0.f, -1.f, 0.f} },
@@ -47,8 +47,8 @@ public:
 			{ {0.f, 0.f, 1.f},  {0.f, -1.f, 0.f} },
 			{ {0.f, 0.f, -1.f}, {0.f, -1.f, 0.f} }
 		};
-		viewPort.setTarget(cameraInfos[cubeface][0]);
-		viewPort.setUp(cameraInfos[cubeface][1]);
+		viewport.setTarget(cameraInfos[cubeface][0]);
+		viewport.setUp(cameraInfos[cubeface][1]);
 	}
 private:
 	FBO fbo;

@@ -31,21 +31,19 @@ public:
 	{
 		this->translate(dj * detX, -di * detY, 0);
 	}
-	void onSelect() override
+	void renderSelected(Viewport &viewport) override
 	{
-		ring(true); fRingColor = ::glm::vec3(1, 0, 0);
+		fRingColor = ::glm::vec3(1, 0, 0);
+		RingObject<ModelObject>::render(viewport);
 	}
-	void onHover() override
+	void renderHovered(Viewport &viewport) override
 	{
-		ring(true); fRingColor = selected() ? ::glm::vec3(1, 0, 0) : ::glm::vec3(0, 0, 1);
+		fRingColor = ::glm::vec3(0, 0, 1);
+		RingObject<ModelObject>::render(viewport);
 	}
-	void onUnselect() override
+	void renderNormal(Viewport &viewport) override
 	{
-		ring(hovered()); if (hovered()) fRingColor = ::glm::vec3(0, 0, 1);
-	}
-	void onUnhover() override
-	{
-		ring(selected());
+		ModelObject::render(viewport);
 	}
 private:
 	static Model &getModel(int type)
@@ -116,14 +114,14 @@ int initialize[8][8] = {
 
 Scene::Ref<Pawn> board[8][8];
 
-Window<4, 2> window("Simple Chess", false, 768, 768);
+Window<4, 2> window("Simple Chess", false, 1280, 1024);
 
 int Main(int argc, char **argv)
 {
 	Scene scene;
-	scene.setScaleFactor(0.006);
+	scene.setScaleFactor(0.009);
 
-	auto camera = scene.create<ViewPort>();//<FirstPersonCamera<>>();
+	auto camera = scene.create<Viewport>();//<FirstPersonCamera<>>();
 	camera->setPosition(0, 2, 3);
 	camera->setTarget(0, -0.5, -0.8);
 	// CameraCarrier cc(camera);
@@ -166,73 +164,6 @@ int Main(int argc, char **argv)
 		board[i1][j1] = board[i0][j0];
 		board[i0][j0].invalidate();
 	};
-
-	// scene.onMouseHover(
-	// 	[](Object *object)
-	// 	{
-	// 		static SelectiveModelObject *hovered = nullptr;
-
-	// 		if (auto obj = dynamic_cast<SelectiveModelObject*>(object))
-	// 		{
-	// 			obj->hover(true);
-	// 			if (hovered != obj)
-	// 			{
-	// 				if (hovered)
-	// 				{
-	// 					hovered->hover(false);
-	// 				}
-	// 				hovered = obj;
-	// 			}
-	// 		}
-	// 		else
-	// 		{
-	// 			if (hovered)
-	// 			{
-	// 				hovered->hover(false);
-	// 			}
-	// 			hovered = nullptr;
-	// 		}
-	// 	}
-	// );
-	// scene.onMouseClick(
-	// 	[](Object *object, int button)
-	// 	{
-	// 		static SelectiveModelObject *selected = nullptr;
-
-	// 		if (auto obj = dynamic_cast<SelectiveModelObject*>(object))
-	// 		{
-	// 			if (button & 1)
-	// 			{
-	// 				obj->select(true);
-	// 				if (selected != obj)
-	// 				{
-	// 					if (selected)
-	// 					{
-	// 						selected->select(false);
-	// 					}
-	// 					selected = obj;
-	// 				}
-	// 			}
-	// 			else
-	// 			{
-	// 				obj->select(false);
-	// 				if (selected)
-	// 				{
-	// 					selected->select(false);
-	// 				}
-	// 				selected = nullptr;
-	// 			}
-	// 		}
-	// 		else
-	// 		{
-	// 			if (selected)
-	// 			{
-	// 				selected->select(false);
-	// 			}
-	// 			selected = nullptr;
-	// 		}
-	// 	}
-	// );
 
 	initBoard();
 

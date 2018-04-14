@@ -15,7 +15,7 @@ public:
 	{
 	}
 
-	void render(ViewPort &viewPort) override
+	void render(Viewport &viewport) override
 	{
 		shader->use();
 		fMesh.render();
@@ -40,10 +40,10 @@ public:
 	{
 	}
 
-	void render(ViewPort &viewPort) override
+	void render(Viewport &viewport) override
 	{
 		shader->use();
-		setViewMatrices(viewPort);
+		setViewMatrices(viewport);
 		fMesh->render();
 		shader->unuse();
 	}
@@ -70,10 +70,10 @@ public:
 	{
 	}
 
-	void render(ViewPort &viewPort) override
+	void render(Viewport &viewport) override
 	{
 		shader->use();
-		setViewMatrices(viewPort);
+		setViewMatrices(viewport);
 		fModel->render();
 		shader->unuse();
 	}
