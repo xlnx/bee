@@ -78,18 +78,28 @@ public:
 		P = {0, 0, 0};
 		translateModified = true;
 	}
-	template <typename ...Types, typename = typename
-		::std::enable_if<::std::is_constructible<::glm::vec3, Types...>::value>::type>
-	void translate(Types &&...args)
+	// template <typename ...Types, typename = typename
+	// 	::std::enable_if<::std::is_constructible<::glm::vec3, Types...>::value>::type>
+	virtual void translate(float dx, float dy, float dz) //Types &&...args)
 	{
-		P += ::glm::vec3(::std::forward<Types>(args)...);
+		P += ::glm::vec3(dx, dy, dz);
 		translateModified = true;
 	}
-	template <typename ...Types, typename = typename
-		::std::enable_if<::std::is_constructible<::glm::vec3, Types...>::value>::type>
-	void setPosition(Types &&...args)
+	virtual void translate(const ::glm::vec3 &diff) //Types &&...args)
 	{
-		P = ::glm::vec3(::std::forward<Types>(args)...);
+		P += diff;
+		translateModified = true;
+	}
+	// template <typename ...Types, typename = typename
+		// ::std::enable_if<::std::is_constructible<::glm::vec3, Types...>::value>::type>
+	virtual void setPosition(float dx, float dy, float dz)
+	{
+		P = ::glm::vec3(dx, dy, dz);
+		translateModified = true;
+	}
+	virtual void setPosition(const ::glm::vec3 &pos)
+	{
+		P = pos;
 		translateModified = true;
 	}
 	// rotate

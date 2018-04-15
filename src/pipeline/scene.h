@@ -23,6 +23,29 @@ namespace bee
 namespace scene_impl
 {
 
+class Scene;
+class SceneBase;
+
+template <typename T>
+class SceneWrapper: public T
+{
+	friend class Scene;
+	friend class SceneBase;
+	template <typename ...Types, typename = typename
+		::std::enable_if<::std::is_constructible<T, Types...>::value>::type>
+	SceneWrapper(Types &&...args):
+		T(::std::forward<Types>(args)...)
+	{
+	}
+public:
+	void translate(float dx, float dy, float dz) override;
+	void translate(const ::glm::vec3 &diff) override;
+	void setPosition(float x, float y, float z) override;
+	void setPosition(const ::glm::vec3 &pos) override;
+private:
+	SceneBase *scene = nullptr;
+};
+
 class SceneBase
 {
 	// template <typename>
@@ -57,6 +80,15 @@ private:
 			::std::is_same<BaseType, Object>::value,
 			::std::pair<BaseType*, int>,
 			BaseType*
+		>::type;
+	};
+	template <typename T>
+	struct GenType
+	{
+		using type = typename SwitchType<
+			::std::is_base_of<Object, T>::value,
+			SceneWrapper<T>,
+			T
 		>::type;
 	};
 public:
@@ -136,9 +168,10 @@ public:
 			>::type>
 	Ref<T> create(Types &&...args)
 	{
-		auto t = new T(::std::forward<Types>(args)...);
+		auto t = new typename GenType<T>::type(::std::forward<Types>(args)...);
 		if constexpr (::std::is_base_of<Object, T>::value)
 		{
+			t->scene = this;
 			auto iter = objects.insert(objects.end(), ::std::make_pair(t, int(index.size())));
 			t->scale(scaleFactor); 
 			index.push_back(iter);
@@ -199,6 +232,26 @@ public:
 	{
 		scaleFactor = e;
 	}
+	template <typename T>
+	void translate(SceneWrapper<T> &object, float dx, float dy, float dz)
+	{
+		object.T::translate(dx * scaleFactor, dy * scaleFactor, dz * scaleFactor);
+	}
+	template <typename T>
+	void translate(SceneWrapper<T> &object, const ::glm::vec3 &diff)
+	{
+		object.T::translate(diff * scaleFactor);
+	}
+	template <typename T>
+	void setPosition(SceneWrapper<T> &object, float x, float y, float z)
+	{
+		object.T::setPosition(x * scaleFactor, y * scaleFactor, z * scaleFactor);
+	}
+	template <typename T>
+	void setPosition(SceneWrapper<T> &object, const ::glm::vec3 &pos)
+	{
+		object.T::setPosition(pos * scaleFactor);
+	}
 protected:
 	::std::list<::std::pair<Object*, int>> objects;
 	::std::vector<typename ::std::list<
@@ -216,8 +269,9 @@ class Scene final: public SceneBase
 	BEE_UNIFORM_GLOB(::glm::vec2, ShadowMapScale);
 	BEE_UNIFORM_GLOB(float, ObjectIndex);
 public:
-	Scene()
+	Scene(float scaleFactor = 1.f)
 	{
+		setScaleFactor(scaleFactor);
 		majorLightCamera.setPerspectiveFov(::glm::radians(90.f));
 		static int n = [this]()
 		{
@@ -399,6 +453,27 @@ private:
 	SelectUtil *hoverObject = nullptr;
 	SelectUtil *selectedObject = nullptr;
 };
+
+template <typename T>
+void SceneWrapper<T>::translate(float dx, float dy, float dz) 
+{
+	scene->translate(*this, dx, dy, dz);
+}
+template <typename T>
+void SceneWrapper<T>::translate(const ::glm::vec3 &diff) 
+{
+	scene->translate(*this, diff);
+}
+template <typename T>
+void SceneWrapper<T>::setPosition(float x, float y, float z) 
+{
+	scene->setPosition(*this, x, y, z);
+}
+template <typename T>
+void SceneWrapper<T>::setPosition(const ::glm::vec3 &pos) 
+{
+	scene->setPosition(*this, pos);
+}
 
 }
 
