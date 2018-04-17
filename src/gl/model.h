@@ -66,10 +66,10 @@ public:
 #		endif
 
 		Assimp::Importer ass;
-		scene = ass.ReadFile(shortName, assImportFlags);
+		auto scene = ass.ReadFile(shortName, assImportFlags);
 		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 		{
-			BEE_RAISE(GLFatal, "Failed to import model(" + file + "). Assimp: " + ass.GetErrorString());
+			BEE_RAISE(Fatal, "Failed to import model(" + file + "). Assimp: " + ass.GetErrorString());
 		}
 		// BEE_LOG(root->mNumChildren);
 		// for (auto i = 0u; i != root->mNumChildren; ++i)
@@ -123,7 +123,6 @@ private:
 protected:
 	::std::vector<Material> materials;
 	::std::vector<Mesh> meshes;
-	const aiScene *scene = nullptr;
 };
 
 }

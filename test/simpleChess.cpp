@@ -32,6 +32,15 @@ public:
 		light->setDiffuseIntensity(2.8f);
 		scene.setMajorLight(*light);
 
+		for (int i = 0; i != 8; ++i)
+		{
+			for (int j = 0; j != 8; ++j)
+			{
+				grids[i][j] = scene.create<Grid>((i + j) & 1);
+				grids[i][j]->initPosition(i, j);
+			}
+		}
+
 		scene.create<ModelObject>("board/board.obj");
 		window.dispatch<RenderEvent>(
 			[&]() -> bool
@@ -103,12 +112,12 @@ public:
 	{
 	public:
 		Grid(int type):
-			type(type)
+			SelectiveObject<ModelObject>(getModel(type)), type(type)
 		{
 		}
 		void initPosition(int i, int j)
 		{
-			translate((j - 3.5) * gridWidth, (3.5 - i) * gridHeight, 0);
+			translate((j - 4) * gridWidth, (3 - i) * gridHeight, 0);
 		}
 	private:
 		static Model &getModel(int type)
@@ -187,6 +196,7 @@ private:
 	};
 private:
 	Scene::Ref<Pawn> board[8][8];
+	Scene::Ref<Grid> grids[8][8];
 	Scene scene = Scene(0.006f);
 };
 

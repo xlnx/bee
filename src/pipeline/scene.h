@@ -341,44 +341,34 @@ public:
 			int right = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
 			int mouse = (left == GLFW_PRESS? 1 : 0) | (right == GLFW_PRESS ? 2 : 0);
 			
-			if (currentPos != 0)
+			SelectUtil *obj;
+			if (currentPos != 0 && (obj = dynamic_cast<SelectUtil*>(index[currentPos - 1]->first)))
 			{
-				if (auto obj = dynamic_cast<SelectUtil*>(index[currentPos - 1]->first))
-				{
-					if (hoverObject != obj)
-					{
-						if (hoverObject)
-						{
-							hoverObject->hover(false);
-						}
-						obj->hover(true);
-						hoverObject = obj;
-					}
-					if (mouse)
-					{
-						if (selectedObject != obj)
-						{
-							if (selectedObject)
-							{
-								selectedObject->select(false);
-							}
-							obj->select(true);
-							selectedObject = obj;
-						}
-					}
-					// if (!multiSelection)
-					// {
-					// 	sele
-					// }
-				}
-				else
+				if (hoverObject != obj)
 				{
 					if (hoverObject)
 					{
 						hoverObject->hover(false);
-						hoverObject = nullptr;
+					}
+					obj->hover(true);
+					hoverObject = obj;
+				}
+				if (mouse)
+				{
+					if (selectedObject != obj)
+					{
+						if (selectedObject)
+						{
+							selectedObject->select(false);
+						}
+						obj->select(true);
+						selectedObject = obj;
 					}
 				}
+				// if (!multiSelection)
+				// {
+				// 	sele
+				// }
 			}
 			else
 			{
