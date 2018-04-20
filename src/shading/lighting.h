@@ -51,8 +51,8 @@ class PointLight: public LightBase
 {
 	BEE_SC_INHERIT(PointLight, LightBase);
 public:
-	PointLight(const ::glm::vec3 &position):
-		BEE_SC_SUPER(), fPosition(position)
+	PointLight():
+		BEE_SC_SUPER()
 	{
 	}
 
@@ -72,20 +72,19 @@ protected:
 	BEE_SC_UNIFORM(float[], AttenLinear);
 	BEE_SC_UNIFORM(float[], AttenExp);
 public:
-	BEE_PROPERTY(::glm::vec3, Position) = { 0, 0, 1 };
 	BEE_PROPERTY(float, AttenConstant) = 1.f;
 	BEE_PROPERTY(float, AttenLinear) = .5f;
 	BEE_PROPERTY(float, AttenExp) = .5f;
+	BEE_PROPERTY(glm::vec3, Position) = glm::vec3(0, 0, 1);
 };
 
 class SpotLight: public PointLight
 {
 	BEE_SC_INHERIT(SpotLight, PointLight);
 public:
-	SpotLight(const ::glm::vec3 &position):
+	SpotLight():
 		BEE_SC_SUPER()
 	{
-		setPosition(position);
 	}
 
 	bool invoke(int index) override

@@ -145,7 +145,7 @@ template <>
 {
 	void set(GLint handle, const ::glm::mat2 &target) const
 	{
-		glUniformMatrix2fv(handle, 1, GL_TRUE, reinterpret_cast<const float*>(&target));
+		glUniformMatrix2fv(handle, 1, GL_FALSE, reinterpret_cast<const float*>(&target));
 	}
 };
 
@@ -154,7 +154,7 @@ template <>
 {
 	void set(GLint handle, const ::glm::mat3 &target) const
 	{
-		glUniformMatrix3fv(handle, 1, GL_TRUE, reinterpret_cast<const float*>(&target));
+		glUniformMatrix3fv(handle, 1, GL_FALSE, reinterpret_cast<const float*>(&target));
 	}
 };
 
@@ -163,7 +163,7 @@ template <>
 {
 	void set(GLint handle, const ::glm::mat4 &target) const
 	{
-		glUniformMatrix4fv(handle, 1, GL_TRUE, reinterpret_cast<const float*>(&target));
+		glUniformMatrix4fv(handle, 1, GL_FALSE, reinterpret_cast<const float*>(&target));
 	}
 };
 

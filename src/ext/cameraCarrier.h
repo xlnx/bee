@@ -33,13 +33,13 @@ public:
 					switch (key)
 					{
 					case GLFW_KEY_UP: 
-						forward = action != GLFW_RELEASE ? this->uVelocity : 0.f; break;
+						forward = action != GLFW_RELEASE ? 1.f : 0.f; break;
 					case GLFW_KEY_DOWN:
-						backward = action != GLFW_RELEASE ? this->uVelocity : 0.f; break;
+						backward = action != GLFW_RELEASE ? 1.f : 0.f; break;
 					case GLFW_KEY_LEFT:
-						leftward = action != GLFW_RELEASE ? this->vVelocity : 0.f; break;
+						leftward = action != GLFW_RELEASE ? 1.f : 0.f; break;
 					case GLFW_KEY_RIGHT:
-						rightward = action != GLFW_RELEASE ? this->vVelocity : 0.f; break;
+						rightward = action != GLFW_RELEASE ? 1.f : 0.f; break;
 					}
 					return false;
 				}, priority

@@ -18,8 +18,8 @@ Window<4, 2> window("Simple Chess", false, 1024, 1024);
 
 class Chess
 {
-	static constexpr float gridWidth = 63.333f;
-	static constexpr float gridHeight = 63.333f;
+	static constexpr float gridWidth = 0.38f;
+	static constexpr float gridHeight = 0.38f;
 public:
 	Chess()
 	{
@@ -28,7 +28,8 @@ public:
 		camera->setTarget(0, -0.5, -0.8);
 		// CameraCarrier cc(camera);
 
-		auto light = scene.create<PointLight>(vec3(0, 0, 2));
+		auto light = scene.create<PointLight>();
+		light->setPosition(0, 0, 2);
 		light->setDiffuseIntensity(2.8f);
 		scene.setMajorLight(*light);
 
@@ -118,6 +119,9 @@ public:
 		void initPosition(int i, int j)
 		{
 			translate((j - 4) * gridWidth, (3 - i) * gridHeight, 0);
+		}
+		void renderNormal(Viewport &viewport) override
+		{
 		}
 	private:
 		static Model &getModel(int type)

@@ -3,7 +3,6 @@
 #include "common.h"
 #include "windowBase.h"
 #include "property.h"
-#include <glm/glm.hpp>
 #include <utility>
 
 namespace bee
@@ -57,7 +56,7 @@ public:
 		N = ::glm::normalize(::glm::vec3(::std::forward<Types>(args)...));
 		rotateModified = true;
 	}
-	const ::glm::vec3 &getTarget() const
+	::glm::vec3 getTarget() const
 	{
 		return N;
 	}
@@ -68,18 +67,31 @@ public:
 		Up = ::glm::normalize(::glm::vec3(::std::forward<Types>(args)...));
 		rotateModified = true;
 	}
-	const ::glm::vec3 &getUp() const
+	::glm::vec3 getUp() const
 	{
 		return Up;
 	}
-	template <typename ...Types, typename = typename
-		::std::enable_if<::std::is_constructible<::glm::vec3, Types...>::value>::type>
-	void setPosition(Types &&...args)
+	void setPosition(float x, float y, float z)
 	{
-		P = ::glm::vec3(::std::forward<Types>(args)...);
+		P = ::glm::vec3(x, y, z);
 		translateModified = true;
 	}
-	const ::glm::vec3 &getPosition() const
+	void setPosition(const ::glm::vec3 &pos)
+	{
+		P = pos;
+		translateModified = true;
+	}
+	void translate(float dx, float dy, float dz) 
+	{
+		P += ::glm::vec3(dx, dy, dz);
+		translateModified = true;
+	}
+	void translate(const ::glm::vec3 &diff)
+	{
+		P += diff;
+		translateModified = true;
+	}
+	glm::vec3 getPosition() const
 	{
 		return P;
 	}

@@ -284,9 +284,18 @@ template <typename A, typename E>
 	int dummyExpandAux()
 {
 	glEnableVertexAttribArray(A::type);
-	glVertexAttribPointer(A::type, A::size, 
- 		VertexAttrSignature<typename A::elemType>::value, GL_FALSE, sizeof(E), 
-		 	(void*)&((E*)nullptr)->template get<A::type>());
+	if constexpr (std::is_integral<typename A::elemType>::value)
+	{
+		glVertexAttribIPointer(A::type, A::size, 
+			VertexAttrSignature<typename A::elemType>::value, sizeof(E), 
+				(void*)&((E*)nullptr)->template get<A::type>());
+	}
+	else 
+	{
+		glVertexAttribPointer(A::type, A::size, 
+			VertexAttrSignature<typename A::elemType>::value, GL_FALSE, sizeof(E), 
+				(void*)&((E*)nullptr)->template get<A::type>());
+	}
 	return 0;
 }
 
@@ -353,7 +362,8 @@ struct VertexAttrs<any>
 				dyninfo[A::type] = {
 					A::type, A::size, 
 					VertexAttrSignature<typename A::elemType>::value,
-					(char*)nullptr + elemSize
+					(char*)nullptr + elemSize,
+					std::is_integral<typename A::elemType>::value
 				};
 				info.push(A::type);
 				elemSize += sizeof(typename VertexAttrStorage<A>::type);
@@ -393,7 +403,14 @@ struct VertexAttrs<any>
 			auto &a = dyninfo[i];
 			if (info.v[i])
 			{
-				glVertexAttribPointer(a.type, a.size, a.elemType, GL_FALSE, elemSize, (void*)a.offset);;
+				if (a.isIntegral)
+				{
+					glVertexAttribIPointer(a.type, a.size, a.elemType, elemSize, (void*)a.offset);
+				}
+				else
+				{
+					glVertexAttribPointer(a.type, a.size, a.elemType, GL_FALSE, elemSize, (void*)a.offset);
+				}
 				glEnableVertexAttribArray(a.type);
 			}
 		}
@@ -415,6 +432,7 @@ private:
 		::std::size_t size;
 		GLenum elemType;
 		char *offset;
+		bool isIntegral;
 	};
 	::std::array<DynInfoType, vertexAttrTypeEnd> dyninfo;
 

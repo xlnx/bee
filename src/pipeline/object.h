@@ -3,7 +3,6 @@
 #include "shader.h"
 #include "viewport.h"
 #include "property.h"
-#include <glm/glm.hpp>
 #include <utility>
 #include <vector>
 #include <functional>
@@ -80,24 +79,24 @@ public:
 	}
 	// template <typename ...Types, typename = typename
 	// 	::std::enable_if<::std::is_constructible<::glm::vec3, Types...>::value>::type>
-	virtual void translate(float dx, float dy, float dz) //Types &&...args)
+	void translate(float dx, float dy, float dz) //Types &&...args)
 	{
 		P += ::glm::vec3(dx, dy, dz);
 		translateModified = true;
 	}
-	virtual void translate(const ::glm::vec3 &diff) //Types &&...args)
+	void translate(const ::glm::vec3 &diff) //Types &&...args)
 	{
 		P += diff;
 		translateModified = true;
 	}
 	// template <typename ...Types, typename = typename
 		// ::std::enable_if<::std::is_constructible<::glm::vec3, Types...>::value>::type>
-	virtual void setPosition(float dx, float dy, float dz)
+	void setPosition(float dx, float dy, float dz)
 	{
 		P = ::glm::vec3(dx, dy, dz);
 		translateModified = true;
 	}
-	virtual void setPosition(const ::glm::vec3 &pos)
+	void setPosition(const ::glm::vec3 &pos)
 	{
 		P = pos;
 		translateModified = true;
@@ -115,15 +114,15 @@ public:
 		R += ::glm::vec3(::std::forward<Types>(args)...);
 		rotateModified = true;
 	}
+	glm::vec3 getPosition() const
+	{
+		return P;
+	}
 protected:
 	bool translateModified = true, rotateModified = true, scaleModified = true;
 	::glm::vec3 P = {0, 0, 0}, S = {1, 1, 1}, R = {0, 0, 0};
 private:
 	::glm::mat4 translateTrans, rotateTrans, scaleTrans, trans;
-};
-
-class Transform: public ObjectBase
-{
 };
 
 class Object: public ObjectBase
@@ -138,9 +137,9 @@ protected:
 	void setViewMatrices(Viewport &viewport)
 	{
 		gTime = float(glfwGetTime());
-		gWVP = ::glm::transpose(viewport.getTrans() * getTrans());
-		gWorld = ::glm::transpose(getTrans());
-		gVP = ::glm::transpose(viewport.getTrans());
+		gWVP = viewport.getTrans() * getTrans();
+		gWorld = getTrans();
+		gVP = viewport.getTrans();
 		gCameraWorldPos = viewport.getPosition();
 		for (auto &f: getSetCallbacks())
 		{
