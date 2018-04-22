@@ -1,5 +1,5 @@
 import { glm } from "./util/glm"
-import { gl, Renderer } from "./renderer/renderer"
+import { gl, Canvas } from "./canvas/canvas"
 import { ulist_elem, ulist } from "./util/ulist"
 import Scene from "./scene/scene"
 import Obj from "./scene/object"
@@ -7,9 +7,7 @@ import { PerspectiveViewport, Viewport } from "./scene/viewport"
 import { Shader, Uniform } from "./gl/shader";
 import { VertexAttrs, VAO } from "./gl/vertexAttrs";
 
-const canvas: HTMLCanvasElement = <HTMLCanvasElement>document.getElementById("wgl-canvas");
-
-let renderer = new Renderer(canvas);
+let canvas = new Canvas(document.body);
 
 // let scene = new Scene();
 
@@ -17,7 +15,7 @@ let renderer = new Renderer(canvas);
 
 let shader = Shader.create("test");
 
-let view = new PerspectiveViewport(0, 0, 300, 150);
+let view = new PerspectiveViewport(0, 0, canvas.width, canvas.height);
 
 view.position = glm.vec3(0, 0, 2);
 view.target = glm.vec3(0.3, 0, -1);
@@ -93,7 +91,7 @@ for (let i = 0; i != vs.length; i += 2) {
 
 let vao = new VAO(vertices);
 
-renderer.dispatch("render", () => {
+canvas.dispatch("render", () => {
 	gl.clear(gl.COLOR_BUFFER_BIT)
 	
 	// gl.enableVertexAttribArray(0)
@@ -105,4 +103,4 @@ renderer.dispatch("render", () => {
 	// scene.renderPass();
 })
 
-renderer.render();
+canvas.render();

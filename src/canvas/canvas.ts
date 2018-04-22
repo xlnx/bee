@@ -19,24 +19,35 @@ class RenderEvent {
 	}
 }
 
-class Renderer {
-	private static context: Renderer = null;
+class Canvas {
+	private static context: Canvas = null;
 
 	private events = new EventList();
-
 	private renderers = new ulist<() => void>();
+	private canvas: HTMLCanvasElement;
+	private canvasWrapper: HTMLDivElement;
 
-	constructor(canvas: HTMLCanvasElement, fallback: boolean = false) {
-		if (Renderer.context != null) {
+	constructor(container: HTMLElement, fallback: boolean = false) {
+		if (Canvas.context != null) {
 			throw "Multiple WebGL contexts not supported.";
 		} else {
+			this.canvasWrapper = document.createElement("div");
+			this.canvas = document.createElement("canvas");
+			this.canvasWrapper.style.width = "100%";
+			this.canvasWrapper.style.height = "100%";
+			this.canvas.width = container.clientWidth;
+			this.canvas.height = container.clientHeight;
+			this.canvasWrapper.appendChild(this.canvas);
+			this.canvasWrapper.style["text-align"] = "center";
+			this.canvasWrapper.style["overflow"] = "hidden";
+			container.appendChild(this.canvasWrapper);
 			try {
 				if (!fallback) {
-					gl2 = <WebGL2RenderingContext>canvas.getContext("webgl2");// || canvas.getContext("experimental-webgl");
+					gl2 = <WebGL2RenderingContext>this.canvas.getContext("webgl2");// || canvas.getContext("experimental-webgl");
 				}
 				if (!gl2) {
-					gl = <WebGLRenderingContext>canvas.getContext("webgl") 
-						|| canvas.getContext("experimental-webgl");
+					gl = <WebGLRenderingContext>this.canvas.getContext("webgl") 
+						|| this.canvas.getContext("experimental-webgl");
 					if (!gl) {
 						throw "";
 					} else {
@@ -50,11 +61,17 @@ class Renderer {
 				throw "webgl is not supported on your browser. " + e;
 			}
 		}
-		Renderer.context = this;
+		Canvas.context = this;
 	}
 
-	get instance(): Renderer {
-		return Renderer.context;
+	get width(): number {
+		return this.canvas.width;
+	}
+	get height(): number {
+		return this.canvas.height;
+	}
+	get instance(): Canvas {
+		return Canvas.context;
 	}
 	dispatch(eventType: RendererEventType, callback: any): RendererEvent {
 		if (eventType == "render") {
@@ -81,5 +98,5 @@ export {
 	gl,
 	gl2,
 	RendererEvent,
-	Renderer
+	Canvas
 }

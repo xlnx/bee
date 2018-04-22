@@ -1,5 +1,5 @@
 import { glm } from "../util/glm"
-import { gl } from "../renderer/renderer";
+import { gl } from "../canvas/canvas";
 import { VBO, EBO } from "./buffer";
 
 type PositionType = "pos2" | "pos3" | "pos4"

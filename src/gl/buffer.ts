@@ -1,4 +1,4 @@
-import { gl } from "../renderer/renderer"
+import { gl } from "../canvas/canvas"
 
 class BufferBase {
 	constructor(public readonly handle: any)

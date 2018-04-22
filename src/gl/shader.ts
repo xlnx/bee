@@ -1,6 +1,6 @@
 import text from "../util/text"
 import { glm } from "../util/glm"
-import { gl, gl2 } from "../renderer/renderer"
+import { gl, gl2 } from "../canvas/canvas"
 
 type UniformType = "int" | "float" | "ivec2" | "vec2" | "ivec3" | "vec3" | "ivec4" | "vec4" |
 	"mat2" | "mat3" | "mat4";
@@ -80,8 +80,8 @@ class Shader {
 	constructor(vsfilename: string, fsfilename: string) {
 		vsfilename = Shader.shaderPath + (gl2 ? "gl2/" : "gl/") + vsfilename;
 		fsfilename = Shader.shaderPath + (gl2 ? "gl2/" : "gl/") + fsfilename;
-		console.log(vsfilename);
-		console.log(fsfilename);
+		// console.log(vsfilename);
+		// console.log(fsfilename);
 		let vs = Shader.compileShader(text.getSync(vsfilename), gl.VERTEX_SHADER);
 		let fs = Shader.compileShader(text.getSync(fsfilename), gl.FRAGMENT_SHADER);
 		this.handle = gl.createProgram();
