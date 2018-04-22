@@ -16,11 +16,13 @@
   "author": "KoishiChan",
   "license": "CC0-1.0",
   "devDependencies": {
+    "awesome-typescript-loader": "^5.0.0",
+    "copy-webpack-plugin": "^4.5.1",
     "electron": "^1.8.4",
+    "source-map-loader": "^0.2.3",
+    "typescript": "^2.8.3",
+    "webpack": "^4.6.0",
     "webpack-cli": "^2.0.14"
   },
-  "dependencies": {
-    "awesome-typescript-loader": "^5.0.0",
-    "source-map-loader": "^0.2.3"
-  }
+  "dependencies": {}
 }

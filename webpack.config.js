@@ -1,7 +1,7 @@
 const webpack = require('webpack');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 const path = require('path')
 // const HtmlWebpackPlugin = require('html-webpack-plugin');
-// const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
 	entry: './src/browser-main.ts',
@@ -19,5 +19,17 @@ module.exports = {
 	output: {
 		path: path.resolve(__dirname, 'build/dist'),
 		filename: 'bundle.js'
-	}
+	},
+	plugins: [
+		new CopyWebpackPlugin([
+			{
+				from: "./src/index.html",
+				to: "../index.html"
+			},
+			{
+				from: "./src/shaders",
+				to: "../shaders"
+			}
+		])
+	]
 }
