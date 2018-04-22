@@ -1,0 +1,14 @@
+{
+	"compilerOptions": {
+		"target": "es5"
+	},
+	"libs": [
+		"es2015",
+		"es6",
+		"dom",
+		"es2015.symbol"
+	],
+	"include": [
+		"./src/**/*"
+	]
+}

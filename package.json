@@ -1,0 +1,26 @@
+{
+  "name": "bee",
+  "version": "0.0.1",
+  "description": "webgl.bee",
+  "main": "./main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": "https://github.com/xlnx/bee",
+  "keywords": [
+    "Electron",
+    "webgl",
+    "playground",
+    "demo"
+  ],
+  "author": "KoishiChan",
+  "license": "CC0-1.0",
+  "devDependencies": {
+    "electron": "^1.8.4",
+    "webpack-cli": "^2.0.14"
+  },
+  "dependencies": {
+    "awesome-typescript-loader": "^5.0.0",
+    "source-map-loader": "^0.2.3"
+  }
+}
