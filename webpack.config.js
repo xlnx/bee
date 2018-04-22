@@ -15,6 +15,7 @@ module.exports = {
 			{ enforce: "pre", test: /\.js$/, loader: "source-map-loader" }
 		]
 	},
+	mode: "development",
 	output: {
 		path: path.resolve(__dirname, 'build/dist'),
 		filename: 'bundle.js'

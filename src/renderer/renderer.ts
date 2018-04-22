@@ -2,7 +2,7 @@ import { ulist_elem, ulist } from "../util/ulist"
 import { Event, EventList } from "./events"
 // import { KeyEventType, KeyEvent } from "./keyEvent"
 
-let gl: WebGLRenderingContext
+let gl: WebGL2RenderingContext
 
 type RendererEventType = "render" | DocumentEventMap // | KeyEventType
 
@@ -31,9 +31,13 @@ class Renderer {
 			throw "Multiple WebGL contexts not supported.";
 		} else {
 			try {
-				gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+				gl = <WebGL2RenderingContext>canvas.getContext("webgl2");// || canvas.getContext("experimental-webgl");
+				if (!gl) {
+					throw "";
+				}
 			} catch (e) {
-				console.error("Failed to create webgl context: " + e);
+				console.error("webgl 2.0 is not supported. " + e);
+				throw "webgl 2.0 is not supported. " + e;
 			}
 		}
 		Renderer.context = this;

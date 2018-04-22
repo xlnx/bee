@@ -9,10 +9,10 @@ type TangentType = "tg3" | "tg4"
 type BitangentType = "bitg3" | "bitg4"
 type TexcoordType = "tex2" | "tex3" | "tex4"
 type BoneIndexType = "ibone3" | "ibone4"
-type BondeWeightType = "wbone3" | "wbone4"
+type BoneWeightType = "wbone3" | "wbone4"
 
 type VertexAttrType = PositionType | ColorType | NormalType |
-	TangentType | BitangentType | TexcoordType | BoneIndexType | BondeWeightType;
+	TangentType | BitangentType | TexcoordType | BoneIndexType | BoneWeightType;
 
 class TypeMap {
 	pos2: glm.vec2;
@@ -101,7 +101,11 @@ class VertexAttrs {
 	push<T extends VertexAttrType>(vertex: VertexAttr<T>) {
 		// let row = [];
 		for (let x of this.attrNames) {
-			this.vertices = this.vertices.concat(vertex[x]);
+			if (x in vertex) {
+				this.vertices = this.vertices.concat(vertex[x]);
+			} else {
+				throw "undefined vertex attribute: " + x;
+			}
 		}
 		// this.vertices.push();
 	}
