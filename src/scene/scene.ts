@@ -22,5 +22,5 @@ export default class Scene {
 		})
 	}
 
-	private shader = Shader.create("phong", "phong.vs", "phong.fs");
+	private shader = Shader.create("phong");
 }

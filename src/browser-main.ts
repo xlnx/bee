@@ -15,7 +15,7 @@ let renderer = new Renderer(canvas);
 
 // scene.createViewport(new PerspectiveViewport(0, 0, 512, 512));
 
-let shader = Shader.create("test", "./shaders/test.vs", "./shaders/test.fs");
+let shader = Shader.create("test");
 
 let view = new PerspectiveViewport(0, 0, 300, 150);
 

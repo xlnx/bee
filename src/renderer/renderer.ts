@@ -1,10 +1,10 @@
 import { ulist_elem, ulist } from "../util/ulist"
 import { Event, EventList } from "./events"
-// import { KeyEventType, KeyEvent } from "./keyEvent"
 
-let gl: WebGL2RenderingContext
+let gl: WebGLRenderingContext
+let gl2: WebGL2RenderingContext
 
-type RendererEventType = "render" | DocumentEventMap // | KeyEventType
+type RendererEventType = "render" | DocumentEventMap
 
 interface RendererEvent {
 	cancel: () => void;
@@ -26,18 +26,28 @@ class Renderer {
 
 	private renderers = new ulist<() => void>();
 
-	constructor(canvas: HTMLCanvasElement) {
+	constructor(canvas: HTMLCanvasElement, fallback: boolean = false) {
 		if (Renderer.context != null) {
 			throw "Multiple WebGL contexts not supported.";
 		} else {
 			try {
-				gl = <WebGL2RenderingContext>canvas.getContext("webgl2");// || canvas.getContext("experimental-webgl");
-				if (!gl) {
-					throw "";
+				if (!fallback) {
+					gl2 = <WebGL2RenderingContext>canvas.getContext("webgl2");// || canvas.getContext("experimental-webgl");
+				}
+				if (!gl2) {
+					gl = <WebGLRenderingContext>canvas.getContext("webgl") 
+						|| canvas.getContext("experimental-webgl");
+					if (!gl) {
+						throw "";
+					} else {
+						console.warn("webgl 2.0 is not supported on your browser, fallback to webgl 1.0.");
+					}
+				} else {
+					gl = gl2;
 				}
 			} catch (e) {
-				console.error("webgl 2.0 is not supported. " + e);
-				throw "webgl 2.0 is not supported. " + e;
+				console.error("webgl is not supported on your browser. " + e);
+				throw "webgl is not supported on your browser. " + e;
 			}
 		}
 		Renderer.context = this;
@@ -69,6 +79,7 @@ class Renderer {
 
 export {
 	gl,
+	gl2,
 	RendererEvent,
 	Renderer
 }
