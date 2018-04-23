@@ -1,6 +1,10 @@
 import { glm } from "../util/glm"
-import { gl } from "../canvas/canvas";
+import { gl } from "../renderer/renderer";
 import { VBO, EBO } from "./buffer";
+
+const attrLocation = {
+	pos: 0, color: 1, norm: 2, tg: 3, bitg: 4, tex: 5, ibone: 6, wbone: 7
+};
 
 type PositionType = "pos2" | "pos3" | "pos4"
 type ColorType = "color3" | "color4"
@@ -49,14 +53,25 @@ type AttrRecord = {
 class VAO {
 	private attrs: AttrRecord[];
 	private attrSize: number;
+	private numVertices: number;
+	private numIndices: number;
 	private vbo = new VBO();
+	private ebo: EBO;
 
-	constructor(attr: VertexAttrs, private ebo: EBO = null) {
+	constructor(attr: VertexAttrs, indices: number[] = undefined) {
 		this.attrs = attr.attrs;
 		this.attrSize = attr.attrSize;
+		this.numVertices = attr.vertices.length / attr.component;
 		this.vbo.bind();
 			this.vbo.data(attr.vertices);
 		this.vbo.unbind();
+		if (indices != undefined) {
+			this.ebo = new EBO();
+			this.ebo.bind();
+				this.ebo.data(indices);
+			this.ebo.unbind();
+			this.numIndices = indices.length;
+		}
 	}
 	bind() {
 		this.vbo.bind();
@@ -69,13 +84,6 @@ class VAO {
 			gl.vertexAttribPointer(x.index, x.size, x.type, false, this.attrSize, x.offset);
 		}
 	}
-	draw(mode: number = gl.TRIANGLES, first: number = 0, count: number = 0) {
-		if (this.ebo) {
-			// gl.drawElements(gl.TRIANGLES, this.ebo.size() * 3, gl.UNSIGNED_INT, 0);
-		} else {
-			gl.drawArrays(mode, first, count);
-		}
-	}
 	unbind() {
 		for (let x of this.attrs) {
 			gl.disableVertexAttribArray(x.index);
@@ -85,51 +93,38 @@ class VAO {
 		}
 		this.vbo.unbind();
 	}
+	draw();
+	draw(mode: number, first: number, count: number); 
+	draw(mode: number = undefined, first: number = undefined, count: number = undefined) {
+		if (this.ebo) {
+			gl.drawElements(gl.TRIANGLES, this.numIndices, gl.UNSIGNED_INT, 0);
+		} else {
+			if (mode != undefined) {
+				gl.drawArrays(mode, first, count);
+			} else {
+				gl.drawArrays(gl.TRIANGLES, 0, this.numVertices);
+			}
+		}
+	}
 }
 
 class VertexAttrs {
 	public readonly attrs: AttrRecord[] = [];
 	public readonly attrSize: number = 0;
 	public vertices: number[] = [];
+	public readonly component: number = 0;
+	private readonly attrLookup: { [key: string]: AttrRecord } = {};
 
 	constructor(private attrNames: VertexAttrType[]) {
-		this.attrs = VertexAttrs.genAttrs(attrNames);
-		for (let x of this.attrs) {
-			this.attrSize += x.size * VertexAttrs.getSize(x.type);
-		}
-	}
-	push<T extends VertexAttrType>(vertex: VertexAttr<T>) {
-		// let row = [];
-		for (let x of this.attrNames) {
-			if (x in vertex) {
-				this.vertices = this.vertices.concat(vertex[x]);
-			} else {
-				throw "undefined vertex attribute: " + x;
-			}
-		}
-		// this.vertices.push();
-	}
-
-	static genAttrs(attrs: VertexAttrType[]): AttrRecord[] {
-		let result: AttrRecord[] = [];
-		for (let x of attrs) {
-			let offset = 0;
+		let offset = 0;
+		for (let x of attrNames) {
 			let attr = {
 				index: <number>null,
 				type: <number>null,
 				size: <number>null,
 				offset: <number>null
 			};
-			switch (x.substr(0, x.length)) {
-				case "pos": attr.index = 0; break;
-				case "color": attr.index = 1; break;
-				case "norm": attr.index = 2; break;
-				case "tg": attr.index = 3; break;
-				case "bitg": attr.index = 4; break;
-				case "tex": attr.index = 5; break;
-				case "ibone": attr.index = 6; break;
-				case "wbone": attr.index = 7; break;
-			}
+			attr.index = attrLocation[x.substr(0, x.length - 1)];
 			if (x[0] == "i") {
 				attr.type = gl.INT;
 			} else {
@@ -138,10 +133,36 @@ class VertexAttrs {
 			attr.size = +x.substr(-1);
 			attr.offset = offset;
 			offset += attr.size * VertexAttrs.getSize(attr.type);
-			result.push(attr);
+			this.attrs.push(attr);
+			this.attrLookup[x] = attr;
+			this.component += attr.size;
 		}
-		return result;
+		this.attrSize = offset;
 	}
+	push<T extends VertexAttrType>(vertex: VertexAttr<T>) {
+		for (let x of this.attrNames) {
+			if (x in vertex) {
+				this.vertices = this.vertices.concat(vertex[x]);
+			} else {
+				throw "lack of vertex attribute: " + x;
+			}
+		}
+	}
+	set(type: VertexAttrType, vs: number[]) {
+		let i = 0;
+		for (let x of this.attrNames) {
+			if (x == type) break;
+			i += this.attrLookup[x].size;
+		}
+		let dt = this.attrLookup[type].size;
+		for (let j = 0; j < vs.length; j += dt) {
+			for (let k = 0; k != dt; ++k) {
+				this.vertices[i + k] = vs[j + k];
+			}
+			i += this.component;
+		}
+	}
+
 	static getSize(type: number): number {
 		switch (type) {
 			case gl.FLOAT: return 4;

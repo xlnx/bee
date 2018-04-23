@@ -1,5 +1,5 @@
 import { glm } from "../util/glm"
-import { gl } from "../canvas/canvas"
+import { gl } from "../renderer/renderer"
 
 class Viewport {
 	private N = glm.vec3(0, 1, 0);

@@ -19,16 +19,16 @@ class RenderEvent {
 	}
 }
 
-class Canvas {
-	private static context: Canvas = null;
+class Renderer {
+	private static context: Renderer = null;
 
 	private events = new EventList();
 	private renderers = new ulist<() => void>();
-	private canvas: HTMLCanvasElement;
+	public readonly canvas: HTMLCanvasElement;
 	private canvasWrapper: HTMLDivElement;
 
 	constructor(container: HTMLElement, fallback: boolean = false) {
-		if (Canvas.context != null) {
+		if (Renderer.context != null) {
 			throw "Multiple WebGL contexts not supported.";
 		} else {
 			this.canvasWrapper = document.createElement("div");
@@ -61,17 +61,15 @@ class Canvas {
 				throw "webgl is not supported on your browser. " + e;
 			}
 		}
-		Canvas.context = this;
+		Renderer.context = this;
 	}
 
-	get width(): number {
-		return this.canvas.width;
-	}
-	get height(): number {
-		return this.canvas.height;
-	}
-	get instance(): Canvas {
-		return Canvas.context;
+	get instance(): Renderer {
+		if (Renderer.context) {
+			return Renderer.context;
+		} else {
+			throw "no current renderer.";
+		}
 	}
 	dispatch(eventType: RendererEventType, callback: any): RendererEvent {
 		if (eventType == "render") {
@@ -98,5 +96,5 @@ export {
 	gl,
 	gl2,
 	RendererEvent,
-	Canvas
+	Renderer
 }

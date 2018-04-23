@@ -29,6 +29,10 @@ module.exports = {
 			{
 				from: "./src/shaders",
 				to: "../shaders"
+			},
+			{
+				from: "./assets",
+				to: "../assets"
 			}
 		])
 	]

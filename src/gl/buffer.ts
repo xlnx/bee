@@ -1,4 +1,4 @@
-import { gl } from "../canvas/canvas"
+import { gl } from "../renderer/renderer"
 
 class BufferBase {
 	constructor(public readonly handle: any)
@@ -32,7 +32,7 @@ class EBO extends BufferBase {
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 	}
 	data(data: any[]) {
-		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(data), gl.STATIC_DRAW);
 	}
 }
 

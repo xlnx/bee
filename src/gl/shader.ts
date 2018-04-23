@@ -1,6 +1,6 @@
-import text from "../util/text"
+import xhr from "../util/xhr"
 import { glm } from "../util/glm"
-import { gl, gl2 } from "../canvas/canvas"
+import { gl, gl2 } from "../renderer/renderer"
 
 type UniformType = "int" | "float" | "ivec2" | "vec2" | "ivec3" | "vec3" | "ivec4" | "vec4" |
 	"mat2" | "mat3" | "mat4";
@@ -8,7 +8,7 @@ type UniformType = "int" | "float" | "ivec2" | "vec2" | "ivec3" | "vec3" | "ivec
 class Uniform {
 	private setter: any;
 
-	constructor(private valueType: UniformType, private index: number, private isArray: boolean) {
+	constructor(private name: string, private valueType: UniformType, private index: number, private isArray: boolean) {
 		// console.log(new UniformMap());
 		switch (valueType) {
 			case "int": this.setter = gl.uniform1i; break;
@@ -35,13 +35,22 @@ class Uniform {
 		}
 	}
 	set(value: any) {
-		if (this.index < 0) {
-			this.setter(<WebGLUniformLocation>-this.index, value);
-		} else {
-			if (!this.isArray) {
-				this.setter(<WebGLUniformLocation>ShaderBase.current.uniforms[this.index], value);
+		try {
+			if (this.index < 0) {
+				this.setter(<WebGLUniformLocation>-this.index, value);
 			} else {
-				throw "cannot assign value to a uniform array";
+				if (!this.isArray) {
+					// console.log(ShaderBase.current.uniforms[this.index]);
+					this.setter(<WebGLUniformLocation>ShaderBase.current.uniforms[this.index], value);
+				} else {
+					throw 1;
+				}
+			}
+		} catch (e) {
+			if (e == 1) {
+				throw "cannot assign value to a uniform array.";
+			} else {
+				// console.warn("uniform variable does not exist: " + this.name);
 			}
 		}
 	}
@@ -51,7 +60,7 @@ class Uniform {
 		} else {
 			let index = ShaderBase.current.uniformArrays[this.index].base + 
 				offset * ShaderBase.current.uniformArrays[this.index].diff;
-			return new Uniform(this.valueType, -index, false);
+			return new Uniform(this.name, this.valueType, -index, false);
 		}
 	}
 }
@@ -82,8 +91,8 @@ class Shader {
 		fsfilename = Shader.shaderPath + (gl2 ? "gl2/" : "gl/") + fsfilename;
 		// console.log(vsfilename);
 		// console.log(fsfilename);
-		let vs = Shader.compileShader(text.getSync(vsfilename), gl.VERTEX_SHADER);
-		let fs = Shader.compileShader(text.getSync(fsfilename), gl.FRAGMENT_SHADER);
+		let vs = Shader.compileShader(xhr.getSync(vsfilename), gl.VERTEX_SHADER);
+		let fs = Shader.compileShader(xhr.getSync(fsfilename), gl.FRAGMENT_SHADER);
 		this.handle = gl.createProgram();
 		gl.attachShader(this.handle, vs);
 		gl.attachShader(this.handle, fs);
@@ -92,15 +101,15 @@ class Shader {
 			throw gl.getProgramInfoLog(this.handle);
 		}
 		for (let i in Shader.registeredUniforms) {
-			this.base.uniforms[i] = <number>gl.getUniformLocation(this.handle, 
-				Shader.registeredUniforms[i]);
+			this.base.uniforms.push(<number>gl.getUniformLocation(this.handle, 
+				Shader.registeredUniforms[i]));
 		}
 		for (let i in Shader.registeredUniformArrays) {
 			let first = <number>gl.getUniformLocation(this.handle, 
 				Shader.registeredUniformArrays[i].first);
 			let second = <number>gl.getUniformLocation(this.handle, 
 				Shader.registeredUniformArrays[i].second);
-			this.base.uniformArrays[i] = { base: first, diff: second - first };
+			this.base.uniformArrays.push({ base: first, diff: second - first });
 		}
 	}
 
@@ -110,13 +119,13 @@ class Shader {
 	}
 	unuse() {
 		ShaderBase.current = null;
-		gl.useProgram(0);
+		gl.useProgram(null);
 	}
 	static uniform(valueType: UniformType, name: string): Uniform {
 		let p = name.indexOf("[]");
 		if (p != -1) {
-			if (name in this.uniformArrayIndex) {
-				return new Uniform(valueType, Shader.uniformArrayIndex[name], true);
+			if (name in Shader.uniformArrayIndex) {
+				return new Uniform(name, valueType, Shader.uniformArrayIndex[name], true);
 			} else {
 				let front = name.substr(0, p + 1);
 				let back = name.substr(p + 1);
@@ -124,26 +133,26 @@ class Shader {
 				let name1 = front + "1" + back;
 				Shader.registeredUniformArrays.push({ first: name0, second: name1});
 				let index = Shader.uniformArrayIndex[name] = Shader.registeredUniformArrays.length;
-				for (let i in this.shaders) {
-					let first = <number>gl.getUniformLocation(this.shaders[i].handle, 
+				for (let i in Shader.shaders) {
+					let first = <number>gl.getUniformLocation(Shader.shaders[i].handle, 
 						Shader.registeredUniformArrays[i].first);
-					let second = <number>gl.getUniformLocation(this.shaders[i].handle, 
+					let second = <number>gl.getUniformLocation(Shader.shaders[i].handle, 
 						Shader.registeredUniformArrays[i].second);
-					this.shaders[i].base.uniformArrays[i] = { base: first, diff: second - first };
+					Shader.shaders[i].base.uniformArrays[i] = { base: first, diff: second - first };
 				}
-				return new Uniform(valueType, index, true);
+				return new Uniform(name, valueType, index, true);
 			}
 		} else {
 			if (name in Shader.uniformIndex) {
-				return new Uniform(valueType, Shader.uniformIndex[name], false);
+				return new Uniform(name, valueType, Shader.uniformIndex[name], false);
 			} else {
 				Shader.registeredUniforms.push(name);
 				let index = Shader.uniformIndex[name] = Shader.registeredUniforms.length;
-				for (let i in this.shaders) {
-					this.shaders[i].base.uniforms.push(
-							<number>gl.getUniformLocation(this.shaders[i].handle, name));
+				for (let i in Shader.shaders) {
+					Shader.shaders[i].base.uniforms.push(
+							<number>gl.getUniformLocation(Shader.shaders[i].handle, name));
 				}
-				return new Uniform(valueType, index, false);
+				return new Uniform(name, valueType, index, false);
 			}
 		}
 	}
