@@ -97,7 +97,7 @@ class VAO {
 	draw(mode: number, first: number, count: number); 
 	draw(mode: number = undefined, first: number = undefined, count: number = undefined) {
 		if (this.ebo) {
-			gl.drawElements(gl.TRIANGLES, this.numIndices, gl.UNSIGNED_INT, 0);
+			gl.drawElements(gl.TRIANGLES, this.numIndices, gl.UNSIGNED_SHORT, 0);
 		} else {
 			if (mode != undefined) {
 				gl.drawArrays(mode, first, count);

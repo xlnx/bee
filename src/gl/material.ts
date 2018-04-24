@@ -10,17 +10,17 @@ type MaterialProperty = {
 }
 
 const textureType = {
-	0x1: "gMaterial.Diffuse",
-	0x2: "gMaterial.Specular",
-	0x3: "gMaterial.Ambient",
-	0x4: "gMaterial.Emissive",
-	0x5: "gMaterial.Height",
-	0x6: "gMaterial.Normals",
-	0x7: "gMaterial.Shininess",
-	0x8: "gMaterial.Opacity",
-	0x9: "gMaterial.Displacement",
-	0xa: "gMaterial.Lightmap",
-	0xb: "gMaterial.Reflection"
+	0x1: "Diffuse",
+	0x2: "Specular",
+	0x3: "Ambient",
+	0x4: "Emissive",
+	0x5: "Height",
+	0x6: "Normals",
+	0x7: "Shininess",
+	0x8: "Opacity",
+	0x9: "Displacement",
+	0xa: "Lightmap",
+	0xb: "Reflection"
 }
 
 export default class Material {
@@ -33,13 +33,13 @@ export default class Material {
 			shininess: (self: Material, prop: MaterialProperty) => {
 				self.attributes.push({
 					value: prop.value,
-					uniform: Shader.uniform("float", "gMaterial.SpecularPower")
+					uniform: Shader.uniform("float", "SpecularPower")
 				});
 			},
 			shinpercent: (self: Material, prop: MaterialProperty) => {
 				self.attributes.push({
 					value: prop.value,
-					uniform: Shader.uniform("float", "gMaterial.SpecularIntensity")
+					uniform: Shader.uniform("float", "SpecularIntensity")
 				});
 			}
 		},

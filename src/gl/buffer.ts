@@ -32,7 +32,7 @@ class EBO extends BufferBase {
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 	}
 	data(data: any[]) {
-		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(data), gl.STATIC_DRAW);
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(data), gl.STATIC_DRAW);
 	}
 }
 
