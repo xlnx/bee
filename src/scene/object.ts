@@ -105,7 +105,7 @@ export default abstract class Obj extends ObjBase {
 	static gWVP: Uniform = Shader.uniform("mat4", "gWVP");
 	static gWorld: Uniform = Shader.uniform("mat4", "gWorld");
 	static gVP: Uniform = Shader.uniform("mat4", "gVP");
-	static gCameraWorldPos: Uniform = Shader.uniform("mat4", "gCameraWorldPos");
+	static gCameraWorldPos: Uniform = Shader.uniform("vec3", "gCameraWorldPos");
 
 	setViewMatrices(viewport: Viewport) {
 		Obj.gWVP.set(viewport.getTrans()["*"](this.getTrans()));

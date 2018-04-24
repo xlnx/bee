@@ -1,55 +1,59 @@
 import xhr from "../util/xhr"
 import { glm } from "../util/glm"
 import { gl, gl2 } from "../renderer/renderer"
+import { Communicators } from "./communicator";
 
 type UniformType = "int" | "float" | "ivec2" | "vec2" | "ivec3" | "vec3" | "ivec4" | "vec4" |
 	"mat2" | "mat3" | "mat4";
 
 class Uniform {
-	private setter: any;
+	private setter: (loc: WebGLUniformLocation, value: any) => void;
 
-	constructor(private name: string, private valueType: UniformType, private index: number, private isArray: boolean) {
+	constructor(private name: string, private valueType: UniformType, private isArray: boolean) {
 		// console.log(new UniformMap());
 		switch (valueType) {
-			case "int": this.setter = gl.uniform1i; break;
-			case "float": this.setter = gl.uniform1f; break;
-			case "ivec2": this.setter = (location: any, value: any) => 
-				gl.uniform2iv(<WebGLUniformLocation>location, value.array); break;
-			case "vec2": this.setter = (location: any, value: any) => 
-				gl.uniform2fv(<WebGLUniformLocation>location, value.array); break;
-			case "ivec3": this.setter = (location: any, value: any) => 
-				gl.uniform3iv(<WebGLUniformLocation>location, value.array); break;
-			case "vec3": this.setter = (location: any, value: any) => 
-				gl.uniform3fv(<WebGLUniformLocation>location, value.array); break;
-			case "ivec4": this.setter = (location: any, value: any) => 
-				gl.uniform4iv(<WebGLUniformLocation>location, value.array); break;
-			case "vec4": this.setter = (location: any, value: any) => 
-				gl.uniform4fv(<WebGLUniformLocation>location, value.array); break;
-			case "mat2": this.setter = (location: any, value: any) => 
-				gl.uniformMatrix2fv(<WebGLUniformLocation>location, false, value.array); break;
-			case "mat3": this.setter = (location: any, value: any) => 
-				gl.uniformMatrix4fv(<WebGLUniformLocation>location, false, value.array); break;
-			case "mat4": this.setter = (location: any, value: any) => 
-				gl.uniformMatrix4fv(<WebGLUniformLocation>location, false, value.array); break;
+			case "int": this.setter = (location: WebGLUniformLocation, value: any) => 
+				gl.uniform1iv(location, new Int32Array([value])); break;
+			case "float": this.setter = (location: WebGLUniformLocation, value: any) => 
+				gl.uniform1fv(location, new Float32Array([value])); break;
+			case "ivec2": this.setter = (location: WebGLUniformLocation, value: any) => 
+				gl.uniform2iv(location, value.array); break;
+			case "vec2": this.setter = (location: WebGLUniformLocation, value: any) => 
+				gl.uniform2fv(location, value.array); break;
+			case "ivec3": this.setter = (location: WebGLUniformLocation, value: any) => 
+				gl.uniform3iv(location, value.array); break;
+			case "vec3": this.setter = (location: WebGLUniformLocation, value: any) => 
+				gl.uniform3fv(location, value.array); break;
+			case "ivec4": this.setter = (location: WebGLUniformLocation, value: any) => 
+				gl.uniform4iv(location, value.array); break;
+			case "vec4": this.setter = (location: WebGLUniformLocation, value: any) => 
+				gl.uniform4fv(location, value.array); break;
+			case "mat2": this.setter = (location: WebGLUniformLocation, value: any) => 
+				gl.uniformMatrix2fv(location, false, value.array); break;
+			case "mat3": this.setter = (location: WebGLUniformLocation, value: any) => 
+				gl.uniformMatrix4fv(location, false, value.array); break;
+			case "mat4": this.setter = (location: WebGLUniformLocation, value: any) => 
+				gl.uniformMatrix4fv(location, false, value.array); break;
 			default: throw "undefined uniform type";
 		}
 	}
 	set(value: any) {
 		try {
-			if (this.index < 0) {
-				this.setter(<WebGLUniformLocation>-this.index, value);
+			// console.log(this.name, gl.getUniformLocation(Shader.current, this.name), value);
+			if (!this.isArray) {
+				console.log(this.name, gl.getUniformLocation(
+						Shader.current.handle, this.name), value);
+				this.setter(gl.getUniformLocation(
+						Shader.current.handle, this.name), value);
 			} else {
-				if (!this.isArray) {
-					// console.log(ShaderBase.current.uniforms[this.index]);
-					this.setter(<WebGLUniformLocation>ShaderBase.current.uniforms[this.index], value);
-				} else {
-					throw 1;
-				}
+				throw 1;
 			}
 		} catch (e) {
 			if (e == 1) {
 				throw "cannot assign value to a uniform array.";
 			} else {
+				// throw e;
+				console.warn(e);
 				// console.warn("uniform variable does not exist: " + this.name);
 			}
 		}
@@ -58,33 +62,17 @@ class Uniform {
 		if (!this.isArray) {
 			throw "cannot subscribe a non-array uniform";
 		} else {
-			let index = ShaderBase.current.uniformArrays[this.index].base + 
-				offset * ShaderBase.current.uniformArrays[this.index].diff;
-			return new Uniform(this.name, this.valueType, -index, false);
+			return new Uniform(this.name + "[" + offset + "]", this.valueType, false);
 		}
 	}
 }
 
-// WebGLUniformLocation
-
-class ShaderBase {
-	public static current: ShaderBase = null;
-	
-	public uniforms: number[] = [0];
-	public uniformArrays: { base: number, diff: number }[] = [{base:0, diff:0}];
-}
-
 class Shader {
-	public readonly handle: WebGLProgram;
 	private static readonly shaderPath = "./shaders/";
-
-	private base = new ShaderBase();
-
+	private static stack: Shader[] = [];
 	private static shaders: { [key: string]: Shader } = {};
-	private static uniformIndex: { [key: string]: number } = {}
-	private static uniformArrayIndex: { [key: string]: number } = {};
-	private static registeredUniforms: string[] = [];
-	private static registeredUniformArrays: { first: string, second: string }[] = [];
+	
+	public readonly handle = gl.createProgram();
 
 	constructor(vsfilename: string, fsfilename: string) {
 		vsfilename = Shader.shaderPath + (gl2 ? "gl2/" : "gl/") + vsfilename;
@@ -93,67 +81,34 @@ class Shader {
 		// console.log(fsfilename);
 		let vs = Shader.compileShader(xhr.getSync(vsfilename), gl.VERTEX_SHADER);
 		let fs = Shader.compileShader(xhr.getSync(fsfilename), gl.FRAGMENT_SHADER);
-		this.handle = gl.createProgram();
 		gl.attachShader(this.handle, vs);
 		gl.attachShader(this.handle, fs);
 		gl.linkProgram(this.handle);
 		if (!gl.getProgramParameter(this.handle, gl.LINK_STATUS)) {
 			throw gl.getProgramInfoLog(this.handle);
 		}
-		for (let i in Shader.registeredUniforms) {
-			this.base.uniforms.push(<number>gl.getUniformLocation(this.handle, 
-				Shader.registeredUniforms[i]));
-		}
-		for (let i in Shader.registeredUniformArrays) {
-			let first = <number>gl.getUniformLocation(this.handle, 
-				Shader.registeredUniformArrays[i].first);
-			let second = <number>gl.getUniformLocation(this.handle, 
-				Shader.registeredUniformArrays[i].second);
-			this.base.uniformArrays.push({ base: first, diff: second - first });
-		}
 	}
 
 	use() {
-		ShaderBase.current = this.base;
+		Shader.current = this;
 		gl.useProgram(this.handle);
+		if (Communicators.current) {
+			Communicators.current.invoke();
+		}
 	}
 	unuse() {
-		ShaderBase.current = null;
-		gl.useProgram(null);
+		Shader.current = null;
+		if (Shader.current && Communicators.current) {
+			Communicators.current.invoke();
+		}
+		gl.useProgram(Shader.current);
 	}
 	static uniform(valueType: UniformType, name: string): Uniform {
 		let p = name.indexOf("[]");
 		if (p != -1) {
-			if (name in Shader.uniformArrayIndex) {
-				return new Uniform(name, valueType, Shader.uniformArrayIndex[name], true);
-			} else {
-				let front = name.substr(0, p + 1);
-				let back = name.substr(p + 1);
-				let name0 = front + "0" + back;
-				let name1 = front + "1" + back;
-				Shader.registeredUniformArrays.push({ first: name0, second: name1});
-				let index = Shader.uniformArrayIndex[name] = Shader.registeredUniformArrays.length;
-				for (let i in Shader.shaders) {
-					let first = <number>gl.getUniformLocation(Shader.shaders[i].handle, 
-						Shader.registeredUniformArrays[i].first);
-					let second = <number>gl.getUniformLocation(Shader.shaders[i].handle, 
-						Shader.registeredUniformArrays[i].second);
-					Shader.shaders[i].base.uniformArrays[i] = { base: first, diff: second - first };
-				}
-				return new Uniform(name, valueType, index, true);
-			}
+			return new Uniform(name.substring(0, name.indexOf("[]")), valueType, true);
 		} else {
-			if (name in Shader.uniformIndex) {
-				return new Uniform(name, valueType, Shader.uniformIndex[name], false);
-			} else {
-				Shader.registeredUniforms.push(name);
-				let index = Shader.uniformIndex[name] = Shader.registeredUniforms.length;
-				for (let i in Shader.shaders) {
-					Shader.shaders[i].base.uniforms.push(
-							<number>gl.getUniformLocation(Shader.shaders[i].handle, name));
-				}
-				return new Uniform(name, valueType, index, false);
-			}
+			return new Uniform(name, valueType, false);
 		}
 	}
 
@@ -172,9 +127,22 @@ class Shader {
 		}
 		return Shader.shaders[name];
 	}
+	static get current(): Shader {
+		return Shader.stack.length ? Shader.stack[Shader.stack.length - 1] : null;
+	}
+	static set current(value: Shader) {
+		if (value != null) {
+			Shader.stack.push(value);
+		} else {
+			if (Shader.stack.length) {
+				Shader.stack.pop();
+			}
+		}
+	}
 }
 
 export {
 	Uniform,
+	UniformType,
 	Shader
 }

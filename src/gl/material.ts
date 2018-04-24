@@ -33,13 +33,13 @@ export default class Material {
 			shininess: (self: Material, prop: MaterialProperty) => {
 				self.attributes.push({
 					value: prop.value,
-					uniform: Shader.uniform("float", "SpecularPower")
+					uniform: Shader.uniform("float", "gSpecularPower")
 				});
 			},
 			shinpercent: (self: Material, prop: MaterialProperty) => {
 				self.attributes.push({
 					value: prop.value,
-					uniform: Shader.uniform("float", "SpecularIntensity")
+					uniform: Shader.uniform("float", "gSpecularIntensity")
 				});
 			}
 		},
@@ -49,7 +49,7 @@ export default class Material {
 					console.log(textureType[prop.semantic]);
 					self.textures[prop.semantic] = {
 						texture: new Texture2D(path + <string>prop.value),
-						uniform: Shader.uniform("int", textureType[prop.semantic])
+						uniform: Shader.uniform("int", "g" + textureType[prop.semantic])
 					};
 				}
 			}
