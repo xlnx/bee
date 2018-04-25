@@ -6,18 +6,28 @@ class Communicator {
 
 	protected data: { [key: string]: { data: any, uniform: Uniform } } = {};
 
-	constructor(public readonly type: string) {
-		if (!(type in Communicator.counters)) {
-			Communicator.counters[type] = Shader.uniform("int", "g" + type + "_count");
+	constructor(public readonly type: string, private array: boolean = true) {
+		if (array) {
+			if (!(type in Communicator.counters)) {
+				Communicator.counters[type] = Shader.uniform("int", "g" + type + "_count");
+			}
 		}
 	}
 	
 	invoke(index: number): boolean {
-		for (let key in this.data) {
-			// console.log(key, this.data[key].data);
-			this.data[key].uniform.subscribe(index).set(this.data[key].data);
+		if (this.array) {
+			for (let key in this.data) {
+				// console.log(key, this.data[key].data);
+				this.data[key].uniform.subscribe(index).set(this.data[key].data);
+			}
+			return true;
+		} else {
+			for (let key in this.data) {
+				// console.log(key, this.data[key].data);
+				this.data[key].uniform.set(this.data[key].data);
+			}
+			return false;
 		}
-		return true;
 	}
 	set(key: string, value: any) {
 		if (key in this.data) {
@@ -27,11 +37,20 @@ class Communicator {
 		}
 	}
 	protected init(uniforms: { [name: string]: { type: UniformType, init: any } }) {
-		for (let name in uniforms) {
-			this.data[name] = {
-				data: uniforms[name].init, 
-				uniform: Shader.uniform(uniforms[name].type, "g" + this.type + "_" + name + "[]")
-			};
+		if (this.array) {
+			for (let name in uniforms) {
+				this.data[name] = {
+					data: uniforms[name].init, 
+					uniform: Shader.uniform(uniforms[name].type, "g" + this.type + "_" + name + "[]")
+				};
+			}
+		} else {
+			for (let name in uniforms) {
+				this.data[name] = {
+					data: uniforms[name].init, 
+					uniform: Shader.uniform(uniforms[name].type, "g" + this.type)
+				};
+			}
 		}
 	}
 }

@@ -1,5 +1,5 @@
 import { glm } from "../util/glm"
-import { gl } from "../renderer/renderer"
+import { gl, Renderer } from "../renderer/renderer"
 
 class Viewport {
 	private N = glm.vec3(0, 1, 0);
@@ -14,10 +14,18 @@ class Viewport {
 
 	private trans: glm.mat4;
 
-	constructor(public readonly left: number, public readonly top: number,
-		public readonly width: number, public readonly height: number)
+	constructor();
+	constructor(left: number, top: number, width: number, height: number);
+	constructor(public readonly left?: number, public readonly top?: number,
+		public readonly width?: number, public readonly height?: number)
 	{
-		gl.viewport(left, top, width, height);
+		if (left != undefined) {
+			gl.viewport(left, top, width, height);
+		} else {
+			this.left = 0; this.top = 0;
+			this.width = Renderer.instance.canvas.width;
+			this.height = Renderer.instance.canvas.height;
+		}
 	}
 
 	set target(target: glm.vec3) {
@@ -86,7 +94,9 @@ class PerspectiveViewport extends Viewport {
 	private fzNear = 1e-3;
 	private fzFar = 1e5;
 
-	constructor(left: number, top: number, width: number, height: number) {
+	constructor();
+	constructor(left: number, top: number, width: number, height: number);
+	constructor(left?: number, top?: number, width?: number, height?: number) {
 		super(left, top, width, height);
 	}
 

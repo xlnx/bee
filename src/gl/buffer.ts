@@ -46,6 +46,24 @@ class FBO extends BufferBase {
 	unbind() {
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 	}
+	setRenderBuffer(rbo: RBO, channel: number) {
+		gl.framebufferRenderbuffer(gl.FRAMEBUFFER, channel, gl.RENDERBUFFER, rbo);
+	}
+	validate() {
+		switch (gl.checkFramebufferStatus(gl.FRAMEBUFFER)) {
+			case gl.FRAMEBUFFER_COMPLETE: break;
+			case gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT: 
+				throw "framebuffer incomplete attachment.";
+			case gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+				throw "framebuffer incomplete missing attachment.";
+			case gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
+				throw "framebuffer incomplete dimensions.";
+			case gl.FRAMEBUFFER_UNSUPPORTED:
+				throw "framebuffer unsupported.";
+			default: 
+				throw "unknown framebuffer error.";
+		}
+	}
 }
 
 class RBO extends BufferBase {

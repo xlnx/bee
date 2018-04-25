@@ -21,11 +21,14 @@ class RenderEvent {
 
 class Renderer {
 	private static context: Renderer = null;
+	private static prevTime: number = 0;
 
+	private fps: number = 0;
 	private events = new EventList();
 	private renderers = new ulist<() => void>();
 	public readonly canvas: HTMLCanvasElement;
 	private canvasWrapper: HTMLDivElement;
+	private animationRequest: number;
 
 	constructor(container: HTMLElement, fallback: boolean = false) {
 		if (Renderer.context != null) {
@@ -64,7 +67,7 @@ class Renderer {
 		Renderer.context = this;
 	}
 
-	get instance(): Renderer {
+	static get instance(): Renderer {
 		if (Renderer.context) {
 			return Renderer.context;
 		} else {
@@ -78,7 +81,10 @@ class Renderer {
 			return this.events.addEvent(eventType, callback);
 		}
 	}
-	render() {
+	start() {
+		this.animationRequest = window.requestAnimationFrame(this.render.bind(this));
+	}
+	private render(time: number) {
 		this.renderers.visit((e: ulist_elem<() => void>) => {
 			try {
 				e.get()();
@@ -86,9 +92,13 @@ class Renderer {
 				console.error(err);
 			}
 		});
-		setTimeout(() => {
-			this.render();
-		}, 0);
+		if (Math.floor(time / 1000) > Renderer.prevTime) {
+			console.log("fps:", this.fps + 1);
+			Renderer.prevTime = Math.floor(time / 1000);
+			this.fps = 0;
+		}
+		this.fps += 1;
+		this.animationRequest = window.requestAnimationFrame(this.render.bind(this));
 	}
 }
 

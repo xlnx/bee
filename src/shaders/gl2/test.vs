@@ -4,9 +4,9 @@ uniform mat4 gWVP;
 uniform mat4 gWorld;
 
 
-layout (location = 0) in vec3 Position;
-layout (location = 2) in vec3 Normal;
-layout (location = 5) in vec2 TexCoord;
+in vec3 Position;
+in vec3 Normal;
+in vec2 TexCoord;
 
 out vec2 TexCoord0;
 out vec3 WorldPos0;

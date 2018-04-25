@@ -39,12 +39,8 @@ class Uniform {
 	}
 	set(value: any) {
 		try {
-			// console.log(this.name, gl.getUniformLocation(Shader.current, this.name), value);
 			if (!this.isArray) {
-				console.log(this.name, gl.getUniformLocation(
-						Shader.current.handle, this.name), value);
-				this.setter(gl.getUniformLocation(
-						Shader.current.handle, this.name), value);
+				this.setter(gl.getUniformLocation(Shader.current.handle, this.name), value);
 			} else {
 				throw 1;
 			}
@@ -52,8 +48,6 @@ class Uniform {
 			if (e == 1) {
 				throw "cannot assign value to a uniform array.";
 			} else {
-				// throw e;
-				console.warn(e);
 				// console.warn("uniform variable does not exist: " + this.name);
 			}
 		}
@@ -81,6 +75,14 @@ class Shader {
 		// console.log(fsfilename);
 		let vs = Shader.compileShader(xhr.getSync(vsfilename), gl.VERTEX_SHADER);
 		let fs = Shader.compileShader(xhr.getSync(fsfilename), gl.FRAGMENT_SHADER);
+		gl.bindAttribLocation(this.handle, 0, "Position");
+		gl.bindAttribLocation(this.handle, 1, "Color");
+		gl.bindAttribLocation(this.handle, 2, "Normal");
+		gl.bindAttribLocation(this.handle, 3, "Tangent");
+		gl.bindAttribLocation(this.handle, 4, "Bitangent");
+		gl.bindAttribLocation(this.handle, 5, "TexCoord");
+		gl.bindAttribLocation(this.handle, 6, "BoneIndex");
+		gl.bindAttribLocation(this.handle, 7, "BoneWeight");
 		gl.attachShader(this.handle, vs);
 		gl.attachShader(this.handle, fs);
 		gl.linkProgram(this.handle);
