@@ -49,7 +49,7 @@ class FBO extends BufferBase {
 	setRenderBuffer(rbo: RBO, channel: number) {
 		gl.framebufferRenderbuffer(gl.FRAMEBUFFER, channel, gl.RENDERBUFFER, rbo);
 	}
-	validate() {
+	check() {
 		switch (gl.checkFramebufferStatus(gl.FRAMEBUFFER)) {
 			case gl.FRAMEBUFFER_COMPLETE: break;
 			case gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT: 

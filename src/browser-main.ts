@@ -12,8 +12,8 @@ let renderer = new Renderer(document.body);
 let scene = new Scene();
 
 let camera = scene.createViewport<PerspectiveViewport>(new PerspectiveViewport()).get();
-camera.position = glm.vec3(1, -0.5, 1.2);
-camera.target = glm.vec3(-1, 0.5, -0.8);
+camera.position = glm.vec3(3, 0, 1.2);
+camera.target = glm.vec3(-3, 0, -0.8);
 
 let light = scene.createCommunicator<PointLight>(new PointLight()).get();
 light.set("position", glm.vec3(0, 0, 2));
@@ -26,8 +26,9 @@ gl.clearColor(0, 0, 0, 0);
 gl.clearDepth(1);
 
 let model = scene.createObject<ModelObj>(new ModelObj(
-		Model.create("black-bishop.json"))).get();
-model.scale(0.01);
+		Model.create("clemson.json"))).get();
+		// Model.create("black-bishop.json"))).get();
+model.scale(0.5);
 
 gl.enable(gl.DEPTH_TEST);
 

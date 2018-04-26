@@ -81,11 +81,11 @@ class Offscreen {
 	bind() {
 		this.fbo.bind();
 	}
-	validate() {
-		this.fbo.validate();
-	}
 	unbind() {
 		this.fbo.unbind();
+	}
+	check() {
+		this.fbo.check();
 	}
 }
 

@@ -41,7 +41,7 @@ class ShadowTechnique extends Technique {
 			communicators.use();
 				for (let i = 0; i != 6; ++i) {
 					this.offscreen.set(gl.COLOR_ATTACHMENT0, this.shadowTexture, i);
-					this.offscreen.validate();
+					// this.offscreen.check();
 
 					gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
 					[ this.lightCamera.target, this.lightCamera.up ] = ShadowTechnique.cameraPositions[i];
