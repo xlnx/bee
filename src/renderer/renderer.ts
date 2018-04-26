@@ -45,6 +45,7 @@ class Renderer {
 			this.canvasWrapper.style["overflow"] = "hidden";
 			container.appendChild(this.canvasWrapper);
 			try {
+				fallback = fallback || (navigator.userAgent.indexOf("Mac OS X") > 0);
 				if (!fallback) {
 					gl2 = <WebGL2RenderingContext>this.canvas.getContext("webgl2");// || canvas.getContext("experimental-webgl");
 				}

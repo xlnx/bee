@@ -26,9 +26,9 @@ uniform float gPointLight_attenExp[MAX_POINT_LIGHTS];
 uniform int gPointLight_count;
 
 
-in vec2 TexCoord0;
-in vec3 WorldPos0;
-in vec3 Normal0;
+smooth in vec2 TexCoord0;
+smooth in vec3 WorldPos0;
+smooth in vec3 Normal0;
 
 out vec4 FragColor;
 

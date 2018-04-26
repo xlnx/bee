@@ -8,9 +8,9 @@ in vec3 Position;
 in vec3 Normal;
 in vec2 TexCoord;
 
-out vec2 TexCoord0;
-out vec3 WorldPos0;
-out vec3 Normal0;
+smooth out vec2 TexCoord0;
+smooth out vec3 WorldPos0;
+smooth out vec3 Normal0;
 
 void main()
 {
