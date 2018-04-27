@@ -94,14 +94,12 @@ class Shader {
 	use() {
 		Shader.current = this;
 		gl.useProgram(this.handle);
-		if (Communicators.current) {
-			Communicators.current.invoke();
-		}
+		Communicators.invoke();
 	}
 	unuse() {
 		Shader.current = null;
-		if (Shader.current && Communicators.current) {
-			Communicators.current.invoke();
+		if (Shader.current) {
+			Communicators.invoke();
 		}
 		gl.useProgram(Shader.current);
 	}

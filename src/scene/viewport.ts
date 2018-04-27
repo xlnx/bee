@@ -87,9 +87,10 @@ class Viewport {
 class PerspectiveViewport extends Viewport {
 	private perspectiveTrans: glm.mat4;
 	private viewportTrans: glm.mat4;
-
+	
 	private perspectiveModified = true;
-
+	
+	private fwhratio: number;
 	private ffov = glm.radians(60);
 	private fzNear = 1e-3;
 	private fzFar = 1e5;
@@ -98,6 +99,7 @@ class PerspectiveViewport extends Viewport {
 	constructor(left: number, top: number, width: number, height: number);
 	constructor(left?: number, top?: number, width?: number, height?: number) {
 		super(left, top, width, height);
+		this.fwhratio = this.width / this.height;
 	}
 
 	getTrans(): glm.mat4 {
@@ -105,11 +107,18 @@ class PerspectiveViewport extends Viewport {
 			if (this.perspectiveModified) {
 				this.perspectiveModified = false;
 				this.perspectiveTrans = glm.perspective(this.ffov, 
-						this.width / this.height, this.fzNear, this.fzFar);
+						this.fwhratio, this.fzNear, this.fzFar);
 			}
 			this.viewportTrans = this.perspectiveTrans["*"](super.getTrans());
 		}
 		return this.viewportTrans;
+	}
+	set whratio(value: number) {
+		this.fwhratio = value;
+		this.perspectiveModified = true;
+	}
+	get whratio(): number {
+		return this.fwhratio;
 	}
 	set fov(angle: number) {
 		this.ffov = angle;

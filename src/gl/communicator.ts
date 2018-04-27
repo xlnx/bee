@@ -6,7 +6,7 @@ class Communicator {
 
 	protected data: { [key: string]: { data: any, uniform: Uniform } } = {};
 
-	constructor(public readonly type: string, private array: boolean = true) {
+	constructor(public readonly type: string, public readonly array: boolean = true) {
 		if (array) {
 			if (!(type in Communicator.counters)) {
 				Communicator.counters[type] = Shader.uniform("int", "g" + type + "_count");
@@ -36,6 +36,13 @@ class Communicator {
 			throw "communicator key does not match any: " + key;
 		}
 	}
+	get(key: string) {
+		if (key in this.data) {
+			return this.data[key].data;
+		} else {
+			throw "communicator key does not match any: " + key;
+		}
+	}
 	protected init(uniforms: { [name: string]: { type: UniformType, init: any } }) {
 		if (this.array) {
 			for (let name in uniforms) {
@@ -48,7 +55,7 @@ class Communicator {
 			for (let name in uniforms) {
 				this.data[name] = {
 					data: uniforms[name].init, 
-					uniform: Shader.uniform(uniforms[name].type, "g" + this.type)
+					uniform: Shader.uniform(uniforms[name].type, "g" + name)
 				};
 			}
 		}
@@ -56,29 +63,60 @@ class Communicator {
 }
 
 class Communicators {
-	static communicators: Communicators[] = [];
+	static communicators: { 
+		com: Communicators, 
+		check: (e: Communicator) => boolean
+	} [] = [];
 	private data = new ulist<Communicator>();
 
-	invoke() {
+	invoke();
+	invoke(validate: (e: Communicator) => boolean);
+	invoke(validate?: any) {
+		if (validate == undefined) {
+			validate = () => true;
+		}
 		let map: { [key: string]: number } = {};
 		this.data.visit((e: ulist_elem<Communicator>) => {
 			let communicator = e.get();
-			if (!(communicator.type in map)) {
-				map[communicator.type] = 0;
-			}
-			if (communicator.invoke(map[communicator.type])) {
-				map[communicator.type]++;
+			if (communicator.array) {
+				if (validate(communicator)) {
+					if (!(communicator.type in map)) {
+						map[communicator.type] = 0;
+					}
+					if (communicator.invoke(map[communicator.type])) {
+						map[communicator.type]++;
+					}
+				}
+			} else {
+				if (validate(communicator)) {
+					communicator.invoke(0);
+				}
 			}
 		});
 		for (let type in map) {
 			Communicator.counters[type].set(map[type]);
 		}
 	}
+	static invoke() {
+		if (Communicators.current) {
+			Communicators.current.invoke(Communicators.communicators[
+				Communicators.communicators.length - 1
+			].check);
+		}
+	}
 	add(communicator: Communicator): ulist_elem<Communicator> {
 		return this.data.push(communicator);
 	}
-	use() {
-		Communicators.communicators.push(this);
+	use();
+	use(validate: (e: Communicator) => boolean);
+	use(validate?: any) {
+		if (validate == undefined) {
+			validate = () => true;
+		}
+		Communicators.communicators.push({
+			com: this,
+			check: validate
+		});
 	}
 	unuse() {
 		if (Communicators.communicators.length) {
@@ -87,7 +125,8 @@ class Communicators {
 	}
 	static get current(): Communicators {
 		if (Communicators.communicators.length > 0) {
-			return Communicators.communicators[Communicators.communicators.length - 1];
+			return Communicators.communicators[
+				Communicators.communicators.length - 1].com;
 		} else {
 			return null;
 		}
