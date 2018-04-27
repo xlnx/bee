@@ -7,6 +7,7 @@ import ModelObj from "./object/modelObject"
 import { PointLight } from "./techniques/lighting";
 import { ShadowTechnique } from "./techniques/shadow";
 import { Ocean } from "./techniques/ocean";
+import { Shader } from "./gl/shader";
 
 let renderer = new Renderer(document.body);
 
@@ -31,7 +32,7 @@ let model = scene.createObject<ModelObj>(new ModelObj(
 		Model.create("clemson.json"))).get();
 		// Model.create("black-bishop.json"))).get();
 model.scale(0.5);
-model.translate(glm.vec3(0, 0, 0.5));
+model.translate(glm.vec3(0, 0, 0.8));
 
 let ocean = scene.createObject<Ocean>(new Ocean());
 

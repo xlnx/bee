@@ -32,6 +32,11 @@ class ShadowTechnique extends Technique {
 
 	constructor() {
 		super();
+		Shader.require({
+			Shadow: {
+				fs: "shadow"
+			}
+		});
 		this.offscreen.bind();
 			this.offscreen.set(gl.DEPTH_ATTACHMENT, new RenderBuffer(
 					gl.DEPTH_COMPONENT16, Renderer.instance.canvas.height,
@@ -46,23 +51,25 @@ class ShadowTechnique extends Technique {
 	}
 	render(objects: ulist<Obj>, viewports: ulist<Viewport>, communicators: Communicators) {
 		gl.cullFace(gl.FRONT);
-		gl.clearColor(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
+		gl.clearColor(1, 1, 1, 1);
 		this.offscreen.bind();
-			communicators.use((e: Communicator) => {
-				return e.type.indexOf("Light") < 0;
-			});
-				this.lightCamera.position = this.light.get("position");
-				for (let i = 0; i != 6; ++i) {
-					this.offscreen.set(gl.COLOR_ATTACHMENT0, this.shadowTexture, i);
-					// this.offscreen.check();
+			Shader.specify("Shadow");
+				communicators.use((e: Communicator) => {
+					return e.type.indexOf("Light") < 0;
+				});
+					this.lightCamera.position = this.light.get("position");
+					for (let i = 0; i != 6; ++i) {
+						this.offscreen.set(gl.COLOR_ATTACHMENT0, this.shadowTexture, i);
+						// this.offscreen.check();
 
-					gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
-					[ this.lightCamera.target, this.lightCamera.up ] = ShadowTechnique.cameraPositions[i];
-					objects.visit((e: ulist_elem<Obj>) => {
-						e.get().render(this.lightCamera, this.shader);
-					});
-				}
-			communicators.unuse();
+						gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
+						[ this.lightCamera.target, this.lightCamera.up ] = ShadowTechnique.cameraPositions[i];
+						objects.visit((e: ulist_elem<Obj>) => {
+							e.get().render(this.lightCamera, this.shader);
+						});
+					}
+				communicators.unuse();
+			Shader.unspecify();
 		this.offscreen.unbind();
 		gl.clearColor(0, 0, 0, 0);
 		gl.cullFace(gl.BACK);
@@ -80,7 +87,7 @@ class ShadowTechnique extends Technique {
 
 	private communicator: ulist_elem<Communicator> = null;
 	private gShadowMap: ShadowCommunicator = new ShadowCommunicator();
-	private shadowTexture: TextureCube = new TextureCube(gl.RGB);
+	private shadowTexture: TextureCube = new TextureCube(gl.RGBA);
 
 	private lightCamera: PerspectiveViewport = new PerspectiveViewport();
 	private light: PointLight;

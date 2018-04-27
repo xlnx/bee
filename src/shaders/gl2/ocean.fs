@@ -37,9 +37,15 @@ out vec4 FragColor;
 
 const float shadowMapScale = 1.0 / 1024.0;
 
+float vec42normfloat(vec4 rgba)
+{
+	const vec4 bitShift = vec4(1.0, 1.0/256.0, 1.0/(256.0*256.0), 1.0/(256.0*256.0*256.0));
+	return dot(rgba, bitShift);
+}
+
 float ShadowMapOffsetLookup(vec3 plain, vec3 offset)
 {
-	return texture(gShadowMap, plain + offset * shadowMapScale).r * 1e5;
+	return 1e7 * vec42normfloat(texture(gShadowMap, plain + offset * shadowMapScale));
 }
 
 vec3 Plainlize(vec3 LightDirection, out int channel)
@@ -108,8 +114,8 @@ float CalcShadowFactor(vec3 LightDirection)
 		ForcePCFShadowDistance4x4(LightDirection);
 	float Distance = length(LightDirection);
 	float diff = Distance - SampledDistance;
-	
-	if (diff < 1e-1)
+
+	if (diff < 1e-2)
 		{ return 1.0; }
 	else
 		{ return 0.4; }

@@ -40,7 +40,7 @@ class Uniform {
 	set(value: any) {
 		try {
 			if (!this.isArray) {
-				this.setter(gl.getUniformLocation(Shader.current.handle, this.name), value);
+				this.setter(gl.getUniformLocation(Shader.current(), this.name), value);
 			} else {
 				throw 1;
 			}
@@ -65,43 +65,52 @@ class Shader {
 	private static readonly shaderPath = "./shaders/";
 	private static stack: Shader[] = [];
 	private static shaders: { [key: string]: Shader } = {};
+	private static requirements: { [label: string]: { [type: string]: WebGLShader } } = {};
+
+	private static partials: string[] = [];
 	
-	public readonly handle = gl.createProgram();
+	private vs: WebGLShader;
+	private fs: WebGLShader;
+	public readonly handle: WebGLProgram;
+	private partial: { [label: string]: WebGLProgram } = {};
 
 	constructor(vsfilename: string, fsfilename: string) {
 		vsfilename = Shader.shaderPath + (gl2 ? "gl2/" : "gl/") + vsfilename;
 		fsfilename = Shader.shaderPath + (gl2 ? "gl2/" : "gl/") + fsfilename;
-		// console.log(vsfilename);
-		// console.log(fsfilename);
-		let vs = Shader.compileShader(xhr.getSync(vsfilename), gl.VERTEX_SHADER);
-		let fs = Shader.compileShader(xhr.getSync(fsfilename), gl.FRAGMENT_SHADER);
-		gl.bindAttribLocation(this.handle, 0, "Position");
-		gl.bindAttribLocation(this.handle, 1, "Color");
-		gl.bindAttribLocation(this.handle, 2, "Normal");
-		gl.bindAttribLocation(this.handle, 3, "Tangent");
-		gl.bindAttribLocation(this.handle, 4, "Bitangent");
-		gl.bindAttribLocation(this.handle, 5, "TexCoord");
-		gl.bindAttribLocation(this.handle, 6, "BoneIndex");
-		gl.bindAttribLocation(this.handle, 7, "BoneWeight");
-		gl.attachShader(this.handle, vs);
-		gl.attachShader(this.handle, fs);
-		gl.linkProgram(this.handle);
-		if (!gl.getProgramParameter(this.handle, gl.LINK_STATUS)) {
-			throw gl.getProgramInfoLog(this.handle);
+		this.vs = Shader.compileShader(xhr.getSync(vsfilename), gl.VERTEX_SHADER);
+		this.fs = Shader.compileShader(xhr.getSync(fsfilename), gl.FRAGMENT_SHADER);
+		this.handle = Shader.createProgram(this.vs, this.fs);
+		for (let label in Shader.requirements) {
+			this.partial[label] = Shader.createProgram(
+					"vs" in Shader.requirements[label] ? Shader.requirements[label].vs : this.vs,
+					"fs" in Shader.requirements[label] ? Shader.requirements[label].fs : this.fs);
 		}
 	}
 
 	use() {
-		Shader.current = this;
-		gl.useProgram(this.handle);
+		Shader.stack.push(this);
+		if (Shader.partials.length) {
+			gl.useProgram(this.partial[Shader.partials[Shader.partials.length - 1]]);
+		} else {
+			gl.useProgram(this.handle);
+		}
 		Communicators.invoke();
 	}
 	unuse() {
-		Shader.current = null;
-		if (Shader.current) {
-			Communicators.invoke();
+		if (Shader.stack.length) {
+			Shader.stack.pop();
 		}
-		gl.useProgram(Shader.current);
+		if (Shader.stack.length) {
+			let self = Shader.stack[Shader.stack.length - 1];
+			if (Shader.partials.length) {
+				gl.useProgram(self.partial[Shader.partials[Shader.partials.length - 1]]);
+			} else {
+				gl.useProgram(self.handle);
+			}
+			Communicators.invoke();
+		} else {
+			gl.useProgram(null);
+		}
 	}
 	static uniform(valueType: UniformType, name: string): Uniform {
 		let p = name.indexOf("[]");
@@ -109,6 +118,28 @@ class Shader {
 			return new Uniform(name.substring(0, name.indexOf("[]")), valueType, true);
 		} else {
 			return new Uniform(name, valueType, false);
+		}
+	}
+	static require(list: { [label: string]: { [type: string]: string }}) {
+		for (let label in list) {
+			if (!(label in Shader.requirements)) {
+				let data: { [type: string]: WebGLShader } = {};
+				if ("fs" in list[label]) {
+					let fsfilename = Shader.shaderPath + (gl2 ? "gl2/" : "gl/") + list[label].fs + ".fs";
+					data.fs = Shader.compileShader(xhr.getSync(fsfilename), gl.FRAGMENT_SHADER);
+				}
+				if ("vs" in list[label]) {
+					let vsfilename = Shader.shaderPath + (gl2 ? "gl2/" : "gl/") + list[label].vs + ".vs";
+					data.vs = Shader.compileShader(xhr.getSync(vsfilename), gl.VERTEX_SHADER);
+				}
+				console.log(data);
+				Shader.requirements[label] = data;
+				for (let id in Shader.shaders) {
+					Shader.shaders[id].partial[label] = Shader.createProgram(
+							"vs" in data ? data.vs : Shader.shaders[id].vs,
+							"fs" in data ? data.fs : Shader.shaders[id].fs);
+				}
+			}
 		}
 	}
 
@@ -127,17 +158,43 @@ class Shader {
 		}
 		return Shader.shaders[name];
 	}
-	static get current(): Shader {
-		return Shader.stack.length ? Shader.stack[Shader.stack.length - 1] : null;
-	}
-	static set current(value: Shader) {
-		if (value != null) {
-			Shader.stack.push(value);
+	static current(): WebGLProgram {
+		if (!Shader.stack.length) {
+			return null;
 		} else {
-			if (Shader.stack.length) {
-				Shader.stack.pop();
+			if (Shader.partials.length) {
+				return Shader.stack[Shader.stack.length - 1].partial[Shader.partials[Shader.partials.length - 1]];
+			} else {
+				return Shader.stack[Shader.stack.length - 1].handle;
 			}
 		}
+	}
+	static specify(label: string) {
+		this.partials.push(label);
+	}
+	static unspecify() {
+		if (this.partials.length) {
+			this.partials.pop();
+		}
+	}
+
+	private static createProgram(vs: WebGLShader, fs: WebGLShader): WebGLProgram {
+		let program = gl.createProgram();
+		gl.bindAttribLocation(program, 0, "Position");
+		gl.bindAttribLocation(program, 1, "Color");
+		gl.bindAttribLocation(program, 2, "Normal");
+		gl.bindAttribLocation(program, 3, "Tangent");
+		gl.bindAttribLocation(program, 4, "Bitangent");
+		gl.bindAttribLocation(program, 5, "TexCoord");
+		gl.bindAttribLocation(program, 6, "BoneIndex");
+		gl.bindAttribLocation(program, 7, "BoneWeight");
+		gl.attachShader(program, vs);
+		gl.attachShader(program, fs);
+		gl.linkProgram(program);
+		if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+			throw gl.getProgramInfoLog(program);
+		}
+		return program;
 	}
 }
 
