@@ -26,21 +26,15 @@ const textureType = {
 export default class Material {
 	static materialPath: string = "./materials/";
 
-	static keymap: { 
+	private static keymap: { 
 		[key: string]: { [key: string]: (self: Material, prop: MaterialProperty, path: string) => void }
 	} = {
 		mat: {
 			shininess: (self: Material, prop: MaterialProperty) => {
-				self.attributes.push({
-					value: prop.value,
-					uniform: Shader.uniform("float", "gSpecularPower")
-				});
+				Material.lookup.specularPower(self, prop.value);
 			},
 			shinpercent: (self: Material, prop: MaterialProperty) => {
-				self.attributes.push({
-					value: prop.value,
-					uniform: Shader.uniform("float", "gSpecularIntensity")
-				});
+				Material.lookup.specularIntensity(self, prop.value);
 			}
 		},
 		tex: {
@@ -55,21 +49,32 @@ export default class Material {
 			}
 		}
 	};
+	private static lookup: { [key: string]: (self: Material, value: any) => void } = {
+		specularPower: (self: Material, value: number) => {
+			self.attributes.push({
+				value: value,
+				uniform: Shader.uniform("float", "gSpecularPower")
+			});
+		},
+		specularIntensity: (self: Material, value: number) => {
+			self.attributes.push({
+				value: value,
+				uniform: Shader.uniform("float", "gSpecularIntensity")
+			});
+		},
+		texture: (self: Material, value: any) => {
+			// 
+		}
+	};
 
 	private textures: { [key: number]: { texture: Texture2D, uniform: Uniform } } = {};
 	private attributes: { value: any, uniform: Uniform } [] = [];
 
-	constructor(data: any, path: string = Material.materialPath) {
-		for (let prop of data.properties) {
-			let [ key, attr ] = prop.key.substring(1).split('.');
-			if (key in Material.keymap) {
-				if (attr in Material.keymap[key]) {
-					Material.keymap[key][attr](this, <MaterialProperty>prop, path);
-				}
-			}
+	constructor(values?: { [key: string ]: any }) {
+		if (values != undefined) {
+			this.addProperties(values);
 		}
 	}
-
 	use() {
 		let i = 0;
 		for (let loc in this.textures) {
@@ -80,5 +85,25 @@ export default class Material {
 		for (let attr of this.attributes) {
 			attr.uniform.set(attr.value);
 		}
+	}
+	addProperties(values: { [key: string ]: any }) {
+		for (let key in values) {
+			if (key in Material.lookup) {
+				Material.lookup[key](this, values[key]);
+			}
+		}
+	}
+
+	static createFromModel(data: any, path: string = Material.materialPath) {
+		let self = new Material();
+		for (let prop of data.properties) {
+			let [ key, attr ] = prop.key.substring(1).split('.');
+			if (key in Material.keymap) {
+				if (attr in Material.keymap[key]) {
+					Material.keymap[key][attr](self, <MaterialProperty>prop, path);
+				}
+			}
+		}
+		return self;
 	}
 }

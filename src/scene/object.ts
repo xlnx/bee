@@ -1,7 +1,7 @@
 import { glm } from "../util/glm"
 import { Viewport } from "./viewport";
 import { Shader, Uniform } from "../gl/shader";
-import { gl } from "../renderer/renderer";
+import { gl, Renderer } from "../renderer/renderer";
 
 class ObjBase {
 	private P = glm.vec3(0, 0, 0);
@@ -106,12 +106,14 @@ export default abstract class Obj extends ObjBase {
 	static gWorld: Uniform = Shader.uniform("mat4", "gWorld");
 	static gVP: Uniform = Shader.uniform("mat4", "gVP");
 	static gCameraWorldPos: Uniform = Shader.uniform("vec3", "gCameraWorldPos");
+	static gTime: Uniform = Shader.uniform("float", "gTime");
 
-	setViewMatrices(viewport: Viewport) {
+	setBasicUniforms(viewport: Viewport) {
 		Obj.gWVP.set(viewport.getTrans()["*"](this.getTrans()));
 		Obj.gWorld.set(this.getTrans());
 		Obj.gVP.set(viewport.getTrans());
 		Obj.gCameraWorldPos.set(viewport.position);
+		Obj.gTime.set(Renderer.instance.time);
 	}
 	abstract render(viewport: Viewport, shader: Shader);
 }

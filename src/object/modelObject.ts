@@ -10,7 +10,7 @@ export default class ModelObj extends Obj {
 
 	render(viewport: Viewport, shader: Shader) {
 		shader.use();
-			this.setViewMatrices(viewport);
+			this.setBasicUniforms(viewport);
 			this.model.render();
 		shader.unuse();
 	}

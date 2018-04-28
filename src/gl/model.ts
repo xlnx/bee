@@ -24,7 +24,7 @@ export default class Model {
 		for (let m of scene.meshes) {
 			if (!(m.materialindex in this.mesh)) {
 				this.mesh[m.materialindex] = {
-					material: new Material(scene.materials[m.materialindex], Model.modelPath),
+					material: Material.createFromModel(scene.materials[m.materialindex], Model.modelPath),
 					mesh: []
 				};
 			}

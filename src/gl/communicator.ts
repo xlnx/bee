@@ -4,7 +4,7 @@ import { Shader, Uniform, UniformType } from "./shader";
 class Communicator {
 	public static counters: { [key: string]: Uniform } = {};
 
-	protected data: { [key: string]: { data: any, uniform: Uniform } } = {};
+	protected data: { [key: string]: { data: any, uniform: Uniform, set?: any } } = {};
 
 	constructor(public readonly type: string, public readonly array: boolean = true) {
 		if (array) {
@@ -18,13 +18,17 @@ class Communicator {
 		if (this.array) {
 			for (let key in this.data) {
 				// console.log(key, this.data[key].data);
-				this.data[key].uniform.subscribe(index).set(this.data[key].data);
+				this.data[key].uniform.subscribe(index).set("set" in 
+					this.data[key] ? this.data[key].set(this.data[key].data) : 
+					this.data[key].data);
 			}
 			return true;
 		} else {
 			for (let key in this.data) {
 				// console.log(key, this.data[key].data);
-				this.data[key].uniform.set(this.data[key].data);
+				this.data[key].uniform.set("set" in 
+					this.data[key] ? this.data[key].set(this.data[key].data) : 
+					this.data[key].data);
 			}
 			return false;
 		}
@@ -43,20 +47,40 @@ class Communicator {
 			throw "communicator key does not match any: " + key;
 		}
 	}
-	protected init(uniforms: { [name: string]: { type: UniformType, init: any } }) {
+	protected init(uniforms: { [name: string]: { 
+			type: UniformType, 
+			init: any, 
+			set?: (value: any) => any } 
+	}) {
 		if (this.array) {
 			for (let name in uniforms) {
-				this.data[name] = {
-					data: uniforms[name].init, 
-					uniform: Shader.uniform(uniforms[name].type, "g" + this.type + "_" + name + "[]")
-				};
+				if ("set" in uniforms[name]) {
+					this.data[name] = {
+						data: uniforms[name].init, 
+						set: uniforms[name].set,
+						uniform: Shader.uniform(uniforms[name].type, "g" + this.type + "_" + name + "[]")
+					};
+				} else {
+					this.data[name] = {
+						data: uniforms[name].init, 
+						uniform: Shader.uniform(uniforms[name].type, "g" + this.type + "_" + name + "[]")
+					};
+				}
 			}
 		} else {
 			for (let name in uniforms) {
-				this.data[name] = {
-					data: uniforms[name].init, 
-					uniform: Shader.uniform(uniforms[name].type, "g" + name)
-				};
+				if ("set" in uniforms[name]) {
+					this.data[name] = {
+						data: uniforms[name].init, 
+						set: uniforms[name].set,
+						uniform: Shader.uniform(uniforms[name].type, "g" + name)
+					};
+				} else {
+					this.data[name] = {
+						data: uniforms[name].init, 
+						uniform: Shader.uniform(uniforms[name].type, "g" + name)
+					};
+				}
 			}
 		}
 	}

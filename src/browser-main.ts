@@ -8,6 +8,7 @@ import { PointLight } from "./techniques/lighting";
 import { ShadowTechnique } from "./techniques/shadow";
 import { Ocean } from "./techniques/ocean";
 import { Shader } from "./gl/shader";
+import { GerstnerWave } from "./techniques/gerstnerWave";
 
 let renderer = new Renderer(document.body);
 
@@ -34,7 +35,9 @@ let model = scene.createObject<ModelObj>(new ModelObj(
 model.scale(0.5);
 model.translate(glm.vec3(0, 0, 0.8));
 
-let ocean = scene.createObject<Ocean>(new Ocean());
+let ocean = scene.createObject<Ocean>(new Ocean()).get();
+let wave = new GerstnerWave();
+ocean.add(wave);
 
 gl.enable(gl.DEPTH_TEST);
 

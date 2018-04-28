@@ -29,6 +29,7 @@ class Renderer {
 	public readonly canvas: HTMLCanvasElement;
 	private canvasWrapper: HTMLDivElement;
 	private animationRequest: number;
+	private ftime: number = 0;
 
 	constructor(container: HTMLElement, fallback: boolean = false) {
 		if (Renderer.context != null) {
@@ -85,7 +86,12 @@ class Renderer {
 	start() {
 		this.animationRequest = window.requestAnimationFrame(this.render.bind(this));
 	}
+	get time(): number {
+		return this.ftime;
+	}
+
 	private render(time: number) {
+		this.ftime = time / 1000;
 		this.renderers.visit((e: ulist_elem<(time: number) => void>) => {
 			try {
 				e.get()(time);

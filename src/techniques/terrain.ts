@@ -78,7 +78,7 @@ class Terrain extends Obj {
 	
 	render(viewport: Viewport, shader: Shader) {
 		shader.use();
-			this.setViewMatrices(viewport);
+			this.setBasicUniforms(viewport);
 			this.mesh.bind();
 				this.mesh.draw();
 			this.mesh.unbind();

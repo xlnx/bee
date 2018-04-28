@@ -6,7 +6,7 @@ export default class MeshObj extends Obj {
 
 	render(viewport: Viewport, shader: Shader) {
 		shader.use();
-		this.setViewMatrices(viewport);
+		this.setBasicUniforms(viewport);
 		// mesh.render();
 		shader.unuse();
 	}
