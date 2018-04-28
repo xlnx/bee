@@ -1,12 +1,14 @@
+#version 300 es
+
 uniform mat4 gWVP;
 uniform mat4 gWorld;
 
 
-varying vec3 Position;
-varying vec3 Normal;
-varying vec2 TexCoord;
+in vec3 Position;
+in vec3 Normal;
+in vec2 TexCoord;
 
-varying vec3 WorldPos0;
+out vec3 WorldPos0;
 
 void main()
 {

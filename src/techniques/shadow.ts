@@ -52,25 +52,27 @@ class ShadowTechnique extends Technique {
 	render(objects: ulist<Obj>, viewports: ulist<Viewport>, communicators: Communicators) {
 		gl.cullFace(gl.FRONT);
 		gl.clearColor(1, 1, 1, 1);
-		this.offscreen.bind();
-			Shader.specify("Shadow");
-				communicators.use((e: Communicator) => {
-					return e.type.indexOf("Light") < 0;
-				});
-					this.lightCamera.position = this.light.get("position");
-					for (let i = 0; i != 6; ++i) {
-						this.offscreen.set(gl.COLOR_ATTACHMENT0, this.shadowTexture, i);
-						// this.offscreen.check();
+		this.lightCamera.use();
+			this.offscreen.bind();
+				Shader.specify("Shadow");
+					communicators.use((e: Communicator) => {
+						return e.type.indexOf("Light") < 0;
+					});
+						this.lightCamera.position = this.light.get("position");
+						for (let i = 0; i != 6; ++i) {
+							this.offscreen.set(gl.COLOR_ATTACHMENT0, this.shadowTexture, i);
+							// this.offscreen.check();
 
-						gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
-						[ this.lightCamera.target, this.lightCamera.up ] = ShadowTechnique.cameraPositions[i];
-						objects.visit((e: ulist_elem<Obj>) => {
-							e.get().render(this.lightCamera, this.shader);
-						});
-					}
-				communicators.unuse();
-			Shader.unspecify();
-		this.offscreen.unbind();
+							gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
+							[ this.lightCamera.target, this.lightCamera.up ] = ShadowTechnique.cameraPositions[i];
+							objects.visit((e: ulist_elem<Obj>) => {
+								e.get().render(this.lightCamera, this.shader);
+							});
+						}
+					communicators.unuse();
+				Shader.unspecify();
+			this.offscreen.unbind();
+		this.lightCamera.unuse();
 		gl.clearColor(0, 0, 0, 0);
 		gl.cullFace(gl.BACK);
 	}
@@ -89,7 +91,8 @@ class ShadowTechnique extends Technique {
 	private gShadowMap: ShadowCommunicator = new ShadowCommunicator();
 	private shadowTexture: TextureCube = new TextureCube(gl.RGBA);
 
-	private lightCamera: PerspectiveViewport = new PerspectiveViewport();
+	private lightCamera: PerspectiveViewport = new PerspectiveViewport(0, 0, 
+			Renderer.instance.canvas.height, Renderer.instance.canvas.height);
 	private light: PointLight;
 
 	static cameraPositions = [

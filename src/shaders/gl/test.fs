@@ -1,3 +1,5 @@
+#version 300 es
+
 precision mediump float;
 
 // camera
@@ -64,6 +66,7 @@ void main()
 
 	for (int i = 0; i < MAX_POINT_LIGHTS; ++i) if (i < gPointLight_count)
 	{
+		// CalcPointLight(i, Normal, ShadowFactor, Light, LightSpec);
 		vec3 LightDirection = WorldPos0 - gPointLight_position[i];
 		float Distance = length(LightDirection);
 		LightDirection = normalize(LightDirection);

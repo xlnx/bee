@@ -36,9 +36,11 @@ export default class Scene {
 		});
 		this.communicators.use();
 			this.viewports.visit((v: ulist_elem<Viewport>) => {
-				this.objects.visit((e: ulist_elem<Obj>) => {
-					e.get().render(v.get(), this.shader);
-				});
+				v.get().use();
+					this.objects.visit((e: ulist_elem<Obj>) => {
+						e.get().render(v.get(), this.shader);
+					});
+				v.get().unuse();
 			});
 		this.communicators.unuse();
 	}

@@ -4,7 +4,7 @@ import { Event, EventList } from "./events"
 let gl: WebGLRenderingContext
 let gl2: WebGL2RenderingContext
 
-type RendererEventType = "render" | DocumentEventMap
+type RendererEventType = "render" | keyof DocumentEventMap
 
 interface RendererEvent {
 	cancel: () => void;
@@ -25,7 +25,7 @@ class Renderer {
 
 	private fps: number = 0;
 	private events = new EventList();
-	private renderers = new ulist<() => void>();
+	private renderers = new ulist<(time: number) => void>();
 	public readonly canvas: HTMLCanvasElement;
 	private canvasWrapper: HTMLDivElement;
 	private animationRequest: number;
@@ -86,9 +86,9 @@ class Renderer {
 		this.animationRequest = window.requestAnimationFrame(this.render.bind(this));
 	}
 	private render(time: number) {
-		this.renderers.visit((e: ulist_elem<() => void>) => {
+		this.renderers.visit((e: ulist_elem<(time: number) => void>) => {
 			try {
-				e.get()();
+				e.get()(time);
 			} catch (err) {
 				console.error(err);
 			}

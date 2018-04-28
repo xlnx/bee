@@ -2,6 +2,8 @@ import { glm } from "../util/glm"
 import { gl, Renderer } from "../renderer/renderer"
 
 class Viewport {
+	private static viewports: Viewport[] = [];
+
 	private N = glm.vec3(0, 1, 0);
 	private P = glm.vec3(0, 0, 0);
 	private Up = glm.vec3(0, 0, 1);
@@ -20,7 +22,7 @@ class Viewport {
 		public readonly width?: number, public readonly height?: number)
 	{
 		if (left != undefined) {
-			gl.viewport(left, top, width, height);
+			// gl.viewport(left, top, width, height);
 		} else {
 			this.left = 0; this.top = 0;
 			this.width = Renderer.instance.canvas.width;
@@ -42,8 +44,17 @@ class Viewport {
 	get up(): glm.vec3 {
 		return this.Up;
 	}
+	rotate(angle: glm.vec3) {
+		this.N = glm.rotate(angle.z, this.Up)["*"](glm.vec4(this.N, 0)).xyz;
+		let U = glm.cross(this.N, this.Up);
+		this.N = glm.rotate(angle.y, U)["*"](glm.vec4(this.N, 0)).xyz;
+		this.Up = glm.rotate(angle.x, this.N)["*"](glm.vec4(this.Up, 0)).xyz;
+		this.rotateModified = true;
+	}
 	translate(diff: glm.vec3) {
-		this.P["+="](diff);
+		let U = glm.normalize(glm.cross(this.N, this.Up));
+		let V = glm.cross(U, this.N);
+		this.P["+="](this.N["*"](diff.x)["+"](U["*"](-diff.y))["+"](V["*"](diff.z)));
 		this.translateModified = true;
 	}
 	set position(position: glm.vec3) {
@@ -79,6 +90,19 @@ class Viewport {
 		}
 		return this.trans;
 	}
+	use() {
+		Viewport.viewports.push(this);
+		gl.viewport(this.left, this.top, this.width, this.height);
+	}
+	unuse() {
+		if (Viewport.viewports.length) {
+			Viewport.viewports.pop();
+			if (Viewport.viewports.length) {
+				let self = Viewport.viewports[Viewport.viewports.length - 1];
+				gl.viewport(self.left, self.top, self.width, self.height);
+			}
+		}
+	}
 	protected modified(): boolean {
 		return this.translateModified || this.rotateModified;
 	}
@@ -91,7 +115,7 @@ class PerspectiveViewport extends Viewport {
 	private perspectiveModified = true;
 	
 	private fwhratio: number;
-	private ffov = glm.radians(60);
+	private ffov = glm.radians(45);
 	private fzNear = 1e-3;
 	private fzFar = 1e5;
 
