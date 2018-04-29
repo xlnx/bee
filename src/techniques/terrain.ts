@@ -12,6 +12,8 @@ class Terrain extends Obj {
 	private static cascadeMeshCount = 36;
 	private static minimumMeshSize = 0.05;
 
+	public readonly isTerrain = true;
+
 	constructor() {
 		super();
 		let vertices = new VertexAttrs(["pos2"]);

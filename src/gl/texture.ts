@@ -7,14 +7,16 @@ abstract class Texture {
 	constructor(public readonly type: number) {
 		this.handle = <number>gl.createTexture();
 	}
-	invoke(channel: number) {
+	// invoke(channel: number) {
+	// 	gl.activeTexture(gl.TEXTURE0 + channel);
+	// 	this.bind();
+	// }
+	bind(channel: number = 7) {
 		gl.activeTexture(gl.TEXTURE0 + channel);
-		this.bind();
-	}
-	bind() {
 		gl.bindTexture(this.type, this.handle);
 	}
-	unbind() {
+	unbind(channel: number = 7) {
+		gl.activeTexture(gl.TEXTURE0 + channel);
 		gl.bindTexture(this.type, null);
 	}
 }

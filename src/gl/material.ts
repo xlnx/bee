@@ -76,14 +76,17 @@ export default class Material {
 		}
 	}
 	use() {
-		let i = 0;
 		for (let loc in this.textures) {
-			this.textures[loc].texture.invoke(i);
-			this.textures[loc].uniform.set(i);
-			i += 1;
+			this.textures[loc].texture.bind(+loc);
+			this.textures[loc].uniform.set(+loc);
 		}
 		for (let attr of this.attributes) {
 			attr.uniform.set(attr.value);
+		}
+	}
+	unuse() {
+		for (let loc in this.textures) {
+			this.textures[loc].texture.unbind(+loc);
 		}
 	}
 	addProperties(values: { [key: string ]: any }) {

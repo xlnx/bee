@@ -50,6 +50,8 @@ class ShadowTechnique extends Technique {
 		this.light = light;
 	}
 	render(objects: ulist<Obj>, viewports: ulist<Viewport>, communicators: Communicators) {
+		this.shadowTexture.unbind(0);
+
 		gl.cullFace(gl.FRONT);
 		gl.clearColor(1, 1, 1, 1);
 		this.lightCamera.use();
@@ -66,7 +68,9 @@ class ShadowTechnique extends Technique {
 							gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
 							[ this.lightCamera.target, this.lightCamera.up ] = ShadowTechnique.cameraPositions[i];
 							objects.visit((e: ulist_elem<Obj>) => {
-								e.get().render(this.lightCamera, this.shader);
+								if (!("isTerrain" in e.get()) && !("isSkybox" in e.get())) {
+									e.get().render(this.lightCamera, this.shader);
+								}
 							});
 						}
 					communicators.unuse();
@@ -80,9 +84,9 @@ class ShadowTechnique extends Technique {
 		if (this.communicator != null) {
 			this.communicator.remove();
 		}
-		this.shadowTexture.invoke(0);
 		this.communicator = communicators.add(this.gShadowMap);
 		this.gShadowMap.set("LightWorldPos", this.lightCamera.position);
+		this.shadowTexture.bind(0);
 	}
 
 	private shader = Shader.create("shadow");
