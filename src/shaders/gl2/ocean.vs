@@ -80,7 +80,7 @@ void main()
 	vec3 normal;
 	vec3 tangent;
 	vec3 Position0 = vec3(Position, 0.0);
-	// Position0 += vec3(gCameraWorldPos.xy, 0.0);
+	Position0 += vec3(gCameraWorldPos.xy, 0.0);
 	Gerstner(Position0, offset, normal, tangent);
 	Position0 += offset;
 	gl_Position = gWVP * vec4(Position0, 1.0);

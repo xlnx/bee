@@ -8,7 +8,7 @@ import { gl } from "../renderer/renderer";
 class Terrain extends Obj {
 	protected mesh: VAO;
 
-	private static cascadeCount = 1;
+	private static cascadeCount = 8;
 	private static cascadeMeshCount = 36;
 	private static minimumMeshSize = 0.05;
 
@@ -21,6 +21,8 @@ class Terrain extends Obj {
 		let meshSize = Terrain.minimumMeshSize;
 		let indiceBase = 0;
 		let line = Terrain.cascadeMeshCount * 2 + 1;
+		let e = Terrain.cascadeMeshCount;
+		let b = Terrain.cascadeMeshCount;
 		for (let k = 0; k != Terrain.cascadeCount; ++k) {
 			for (let i = -Terrain.cascadeMeshCount; 
 					i <= Terrain.cascadeMeshCount; ++i) {
@@ -33,9 +35,11 @@ class Terrain extends Obj {
 			}
 			for (let i = 1; i != line - 2; ++i) {
 				for (let j = 1; j != line - 2; ++j) {
-					let lt = indiceBase + i * line + j;
-					indices.push(lt, lt + 1, lt + line + 1, 
-							lt, lt + line + 1, lt + line);
+					if (i < e || i >= b || j < e || j >= b) {
+						let lt = indiceBase + i * line + j;
+						indices.push(lt, lt + 1, lt + line + 1, 
+								lt, lt + line + 1, lt + line);
+					}
 				}
 			}
 			for (let j = 2; j != line - 2; ++j) {
@@ -74,6 +78,8 @@ class Terrain extends Obj {
 			meshSize *= 2;
 			indiceBase += (Terrain.cascadeMeshCount * 2 + 1) *
 				(Terrain.cascadeMeshCount * 2 + 1);
+			e = Terrain.cascadeMeshCount / 2;
+			b = 3 * Terrain.cascadeMeshCount / 2;
 		}
 		this.mesh = new VAO(vertices, indices);
 	}

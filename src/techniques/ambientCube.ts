@@ -22,7 +22,7 @@ class AmbientMap extends Communicator {
 	}
 }
 
-class AutoSkybox extends Technique {
+class AmbientCube extends Technique {
 	constructor() {
 		super();
 		let vertices = new VertexAttrs(["pos2"]);
@@ -48,8 +48,10 @@ class AutoSkybox extends Technique {
 
 						gl.clear(gl.COLOR_BUFFER_BIT);
 						this.shader.use();
-							this.gSpace.set(AutoSkybox.spaceTrans[i]);
-							this.gSunPos.set(glm.vec3(1, 0, 0.1));
+							this.gSpace.set(AmbientCube.spaceTrans[i]);
+							// this.gSunPos.set(glm.vec3(1, 0, 0.1));
+							let alpha = Renderer.instance.time;
+							this.gSunPos.set(glm.vec3(Math.sin(alpha), 0, Math.cos(alpha)));
 
 							this.vao.bind();
 								this.vao.draw();
@@ -86,45 +88,15 @@ class AutoSkybox extends Technique {
 		Renderer.instance.canvas.height, Renderer.instance.canvas.height);
 	
 	static spaceTrans = [
-		glm.mat4(
-			0, 0, -1, 0,
-			0, -1, 0, 0,
-			0, 0, 0, 0,
-			1, 0, 0, 1
-		),
-		glm.mat4(
-			0, 0, -1, 0,
-			0, -1, 0, 0,
-			0, 0, 0, 0,
-			-1, 0, 0, 1
-		),
-		glm.mat4(
-			1, 0, 0, 0,
-			0, 0, 1, 0,
-			0, 0, 0, 0,
-			0, 1, 0, 1
-		),
-		glm.mat4(
-			1, 0, 0, 0, 
-			0, 0, -1, 0,
-			0, 0, 0, 0,
-			0, -1, 0, 1
-		),
-		glm.mat4(
-			1, 0, 0, 0,
-			0, -1, 0, 0,
-			0, 0, 0, 0,
-			0, 0, 1, 1
-		),
-		glm.mat4(
-			-1, 0, 0, 0,
-			0, -1, 0, 0,
-			0, 0, 0, 0,
-			0, 0, -1, 1
-		)
+		glm.mat4( 0, 0, -1, 0, 0, -1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1 ),
+		glm.mat4( 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 0, -1, 0, 0, 1 ),
+		glm.mat4( 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1 ),
+		glm.mat4( 1, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, -1, 0, 1 ),
+		glm.mat4( 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1 ),
+		glm.mat4( -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, -1, 1 )
 	];
 }
 
 export {
-	AutoSkybox
+	AmbientCube
 }

@@ -9,7 +9,7 @@ import { ShadowTechnique } from "./techniques/shadow";
 import { Ocean } from "./techniques/ocean";
 import { Shader } from "./gl/shader";
 import { GerstnerWave } from "./techniques/gerstnerWave";
-import { AutoSkybox } from "./techniques/autoSkybox";
+import { AmbientCube } from "./techniques/ambientCube";
 import { TestScreen } from "./techniques/offscreenTest";
 import { Skybox } from "./techniques/skybox";
 
@@ -108,7 +108,7 @@ function sea() {
 
 	let velocity = 3, prevTime = 0;
 
-	let ambient = scene.createTechnique<AutoSkybox>(new AutoSkybox());
+	let ambient = scene.createTechnique<AmbientCube>(new AmbientCube());
 	let skybox = scene.createObject<Skybox>(new Skybox());
 
 	// let off = scene.createObject<TestScreen>(new TestScreen()).get();
@@ -153,7 +153,7 @@ function skybox() {
 	// gl.enable(gl.BLEND);
 	// gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-	let ambient = scene.createTechnique<AutoSkybox>(new AutoSkybox());
+	let ambient = scene.createTechnique<AmbientCube>(new AmbientCube());
 	// let skybox = scene.createObject<Skybox>(new Skybox());
 
 	let off = scene.createObject<TestScreen>(new TestScreen()).get();
@@ -182,5 +182,6 @@ function skybox() {
 	renderer.start();
 }
 
-skybox();
+// skybox();
+sea();
 
