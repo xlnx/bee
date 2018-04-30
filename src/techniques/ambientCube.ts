@@ -1,8 +1,5 @@
-import { Technique } from "../scene/technique";
-import Obj from "../scene/object";
-import { ulist, ulist_elem } from "../util/ulist";
 import { Viewport, PerspectiveViewport } from "../scene/viewport";
-import { Communicators, Communicator } from "../gl/communicator";
+import { Communicator } from "../gl/communicator";
 import { Offscreen, RenderBuffer } from "./offscreen";
 import { Shader, Uniform } from "../gl/shader";
 import { gl, Renderer } from "../renderer/renderer";
@@ -10,21 +7,10 @@ import { TextureCube } from "../gl/texture";
 import { glm } from "../util/glm"
 import { VAO, VertexAttrs } from "../gl/vertexAttrs";
 
-class AmbientMap extends Communicator {
-	constructor(private skybox: TextureCube) {
-		super("AmbientMap", false);
-		this.init({
-			Ambient: {
-				type: "int",
-				init: 0x3
-			}
-		});
-	}
-}
+class AmbientCube {
+	public readonly texture = new TextureCube(gl.RGBA);
 
-class AmbientCube extends Technique {
 	constructor() {
-		super();
 		let vertices = new VertexAttrs(["pos2"]);
 		vertices.set("pos2", [
 			-1, 1, 1, 1, 1, -1, -1, -1
@@ -34,15 +20,13 @@ class AmbientCube extends Technique {
 		]);
 	}
 
-	render(objects: ulist<Obj>, viewports: ulist<Viewport>, communicators: Communicators) {
-		this.skybox.unbind(0x3);
-
+	render() {
 		let dt = Renderer.instance.time - this.time;
 		this.time = Renderer.instance.time;
 
-		gl.disable(gl.DEPTH_TEST);
-			this.viewport.use();
-				this.offscreen.bind();
+		this.offscreen.bind();
+			gl.disable(gl.DEPTH_TEST);
+				this.viewport.use();
 					this.shader.use();
 						let alpha = Renderer.instance.time * this.dayScale * 2 * Math.PI / 24 / 3600;
 
@@ -50,7 +34,7 @@ class AmbientCube extends Technique {
 						this.gSunPos.set(glm.vec3(Math.sin(alpha), 0, Math.cos(alpha)));
 						
 						for (let i = 0; i != 6; ++i) {
-							this.offscreen.set(gl.COLOR_ATTACHMENT0, this.skybox, i);
+							this.offscreen.set(gl.COLOR_ATTACHMENT0, this.texture, i);
 
 							gl.clear(gl.COLOR_BUFFER_BIT);
 							this.gSpace.set(AmbientCube.spaceTrans[i]);
@@ -60,32 +44,20 @@ class AmbientCube extends Technique {
 							this.vao.unbind();
 						}
 					this.shader.unuse();
-				this.offscreen.unbind();
-			this.viewport.unuse();
-		gl.enable(gl.DEPTH_TEST);
-	}
-
-	mainImage(objects: ulist<Obj>, viewports: ulist<Viewport>, communicators: Communicators) {
-		if (this.communicator != null) {
-			this.communicator.remove();
-		}
-		this.communicator = communicators.add(this.gAmbient);
-		this.skybox.bind(0x3);
+				this.viewport.unuse();
+			gl.enable(gl.DEPTH_TEST);
+		this.offscreen.unbind();
 	}
 
 	private offscreen = new Offscreen();
-	private skybox = new TextureCube(gl.RGBA);
-	private communicator: ulist_elem<Communicator> = null;
 	private vao: VAO;
-
+	
 	private time: number = 0;
-
+	
 	private gSpace: Uniform = Shader.uniform("mat4", "gSpace");
 	private gSunPos: Uniform = Shader.uniform("vec3", "gSunPos");
 	private gTime: Uniform = Shader.uniform("float", "gTime");
-
-	private gAmbient = new AmbientMap(this.skybox);
-
+	
 	private shader = Shader.create("ambientCube");
 	private viewport = new Viewport(0, 0, 
 		Renderer.instance.canvas.height, Renderer.instance.canvas.height);

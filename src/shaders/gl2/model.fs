@@ -6,7 +6,7 @@ precision mediump float;
 uniform vec3 gCameraWorldPos;
 
 // materials
-uniform sampler2D gDiffuse;
+uniform sampler2D gMatDiffuse;
 uniform samplerCube gAmbient;
 uniform float gSpecularIntensity;
 uniform float gSpecularPower;
@@ -28,6 +28,6 @@ void main()
 	const float c1 = 0.1;
 	vec4 Ambient = c1 * texture(gAmbient, R);
 
-	FragColor = Ambient + texture(gDiffuse, TexCoord0.xy) *
+	FragColor = Ambient + texture(gMatDiffuse, TexCoord0.xy) *
 		dot(texture(gAmbient, R).xyz, vec3(1, 1, 1));
 }

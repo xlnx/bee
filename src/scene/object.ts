@@ -108,6 +108,8 @@ export default abstract class Obj extends ObjBase {
 	static gCameraWorldPos: Uniform = Shader.uniform("vec3", "gCameraWorldPos");
 	static gTime: Uniform = Shader.uniform("float", "gTime");
 
+	protected defaultShader: Shader = null;
+
 	setBasicUniforms(viewport: Viewport) {
 		Obj.gWVP.set(viewport.getTrans()["*"](this.getTrans()));
 		Obj.gWorld.set(this.getTrans());
@@ -115,5 +117,15 @@ export default abstract class Obj extends ObjBase {
 		Obj.gCameraWorldPos.set(viewport.position);
 		Obj.gTime.set(Renderer.instance.time);
 	}
-	abstract render(viewport: Viewport, shader: Shader);
+	abstract render(viewport: Viewport);
+	bindShader() {
+		if (this.defaultShader) {
+			this.defaultShader.use();
+		}
+	}
+	unbindShader() {
+		if (this.defaultShader) {
+			this.defaultShader.unuse();
+		}
+	}
 }

@@ -5,11 +5,11 @@ import { VAO, VertexAttrs } from "../gl/vertexAttrs";
 import { gl } from "../renderer/renderer";
 
 
-class Terrain extends Obj {
+abstract class Terrain extends Obj {
 	protected mesh: VAO;
 
-	private static cascadeCount = 8;
-	private static cascadeMeshCount = 36;
+	private static cascadeCount = 12;
+	private static cascadeMeshCount = 24;
 	private static minimumMeshSize = 0.1;
 
 	public readonly isTerrain = true;
@@ -84,14 +84,7 @@ class Terrain extends Obj {
 		this.mesh = new VAO(vertices, indices);
 	}
 	
-	render(viewport: Viewport, shader: Shader) {
-		shader.use();
-			this.setBasicUniforms(viewport);
-			this.mesh.bind();
-				this.mesh.draw();
-			this.mesh.unbind();
-		shader.unuse();
-	}
+	abstract render(viewport: Viewport);
 }
 
 export {

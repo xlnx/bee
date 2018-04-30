@@ -1,22 +1,79 @@
 import { gl, Renderer, gl2 } from "../renderer/renderer";
 import { FBO } from "./buffer";
+import { Communicator, Communicators } from "./communicator";
+import { ulist_elem } from "../util/ulist";
+
+class TextureCommunicator extends Communicator {
+	constructor(name: string, channel: number) {
+		super("Texture", false);
+		let map: any = {}; 
+		map[name] = {
+			type: "int",
+			init: channel
+		}
+		this.init(map);
+	}
+}
+
+let channelLookup: boolean[] = [
+	false, false, false, false, false, false, false, false
+];
+
+function getChannel(): number {
+	for (let i = 0; i != channelLookup.length; ++i) {
+		if (!channelLookup[i]) {
+			channelLookup[i] = true;
+			return i;
+		}
+	}
+	throw "texture channels run out";
+}
+
+function restoreChannel(channel: number) {
+	channelLookup[channel] = false;
+}
 
 abstract class Texture {
 	public readonly handle: number;
 
+	private static channels: { [name: string]: ulist_elem<Communicator> } = {};
+
+	private name: string;
+	private channel: number;
+
 	constructor(public readonly type: number) {
 		this.handle = <number>gl.createTexture();
 	}
-	// invoke(channel: number) {
-	// 	gl.activeTexture(gl.TEXTURE0 + channel);
-	// 	this.bind();
-	// }
-	bind(channel: number = 7) {
-		gl.activeTexture(gl.TEXTURE0 + channel);
+	use(name: string) {
+		if (Texture.channels[name] == undefined) {
+			this.name = name;
+			this.channel = getChannel();
+			Texture.channels[name] = Communicators.current.add(new TextureCommunicator(name, this.channel));
+			gl.activeTexture(gl.TEXTURE0 + this.channel);
+			gl.bindTexture(this.type, this.handle);
+		} else {
+			throw "channel " + name + " has already bound a texture";
+		}
+	}
+	unuse() {
+		if (Texture.channels[this.name] != undefined) {
+			// gl.activeTexture(gl.TEXTURE0 + this.channel);
+			gl.bindTexture(this.type, null);
+			Texture.channels[this.name].remove();
+			restoreChannel(this.channel);
+			Texture.channels[this.name] = undefined;
+		}
+	}
+	static genChannel(): number {
+		return getChannel();
+	}
+	static restoreChannel(channel: number) {
+		restoreChannel(channel);
+	}
+	protected bind() {
 		gl.bindTexture(this.type, this.handle);
 	}
-	unbind(channel: number = 7) {
-		gl.activeTexture(gl.TEXTURE0 + channel);
+	protected unbind() {
 		gl.bindTexture(this.type, null);
 	}
 }

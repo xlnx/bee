@@ -8,22 +8,24 @@ import Material from "../gl/material";
 
 
 class Ocean extends Terrain {
-	render(viewport: Viewport, shader: Shader) {
-		this.oceanShader.use();
-			this.setBasicUniforms(viewport);
-			this.waves.invoke();
-			this.material.use();
-			this.mesh.bind();
-				this.mesh.draw();
-			this.mesh.unbind();
-		this.oceanShader.unuse();
+	constructor() {
+		super();
+		this.defaultShader = Shader.create("ocean");
+	}
+
+	render(viewport: Viewport) {
+		this.setBasicUniforms(viewport);
+		this.waves.invoke();
+		this.material.use();
+		this.mesh.bind();
+			this.mesh.draw();
+		this.mesh.unbind();
 	}
 	
 	add(wave: GerstnerWave): ulist_elem<Communicator> {
 		return this.waves.add(wave);
 	}
 
-	private oceanShader = Shader.create("ocean");
 	private waves: Communicators = new Communicators();
 	private material: Material = new Material({
 		specularPower: 0.5,

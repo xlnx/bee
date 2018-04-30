@@ -38,6 +38,7 @@ export default class Model {
 			for (let m of this.mesh[i].mesh) {
 				m.render();
 			}
+			this.mesh[i].material.unuse();
 		}
 	}
 

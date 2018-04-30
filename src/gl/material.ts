@@ -1,5 +1,6 @@
-import { Texture2D } from "./texture";
+import { Texture2D, Texture } from "./texture";
 import { Uniform, Shader } from "./shader";
+import { gl } from "../renderer/renderer";
 
 type MaterialProperty = {
 	index: number;
@@ -10,17 +11,17 @@ type MaterialProperty = {
 }
 
 const textureType = {
-	0x1: "Diffuse",
-	0x2: "Specular",
-	0x3: "Ambient",
-	0x4: "Emissive",
-	0x5: "Height",
-	0x6: "Normals",
-	0x7: "Shininess",
-	0x8: "Opacity",
-	0x9: "Displacement",
-	0xa: "Lightmap",
-	0xb: "Reflection"
+	0x1: "MatDiffuse",
+	0x2: "MatSpecular",
+	0x3: "MatAmbient",
+	0x4: "MatEmissive",
+	0x5: "MatHeight",
+	0x6: "MatNormals",
+	0x7: "MatShininess",
+	0x8: "MatOpacity",
+	0x9: "MatDisplacement",
+	0xa: "MatLightmap",
+	0xb: "MatReflection"
 }
 
 export default class Material {
@@ -41,9 +42,9 @@ export default class Material {
 			file: (self: Material, prop: MaterialProperty, path: string) => {
 				if (prop.semantic in textureType) {
 					console.log(textureType[prop.semantic]);
-					self.textures[prop.semantic] = {
+					self.textures[textureType[prop.semantic]] = {
 						texture: new Texture2D(path + <string>prop.value),
-						uniform: Shader.uniform("int", "g" + textureType[prop.semantic])
+						channel: undefined
 					};
 				}
 			}
@@ -67,7 +68,7 @@ export default class Material {
 		}
 	};
 
-	private textures: { [key: number]: { texture: Texture2D, uniform: Uniform } } = {};
+	private textures: { [key: string]: { texture: Texture2D, channel: number } } = {};
 	private attributes: { value: any, uniform: Uniform } [] = [];
 
 	constructor(values?: { [key: string ]: any }) {
@@ -76,17 +77,23 @@ export default class Material {
 		}
 	}
 	use() {
-		for (let loc in this.textures) {
-			this.textures[loc].texture.bind(+loc);
-			this.textures[loc].uniform.set(+loc);
+		for (let name in this.textures) {
+			this.textures[name].channel = Texture.genChannel();
+			gl.activeTexture(gl.TEXTURE0 + this.textures[name].channel);
+			gl.bindTexture(gl.TEXTURE_2D, this.textures[name].texture.handle);
+			Shader.uniform("int", "g" + name).set(this.textures[name].channel);
+			// this.textures[name].use(name);
 		}
 		for (let attr of this.attributes) {
 			attr.uniform.set(attr.value);
 		}
 	}
 	unuse() {
-		for (let loc in this.textures) {
-			this.textures[loc].texture.unbind(+loc);
+		for (let name in this.textures) {
+			// gl.activeTexture(gl.TEXTURE0 + this.textures[name].channel);
+			gl.bindTexture(gl.TEXTURE_2D, null);
+			Texture.restoreChannel(this.textures[name].channel);
+			// this.textures[name].unuse();
 		}
 	}
 	addProperties(values: { [key: string ]: any }) {

@@ -7,9 +7,10 @@ import { glm }  from "../util/glm"
 
 class TestScreen extends Obj {
 	private vao: VAO;
-
+	
 	constructor() {
 		super();
+		this.defaultShader = Shader.create("offscreenTest");
 		let vertices = new VertexAttrs(["pos2", "tex2"]);
 		vertices.set("pos2", [
 			-1, 1, 1, 1, 1, -1, -1, -1
@@ -22,16 +23,13 @@ class TestScreen extends Obj {
 		]);
 	}
 
-	render(viewport: Viewport, shader: Shader) {
-		this.screenShader.use();
-			this.gFace.set(this.face);
-			this.vao.bind();
-				this.vao.draw();
-			this.vao.unbind();
-		this.screenShader.unuse();
+	render(viewport: Viewport) {
+		this.gFace.set(this.face);
+		this.vao.bind();
+			this.vao.draw();
+		this.vao.unbind();
 	}
 
-	private screenShader = Shader.create("offscreenTest");
 	private gFace: Uniform = Shader.uniform("vec3", "gFace");
 
 	public face: glm.vec3 = glm.vec3(-1, 0, 0);
