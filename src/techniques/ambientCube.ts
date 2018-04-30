@@ -43,21 +43,23 @@ class AmbientCube extends Technique {
 		gl.disable(gl.DEPTH_TEST);
 			this.viewport.use();
 				this.offscreen.bind();
-					for (let i = 0; i != 6; ++i) {
-						this.offscreen.set(gl.COLOR_ATTACHMENT0, this.skybox, i);
+					this.shader.use();
+						let alpha = Renderer.instance.time * this.dayScale * 2 * Math.PI / 24 / 3600;
 
-						gl.clear(gl.COLOR_BUFFER_BIT);
-						this.shader.use();
+						this.gTime.set(Renderer.instance.time);
+						this.gSunPos.set(glm.vec3(Math.sin(alpha), 0, Math.cos(alpha)));
+						
+						for (let i = 0; i != 6; ++i) {
+							this.offscreen.set(gl.COLOR_ATTACHMENT0, this.skybox, i);
+
+							gl.clear(gl.COLOR_BUFFER_BIT);
 							this.gSpace.set(AmbientCube.spaceTrans[i]);
-							// this.gSunPos.set(glm.vec3(1, 0, 0.1));
-							let alpha = Renderer.instance.time;
-							this.gSunPos.set(glm.vec3(Math.sin(alpha), 0, Math.cos(alpha)));
 
 							this.vao.bind();
 								this.vao.draw();
 							this.vao.unbind();
-						this.shader.unuse();
-					}
+						}
+					this.shader.unuse();
 				this.offscreen.unbind();
 			this.viewport.unuse();
 		gl.enable(gl.DEPTH_TEST);
@@ -80,10 +82,11 @@ class AmbientCube extends Technique {
 
 	private gSpace: Uniform = Shader.uniform("mat4", "gSpace");
 	private gSunPos: Uniform = Shader.uniform("vec3", "gSunPos");
+	private gTime: Uniform = Shader.uniform("float", "gTime");
 
 	private gAmbient = new AmbientMap(this.skybox);
 
-	private shader = Shader.create("autoSkybox");
+	private shader = Shader.create("ambientCube");
 	private viewport = new Viewport(0, 0, 
 		Renderer.instance.canvas.height, Renderer.instance.canvas.height);
 	
@@ -95,6 +98,8 @@ class AmbientCube extends Technique {
 		glm.mat4( 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1 ),
 		glm.mat4( -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, -1, 1 )
 	];
+
+	private dayScale: number = 24 * 60 * 6;
 }
 
 export {

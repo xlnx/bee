@@ -5,6 +5,9 @@ class ulist_elem<T> {
 	get(): T {
 		return this.list.data[this.idx].elem;
 	}
+	set(value: T) {
+		this.list.data[this.idx].elem = value;
+	}
 	remove() {
 		this.list.data[this.idx] = this.list.data[this.list.data.length - 1];
 		this.list.data[this.idx].idx = this.idx;

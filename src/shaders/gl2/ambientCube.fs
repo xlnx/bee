@@ -49,6 +49,6 @@ void main()
 	}
 	else
 	{
-		FragColor = vec4(0, 0, 0.2, 1);
+		FragColor = vec4(14./255., 58./255., 83./255., 1);
 	}
 }

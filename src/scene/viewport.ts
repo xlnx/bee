@@ -4,17 +4,17 @@ import { gl, Renderer } from "../renderer/renderer"
 class Viewport {
 	private static viewports: Viewport[] = [];
 
-	private N = glm.vec3(0, 1, 0);
-	private P = glm.vec3(0, 0, 0);
-	private Up = glm.vec3(0, 0, 1);
+	protected N = glm.vec3(0, 1, 0);
+	protected P = glm.vec3(0, 0, 0);
+	protected Up = glm.vec3(0, 0, 1);
 	
-	private rotateModified = true;
-	private translateModified = true;
+	protected rotateModified = true;
+	protected translateModified = true;
 
-	private rotateTrans: glm.mat4;
-	private translateTrans: glm.mat4;
+	protected rotateTrans: glm.mat4;
+	protected translateTrans: glm.mat4;
 
-	private trans: glm.mat4;
+	protected trans: glm.mat4;
 
 	constructor();
 	constructor(left: number, top: number, width: number, height: number);
@@ -64,7 +64,7 @@ class Viewport {
 	get position(): glm.vec3 {
 		return this.P;
 	}
-	getTrans(): glm.mat4 {
+	getView(): glm.mat4 {
 		if (this.translateModified || this.rotateModified) {
 			if (this.translateModified) {
 				this.translateModified = false;
@@ -90,6 +90,9 @@ class Viewport {
 		}
 		return this.trans;
 	}
+	getTrans(): glm.mat4 {
+		return this.getView();
+	}
 	use() {
 		Viewport.viewports.push(this);
 		gl.viewport(this.left, this.top, this.width, this.height);
@@ -103,21 +106,24 @@ class Viewport {
 			}
 		}
 	}
-	protected modified(): boolean {
+	protected viewModified(): boolean {
 		return this.translateModified || this.rotateModified;
+	}
+	protected modified(): boolean {
+		return this.viewModified();
 	}
 }
 
 class PerspectiveViewport extends Viewport {
-	private perspectiveTrans: glm.mat4;
-	private viewportTrans: glm.mat4;
+	protected perspectiveTrans: glm.mat4;
+	protected viewportTrans: glm.mat4;
 	
-	private perspectiveModified = true;
+	protected perspectiveModified = true;
 	
-	private fwhratio: number;
-	private ffov = glm.radians(45);
-	private fzNear = 1e-3;
-	private fzFar = 1e5;
+	protected fwhratio: number;
+	protected ffov = glm.radians(45);
+	protected fzNear = 1e-3;
+	protected fzFar = 1e5;
 
 	constructor();
 	constructor(left: number, top: number, width: number, height: number);
@@ -126,14 +132,17 @@ class PerspectiveViewport extends Viewport {
 		this.fwhratio = this.width / this.height;
 	}
 
+	getPers(): glm.mat4 {
+		if (this.persModified()) {
+			this.perspectiveModified = false;
+			this.perspectiveTrans = glm.perspective(this.ffov, 
+					this.fwhratio, this.fzNear, this.fzFar);
+		}
+		return this.perspectiveTrans;
+	}
 	getTrans(): glm.mat4 {
-		if (this.perspectiveModified || super.modified()) {
-			if (this.perspectiveModified) {
-				this.perspectiveModified = false;
-				this.perspectiveTrans = glm.perspective(this.ffov, 
-						this.fwhratio, this.fzNear, this.fzFar);
-			}
-			this.viewportTrans = this.perspectiveTrans["*"](super.getTrans());
+		if (this.modified()) {
+			this.viewportTrans = this.getPers()["*"](this.getView());
 		}
 		return this.viewportTrans;
 	}
@@ -164,6 +173,12 @@ class PerspectiveViewport extends Viewport {
 	}
 	get zFar(): number {
 		return this.fzFar;
+	}
+	protected persModified(): boolean {
+		return this.perspectiveModified;
+	}
+	protected modified(): boolean {
+		return this.viewModified() || this.persModified();
 	}
 }
 
