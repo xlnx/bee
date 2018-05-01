@@ -69,22 +69,22 @@ class Shader {
 
 	private static partials: string[] = [];
 	
-	private vs: WebGLShader;
-	private fs: WebGLShader;
+	private vert: WebGLShader;
+	private frag: WebGLShader;
 	public readonly handle: WebGLProgram;
 	private partial: { [label: string]: WebGLProgram } = {};
 
 	constructor(vsfilename: string, fsfilename: string, private readonly specify: boolean) {
 		vsfilename = Shader.shaderPath + (gl2 ? "gl2/" : "gl/") + vsfilename;
 		fsfilename = Shader.shaderPath + (gl2 ? "gl2/" : "gl/") + fsfilename;
-		this.vs = Shader.compileShader(xhr.getSync(vsfilename), gl.VERTEX_SHADER);
-		this.fs = Shader.compileShader(xhr.getSync(fsfilename), gl.FRAGMENT_SHADER);
-		this.handle = Shader.createProgram(this.vs, this.fs);
+		this.vert = Shader.compileShader(xhr.getSync(vsfilename), gl.VERTEX_SHADER);
+		this.frag = Shader.compileShader(xhr.getSync(fsfilename), gl.FRAGMENT_SHADER);
+		this.handle = Shader.createProgram(this.vert, this.frag);
 		if (specify) {
 			for (let label in Shader.requirements) {
 				this.partial[label] = Shader.createProgram(
-						"vs" in Shader.requirements[label] ? Shader.requirements[label].vs : this.vs,
-						"fs" in Shader.requirements[label] ? Shader.requirements[label].fs : this.fs);
+						"vert" in Shader.requirements[label] ? Shader.requirements[label].vert : this.vert,
+						"frag" in Shader.requirements[label] ? Shader.requirements[label].frag : this.frag);
 			}
 		}
 	}
@@ -126,21 +126,21 @@ class Shader {
 		for (let label in list) {
 			if (!(label in Shader.requirements)) {
 				let data: { [type: string]: WebGLShader } = {};
-				if ("fs" in list[label]) {
-					let fsfilename = Shader.shaderPath + (gl2 ? "gl2/" : "gl/") + list[label].fs + ".fs";
-					data.fs = Shader.compileShader(xhr.getSync(fsfilename), gl.FRAGMENT_SHADER);
+				if ("frag" in list[label]) {
+					let fsfilename = Shader.shaderPath + (gl2 ? "gl2/" : "gl/") + list[label].frag + ".frag";
+					data.frag = Shader.compileShader(xhr.getSync(fsfilename), gl.FRAGMENT_SHADER);
 				}
-				if ("vs" in list[label]) {
-					let vsfilename = Shader.shaderPath + (gl2 ? "gl2/" : "gl/") + list[label].vs + ".vs";
-					data.vs = Shader.compileShader(xhr.getSync(vsfilename), gl.VERTEX_SHADER);
+				if ("vert" in list[label]) {
+					let vsfilename = Shader.shaderPath + (gl2 ? "gl2/" : "gl/") + list[label].vert + ".vert";
+					data.vert = Shader.compileShader(xhr.getSync(vsfilename), gl.VERTEX_SHADER);
 				}
 				// console.log(data);
 				Shader.requirements[label] = data;
 				for (let id in Shader.shaders) {
 					if (Shader.shaders[id].specify) {
 						Shader.shaders[id].partial[label] = Shader.createProgram(
-								"vs" in data ? data.vs : Shader.shaders[id].vs,
-								"fs" in data ? data.fs : Shader.shaders[id].fs);
+								"vert" in data ? data.vert : Shader.shaders[id].vert,
+								"frag" in data ? data.frag : Shader.shaders[id].frag);
 					}
 				}
 			}
@@ -158,7 +158,7 @@ class Shader {
 	}
 	public static create(name: string, specify: boolean): Shader {
 		if (!(name in Shader.shaders)) {
-			Shader.shaders[name] = new Shader(name + ".vs", name + ".fs", specify);
+			Shader.shaders[name] = new Shader(name + ".vert", name + ".frag", specify);
 		}
 		return Shader.shaders[name];
 	}
@@ -182,7 +182,7 @@ class Shader {
 		}
 	}
 
-	private static createProgram(vs: WebGLShader, fs: WebGLShader): WebGLProgram {
+	private static createProgram(vert: WebGLShader, frag: WebGLShader): WebGLProgram {
 		let program = gl.createProgram();
 		gl.bindAttribLocation(program, 0, "Position");
 		gl.bindAttribLocation(program, 1, "Color");
@@ -192,8 +192,8 @@ class Shader {
 		gl.bindAttribLocation(program, 5, "TexCoord");
 		gl.bindAttribLocation(program, 6, "BoneIndex");
 		gl.bindAttribLocation(program, 7, "BoneWeight");
-		gl.attachShader(program, vs);
-		gl.attachShader(program, fs);
+		gl.attachShader(program, vert);
+		gl.attachShader(program, frag);
 		gl.linkProgram(program);
 		if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
 			throw gl.getProgramInfoLog(program);

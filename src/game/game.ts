@@ -74,13 +74,13 @@ class Game {
 
 		Shader.require({
 			NormalDepth: {
-				fs: "normalDepth"
+				frag: "normalDepth"
 			},
 			Normal: {
-				fs: "normal"
+				frag: "normal"
 			},
 			Depth: {
-				fs: "depth"
+				frag: "depth"
 			}
 		});
 

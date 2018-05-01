@@ -34,7 +34,7 @@
 // 		super();
 // 		Shader.require({
 // 			Shadow: {
-// 				fs: "shadow"
+// 				frag: "shadow"
 // 			}
 // 		});
 // 		this.offscreen.bind();
