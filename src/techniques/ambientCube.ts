@@ -58,7 +58,7 @@ class AmbientCube {
 	private gSunPos: Uniform = Shader.uniform("vec3", "gSunPos");
 	private gTime: Uniform = Shader.uniform("float", "gTime");
 	
-	private shader = Shader.create("ambientCube");
+	private shader = Shader.create("ambientCube", false);
 	private viewport = new Viewport(0, 0, 
 		Renderer.instance.canvas.height, Renderer.instance.canvas.height);
 	

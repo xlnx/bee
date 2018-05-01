@@ -10,7 +10,7 @@ class TestScreen extends Obj {
 	
 	constructor() {
 		super();
-		this.defaultShader = Shader.create("offscreenTest");
+		this.defaultShader = Shader.create("offscreenTest", false);
 		let vertices = new VertexAttrs(["pos2", "tex2"]);
 		vertices.set("pos2", [
 			-1, 1, 1, 1, 1, -1, -1, -1

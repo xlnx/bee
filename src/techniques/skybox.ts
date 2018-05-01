@@ -10,7 +10,7 @@ class Skybox extends Obj {
 	
 	constructor() {
 		super();
-		this.defaultShader = Shader.create("skybox");
+		this.defaultShader = Shader.create("skybox", false);
 		let vertices = new VertexAttrs(["pos3"]);
 		let t = 9e3;
 		vertices.set("pos3",[

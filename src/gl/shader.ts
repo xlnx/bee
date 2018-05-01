@@ -74,22 +74,24 @@ class Shader {
 	public readonly handle: WebGLProgram;
 	private partial: { [label: string]: WebGLProgram } = {};
 
-	constructor(vsfilename: string, fsfilename: string) {
+	constructor(vsfilename: string, fsfilename: string, private readonly specify: boolean) {
 		vsfilename = Shader.shaderPath + (gl2 ? "gl2/" : "gl/") + vsfilename;
 		fsfilename = Shader.shaderPath + (gl2 ? "gl2/" : "gl/") + fsfilename;
 		this.vs = Shader.compileShader(xhr.getSync(vsfilename), gl.VERTEX_SHADER);
 		this.fs = Shader.compileShader(xhr.getSync(fsfilename), gl.FRAGMENT_SHADER);
 		this.handle = Shader.createProgram(this.vs, this.fs);
-		for (let label in Shader.requirements) {
-			this.partial[label] = Shader.createProgram(
-					"vs" in Shader.requirements[label] ? Shader.requirements[label].vs : this.vs,
-					"fs" in Shader.requirements[label] ? Shader.requirements[label].fs : this.fs);
+		if (specify) {
+			for (let label in Shader.requirements) {
+				this.partial[label] = Shader.createProgram(
+						"vs" in Shader.requirements[label] ? Shader.requirements[label].vs : this.vs,
+						"fs" in Shader.requirements[label] ? Shader.requirements[label].fs : this.fs);
+			}
 		}
 	}
 
 	use() {
 		Shader.stack.push(this);
-		if (Shader.partials.length) {
+		if (this.specify && Shader.partials.length) {
 			gl.useProgram(this.partial[Shader.partials[Shader.partials.length - 1]]);
 		} else {
 			gl.useProgram(this.handle);
@@ -102,7 +104,7 @@ class Shader {
 		}
 		if (Shader.stack.length) {
 			let self = Shader.stack[Shader.stack.length - 1];
-			if (Shader.partials.length) {
+			if (self.specify && Shader.partials.length) {
 				gl.useProgram(self.partial[Shader.partials[Shader.partials.length - 1]]);
 			} else {
 				gl.useProgram(self.handle);
@@ -132,12 +134,14 @@ class Shader {
 					let vsfilename = Shader.shaderPath + (gl2 ? "gl2/" : "gl/") + list[label].vs + ".vs";
 					data.vs = Shader.compileShader(xhr.getSync(vsfilename), gl.VERTEX_SHADER);
 				}
-				console.log(data);
+				// console.log(data);
 				Shader.requirements[label] = data;
 				for (let id in Shader.shaders) {
-					Shader.shaders[id].partial[label] = Shader.createProgram(
-							"vs" in data ? data.vs : Shader.shaders[id].vs,
-							"fs" in data ? data.fs : Shader.shaders[id].fs);
+					if (Shader.shaders[id].specify) {
+						Shader.shaders[id].partial[label] = Shader.createProgram(
+								"vs" in data ? data.vs : Shader.shaders[id].vs,
+								"fs" in data ? data.fs : Shader.shaders[id].fs);
+					}
 				}
 			}
 		}
@@ -152,9 +156,9 @@ class Shader {
 		}
 		return shader;
 	}
-	public static create(name: string): Shader {
+	public static create(name: string, specify: boolean): Shader {
 		if (!(name in Shader.shaders)) {
-			Shader.shaders[name] = new Shader(name + ".vs", name + ".fs");
+			Shader.shaders[name] = new Shader(name + ".vs", name + ".fs", specify);
 		}
 		return Shader.shaders[name];
 	}
@@ -162,7 +166,7 @@ class Shader {
 		if (!Shader.stack.length) {
 			return null;
 		} else {
-			if (Shader.partials.length) {
+			if (Shader.stack[Shader.stack.length - 1].specify && Shader.partials.length) {
 				return Shader.stack[Shader.stack.length - 1].partial[Shader.partials[Shader.partials.length - 1]];
 			} else {
 				return Shader.stack[Shader.stack.length - 1].handle;

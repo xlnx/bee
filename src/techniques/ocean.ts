@@ -10,7 +10,7 @@ import Material from "../gl/material";
 class Ocean extends Terrain {
 	constructor() {
 		super();
-		this.defaultShader = Shader.create("ocean");
+		this.defaultShader = Shader.create("ocean", true);
 	}
 
 	render(viewport: Viewport) {

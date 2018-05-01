@@ -6,7 +6,7 @@ import Model from "../gl/model";
 export default class ModelObj extends Obj {
 	constructor(private model: Model) {
 		super();
-		this.defaultShader = Shader.create("model");
+		this.defaultShader = Shader.create("model", true);
 	}
 
 	render(viewport: Viewport) {

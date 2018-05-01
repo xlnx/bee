@@ -16,28 +16,41 @@ import { CameraBase } from "./camera/cameraBase";
 import { Communicators } from "../gl/communicator";
 import Obj from "../scene/object";
 import { currentId } from "async_hooks";
+import { Offscreen, RenderBuffer } from "../techniques/offscreen";
+import { Texture2D } from "../gl/texture";
+import { ScreenSpaceReflection } from "../techniques/screenSpaceReflection";
+import { DeferImage } from "../techniques/deferImage";
 
 type CameraMode = "observe" | "follow" | "free" | "periscope"
 
 class Game {
 	private renderer = new Renderer(document.body);
 
-	private ambient = new AmbientCube();
 	private skybox = new Skybox();
-
+	private ocean = new Ocean();
+	
 	private mainViewport: CameraBase;
-
+	
 	private viewports = {
 		observe: new Observer(),
 		follow: new Observer(),
 		free: new Observer(),
 		periscope: new Observer()
 	};
-
-	private ocean = new Ocean();
-
+	
 	private objects = new ulist<Obj>();
-	private commnuicators = new Communicators();
+	private worldCom = new Communicators();
+	private renderCom = new Communicators();
+	
+	private mainImage = new Texture2D(gl.RGBA);
+	private normalImage = new Texture2D(gl.RGB);
+	// private mainImage = new Texture2D(gl.RGB);
+
+	private offscreen = new Offscreen();
+
+	private ambient = new AmbientCube();
+	private ssr = new ScreenSpaceReflection();
+	private defer = new DeferImage();
 
 	constructor() {
 		// set gl state
@@ -50,7 +63,15 @@ class Game {
 				
 		this.viewports.periscope.fov = glm.radians(5);
 
-		this.objects.push(this.skybox);
+		this.offscreen.bind();
+			this.offscreen.set(gl.DEPTH_ATTACHMENT, new RenderBuffer(gl.DEPTH_COMPONENT16));
+		this.offscreen.unbind();
+
+		Shader.require({
+			Normal: {
+				fs: "normal"
+			}
+		});
 
 		this.sea();
 		// this.cube();
@@ -61,19 +82,61 @@ class Game {
 			// reder ambient cube - offscreen
 			this.ambient.render();
 
-			// render main image 
-			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-			this.commnuicators.use();
+			// render main image into mainImage
+			this.worldCom.use();
+
+			this.offscreen.bind();
+
+				this.mainViewport.use();
+				
+				this.offscreen.set(gl.COLOR_ATTACHMENT0, this.mainImage);
+				gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 				this.ambient.texture.use("Ambient");
-					this.mainViewport.use();
-						this.objects.visit((e: ulist_elem<Obj>) => {
-							e.get().bindShader();
-								e.get().render(this.mainViewport);
-							e.get().unbindShader();
-						});
-					this.mainViewport.unuse();
+					this.objects.visit((e: ulist_elem<Obj>) => {
+						e.get().bindShader();
+							e.get().render(this.mainViewport);
+						e.get().unbindShader();
+					});
+					this.skybox.bindShader();
+						this.skybox.render(this.mainViewport);
+					this.skybox.unbindShader();
 				this.ambient.texture.unuse();
-			this.commnuicators.unuse();
+				
+				this.offscreen.set(gl.COLOR_ATTACHMENT0, this.normalImage);
+				gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+				Shader.specify("Normal");
+					this.objects.visit((e: ulist_elem<Obj>) => {
+						e.get().bindShader();
+							e.get().render(this.mainViewport);
+						e.get().unbindShader();
+					});
+				Shader.unspecify();
+
+				this.mainViewport.unuse();
+
+			this.offscreen.unbind();
+
+			this.worldCom.unuse();
+
+			// end world pass
+			gl.disable(gl.DEPTH_TEST);
+			this.renderCom.use();
+
+			// do SSR
+			// this.mainImage.use("World");
+			// 	this.ssr.render();
+			
+			// render defer image
+			// this.mainImage.use("Image");
+			// 	this.defer.render();
+			// this.mainImage.unuse();
+
+			this.normalImage.use("Image");
+				this.defer.render();
+			this.normalImage.unuse();
+
+			gl.enable(gl.DEPTH_TEST);
+			this.renderCom.unuse();
 		});
 
 		this.renderer.start();
