@@ -3,10 +3,19 @@
 precision mediump float;
 
 uniform sampler2D gImage;
-uniform sampler2D gNormalDepth;
+uniform sampler2D gNormal;
+uniform sampler2D gDepth;
+uniform mat4 gP;
+
+uniform vec3 gCameraWorldPos;
+
+#define RAYMARCH_MAX_ITER 16
+#define RAYMARCH_ITER_STEP 1e-1
+#define RAYMARCH_EPS 1.5e-2
 
 
 in vec2 Position0;
+in vec3 Incidence0;
 
 out vec4 FragColor;
 
@@ -16,35 +25,78 @@ struct PointInfo
 	float depth;
 };
 
-float vec22normfloat(vec2 v)
+float vec42normfloat(vec4 v)
 {
-	const vec2 bitShift = vec2(1.0, 1.0/256.0);
+	const vec4 bitShift = vec4(1.0, 1.0/256.0, 1.0/(256.0*256.0), 1.0/(256.0*256.0*256.0));
 	return dot(v, bitShift);
 }
 
-vec3 rgb5652rgb(vec2 rgb565)
+float decodeDepth(float d)
 {
-	float rr = fract(rgb565.r * 32.);
-	float bb = fract(rgb565.g * 8.);
-	return vec3(rgb565.r - rr / 32., rr + rgb565.g / 8. - bb / 64., bb);
+	return sqrt(- log(d) - 1.);
+}
+
+float getPointDepth(vec2 uv)
+{
+	return decodeDepth(vec42normfloat(texture(gDepth, (uv + 1.) * .5)));
 }
 
 PointInfo decodePoint(vec2 uv)
 {
 	PointInfo info;
-	vec4 tex = texture(gNormalDepth, (uv + 1.) * .5);
-	info.normal = rgb5652rgb(tex.rg) * 2. - 1.;
-	info.depth = vec22normfloat(tex.ba);
+	info.normal = texture(gNormal, (uv + 1.) * .5).xyz * 2. - 1.;
+	info.depth = getPointDepth(uv);
+	// vec42normfloat(texture(gDepth, (uv + 1.) * .5));
 	return info;
 }
 
 void main()
 {
 	vec2 uv = Position0;
-	if (uv.x > 0.) {
-		PointInfo pinfo = decodePoint(uv);
-		FragColor = vec4(pinfo.normal, 1);
-	} else {
-		FragColor = texture(gImage, (uv + 1.) * .5);
-	}
+	PointInfo pinfo = decodePoint(uv);
+	vec3 N = pinfo.normal;
+	vec3 I = Incidence0;
+	// if (uv.x > 0.) {
+		vec3 color = vec3(0.);
+		float alpha = 0.;
+		if (pinfo.depth != 0.) {
+			vec3 SR = (gP * vec4(reflect(I, N), 0.)).xyz;
+			vec2 SRP = normalize(SR.xy);
+			vec3 step = vec3(SRP, SR.z * SRP.x / SR.x) * RAYMARCH_ITER_STEP;
+			vec3 p = vec3(uv, pinfo.depth);
+			for (int i = 0; i != RAYMARCH_MAX_ITER; ++i) {
+				p += step;
+				if (p.z > getPointDepth(p.xy)) {
+					p -= step;
+					step = step * .5;
+				}
+				if (p.x > 1. || p.y > 1. || p.x < -1. || p.x < -1.) {
+					p.z = 1e7;
+					break;
+				}
+			}
+			float d = abs(p.z - getPointDepth(p.xy));
+			if (d < RAYMARCH_EPS) {
+				// float mp = cos(2. * d / RAYMARCH_EPS);
+				color = texture(gImage, (p.xy + 1.) * .5).xyz;
+				// alpha += mp * 0.25;
+				alpha = 0.6 * cos(2. * d / RAYMARCH_EPS);
+			} else {
+				// test
+				// if (p.z < getPointDepth(p.xy)) {
+				// 	color = vec3(0.);
+				// } else {
+				// 	color = vec3(1.);
+				// }
+				// alpha = 1.;
+			}
+		}
+
+		FragColor = //vec4(1.) * pinfo.depth;
+			vec4(mix(texture(gImage, (uv + 1.) * .5).xyz, 
+			clamp(color, 0., 1.), clamp(alpha, 0., 1.)), .5);//vec4(ray, 0, 1);
+		// FragColor = texture(gImage, (uv + 1.) * .5) + vec4(color, 1);
+	// } else {
+	// 	FragColor = texture(gImage, (uv + 1.) * .5);
+	// }
 }

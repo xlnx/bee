@@ -104,7 +104,7 @@ class ObjBase {
 export default abstract class Obj extends ObjBase {
 	static gWVP: Uniform = Shader.uniform("mat4", "gWVP");
 	static gWorld: Uniform = Shader.uniform("mat4", "gWorld");
-	static gVP: Uniform = Shader.uniform("mat4", "gVP");
+	static gV: Uniform = Shader.uniform("mat4", "gV");
 	static gCameraWorldPos: Uniform = Shader.uniform("vec3", "gCameraWorldPos");
 	static gTime: Uniform = Shader.uniform("float", "gTime");
 
@@ -113,7 +113,7 @@ export default abstract class Obj extends ObjBase {
 	setBasicUniforms(viewport: Viewport) {
 		Obj.gWVP.set(viewport.getTrans()["*"](this.getTrans()));
 		Obj.gWorld.set(this.getTrans());
-		Obj.gVP.set(viewport.getTrans());
+		Obj.gV.set(viewport.getView());
 		Obj.gCameraWorldPos.set(viewport.position);
 		Obj.gTime.set(Renderer.instance.time);
 	}

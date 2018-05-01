@@ -8,7 +8,7 @@ import { gl } from "../renderer/renderer";
 abstract class Terrain extends Obj {
 	protected mesh: VAO;
 
-	private static cascadeCount = 12;
+	private static cascadeCount = 10;
 	private static cascadeMeshCount = 24;
 	private static minimumMeshSize = 0.1;
 

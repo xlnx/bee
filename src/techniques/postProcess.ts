@@ -3,9 +3,9 @@ import { Shader } from "../gl/shader";
 import { gl } from "../renderer/renderer";
 
 class PostProcess {
-	private vao: VAO;
+	protected vao: VAO;
 
-	constructor(private shader: Shader) {
+	constructor(protected shader: Shader) {
 		let vertices = new VertexAttrs(["pos2"]);
 		vertices.set("pos2", [
 			-1, 1, 1, 1, 1, -1, -1, -1

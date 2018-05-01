@@ -2,8 +2,10 @@
 
 precision mediump float;
 
+uniform mat4 gV;
+
+
 in vec3 Normal0;
-in vec3 WorldPos0;
 
 out vec4 FragColor;
 
@@ -25,5 +27,8 @@ vec2 rgb2rgb565(vec3 rgb) {
 
 void main()
 {
-	FragColor = vec4(rgb2rgb565(normalize(Normal0) * .5 + .5), normfloat2vec2(WorldPos0.z));
+	FragColor = vec4(
+		rgb2rgb565(normalize((gV * vec4(Normal0, 0)).xyz) * .5 + .5), 
+		normfloat2vec2(gl_FragCoord.z)
+	);
 }

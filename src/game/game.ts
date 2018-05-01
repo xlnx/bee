@@ -44,6 +44,8 @@ class Game {
 	
 	private mainImage = new Texture2D(gl.RGBA);
 	private normalDepthImage = new Texture2D(gl.RGBA);
+	private normalImage = new Texture2D(gl.RGB);
+	private depthImage = new Texture2D(gl.RGBA);
 	private ssrImage = new Texture2D(gl.RGBA);
 	// private mainImage = new Texture2D(gl.RGB);
 	private channel: Texture2D;
@@ -61,7 +63,8 @@ class Game {
 		gl.enable(gl.DEPTH_TEST);
 
 		this.mainViewport = this.viewports.observe;
-		this.viewports.observe.bind();
+		this.ssr.viewport = this.mainViewport;
+		this.mainViewport.bind();
 				
 		this.viewports.periscope.fov = glm.radians(5);
 
@@ -72,6 +75,12 @@ class Game {
 		Shader.require({
 			NormalDepth: {
 				fs: "normalDepth"
+			},
+			Normal: {
+				fs: "normal"
+			},
+			Depth: {
+				fs: "depth"
 			}
 		});
 
@@ -80,7 +89,9 @@ class Game {
 			const lookup = {
 				"1": this.mainImage,
 				"2": this.normalDepthImage,
-				"3": this.ssrImage,
+				"3": this.normalImage,
+				"4": this.depthImage,
+				"5": this.ssrImage,
 			};
 			if (e.key.toLowerCase() in lookup) {
 				this.channel = lookup[e.key.toLowerCase()];
@@ -116,9 +127,29 @@ class Game {
 						this.skybox.unbindShader();
 					this.ambient.texture.unuse();
 					
-					this.offscreen.set(gl.COLOR_ATTACHMENT0, this.normalDepthImage);
+					// this.offscreen.set(gl.COLOR_ATTACHMENT0, this.normalDepthImage);
+					// gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+					// Shader.specify("NormalDepth");
+					// 	this.objects.visit((e: ulist_elem<Obj>) => {
+					// 		e.get().bindShader();
+					// 			e.get().render(this.mainViewport);
+					// 		e.get().unbindShader();
+					// 	});
+					// Shader.unspecify();
+					
+					this.offscreen.set(gl.COLOR_ATTACHMENT0, this.normalImage);
 					gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-					Shader.specify("NormalDepth");
+					Shader.specify("Normal");
+						this.objects.visit((e: ulist_elem<Obj>) => {
+							e.get().bindShader();
+								e.get().render(this.mainViewport);
+							e.get().unbindShader();
+						});
+					Shader.unspecify();
+
+					this.offscreen.set(gl.COLOR_ATTACHMENT0, this.depthImage);
+					gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+					Shader.specify("Depth");
 						this.objects.visit((e: ulist_elem<Obj>) => {
 							e.get().bindShader();
 								e.get().render(this.mainViewport);
@@ -137,9 +168,13 @@ class Game {
 				// do SSR
 				this.offscreen.set(gl.COLOR_ATTACHMENT0, this.ssrImage);
 				this.mainImage.use("Image");
-				this.normalDepthImage.use("NormalDepth")
+				// this.normalDepthImage.use("NormalDepth");
+				this.normalImage.use("Normal");
+				this.depthImage.use("Depth");
 					this.ssr.render();
-				this.normalDepthImage.unuse();
+				// this.normalDepthImage.unuse();
+				this.normalImage.unuse();
+				this.depthImage.unuse();
 				this.mainImage.unuse();
 			
 			this.offscreen.unbind();
@@ -163,6 +198,7 @@ class Game {
 	setCameraMode(mode: CameraMode) {
 		this.mainViewport.unbind();
 		this.mainViewport = this.viewports[mode];
+		this.ssr.viewport = this.mainViewport;
 		this.viewports[mode].bind();
 	}
 

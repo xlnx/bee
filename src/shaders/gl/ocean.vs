@@ -1,7 +1,6 @@
 #version 300 es
 
 uniform mat4 gWVP;
-// uniform mat4 gVP;
 uniform mat4 gWorld;
 uniform mediump vec3 gCameraWorldPos;
 

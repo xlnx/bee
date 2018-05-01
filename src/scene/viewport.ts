@@ -122,8 +122,8 @@ class PerspectiveViewport extends Viewport {
 	
 	protected fwhratio: number;
 	protected ffov = glm.radians(45);
-	protected fzNear = 1e-3;
-	protected fzFar = 1e5;
+	protected fzNear = 2e-1;
+	protected fzFar = 1e3;
 
 	constructor();
 	constructor(left: number, top: number, width: number, height: number);
