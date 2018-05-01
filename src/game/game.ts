@@ -43,8 +43,10 @@ class Game {
 	private renderCom = new Communicators();
 	
 	private mainImage = new Texture2D(gl.RGBA);
-	private normalImage = new Texture2D(gl.RGB);
+	private normalDepthImage = new Texture2D(gl.RGBA);
+	private ssrImage = new Texture2D(gl.RGBA);
 	// private mainImage = new Texture2D(gl.RGB);
+	private channel: Texture2D;
 
 	private offscreen = new Offscreen();
 
@@ -68,8 +70,20 @@ class Game {
 		this.offscreen.unbind();
 
 		Shader.require({
-			Normal: {
-				fs: "normal"
+			NormalDepth: {
+				fs: "normalDepth"
+			}
+		});
+
+		this.channel = this.mainImage;
+		Renderer.instance.dispatch("keydown", (e: KeyboardEvent) => {
+			const lookup = {
+				"1": this.mainImage,
+				"2": this.normalDepthImage,
+				"3": this.ssrImage,
+			};
+			if (e.key.toLowerCase() in lookup) {
+				this.channel = lookup[e.key.toLowerCase()];
 			}
 		});
 
@@ -83,57 +97,61 @@ class Game {
 			this.ambient.render();
 
 			// render main image into mainImage
-			this.worldCom.use();
-
 			this.offscreen.bind();
+
+				this.worldCom.use();
 
 				this.mainViewport.use();
 				
-				this.offscreen.set(gl.COLOR_ATTACHMENT0, this.mainImage);
-				gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-				this.ambient.texture.use("Ambient");
-					this.objects.visit((e: ulist_elem<Obj>) => {
-						e.get().bindShader();
-							e.get().render(this.mainViewport);
-						e.get().unbindShader();
-					});
-					this.skybox.bindShader();
-						this.skybox.render(this.mainViewport);
-					this.skybox.unbindShader();
-				this.ambient.texture.unuse();
-				
-				this.offscreen.set(gl.COLOR_ATTACHMENT0, this.normalImage);
-				gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-				Shader.specify("Normal");
-					this.objects.visit((e: ulist_elem<Obj>) => {
-						e.get().bindShader();
-							e.get().render(this.mainViewport);
-						e.get().unbindShader();
-					});
-				Shader.unspecify();
+					this.offscreen.set(gl.COLOR_ATTACHMENT0, this.mainImage);
+					gl.clear(gl.DEPTH_BUFFER_BIT);
+					this.ambient.texture.use("Ambient");
+						this.objects.visit((e: ulist_elem<Obj>) => {
+							e.get().bindShader();
+								e.get().render(this.mainViewport);
+							e.get().unbindShader();
+						});
+						this.skybox.bindShader();
+							this.skybox.render(this.mainViewport);
+						this.skybox.unbindShader();
+					this.ambient.texture.unuse();
+					
+					this.offscreen.set(gl.COLOR_ATTACHMENT0, this.normalDepthImage);
+					gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+					Shader.specify("NormalDepth");
+						this.objects.visit((e: ulist_elem<Obj>) => {
+							e.get().bindShader();
+								e.get().render(this.mainViewport);
+							e.get().unbindShader();
+						});
+					Shader.unspecify();
 
 				this.mainViewport.unuse();
 
+				this.worldCom.unuse();
+
+				// end world pass
+				gl.disable(gl.DEPTH_TEST);
+				this.renderCom.use();
+
+				// do SSR
+				this.offscreen.set(gl.COLOR_ATTACHMENT0, this.ssrImage);
+				this.mainImage.use("Image");
+				this.normalDepthImage.use("NormalDepth")
+					this.ssr.render();
+				this.normalDepthImage.unuse();
+				this.mainImage.unuse();
+			
 			this.offscreen.unbind();
 
-			this.worldCom.unuse();
-
-			// end world pass
-			gl.disable(gl.DEPTH_TEST);
-			this.renderCom.use();
-
-			// do SSR
-			// this.mainImage.use("World");
-			// 	this.ssr.render();
-			
 			// render defer image
 			// this.mainImage.use("Image");
 			// 	this.defer.render();
 			// this.mainImage.unuse();
 
-			this.normalImage.use("Image");
+			this.channel.use("Image");
 				this.defer.render();
-			this.normalImage.unuse();
+			this.channel.unuse();
 
 			gl.enable(gl.DEPTH_TEST);
 			this.renderCom.unuse();

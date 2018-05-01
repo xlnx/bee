@@ -2,13 +2,15 @@
 
 precision mediump float;
 
-uniform sampler2D gMain;
+uniform sampler2D gImage;
 
-in vec2 TexCoord0;
+
+in vec2 Position0;
 
 out vec4 FragColor;
 
 void main()
 {
-	FragColor = texture(gMain, TexCoord0);
+	vec2 uv = Position0;
+	FragColor = texture(gImage, (uv + 1.) * .5);
 }

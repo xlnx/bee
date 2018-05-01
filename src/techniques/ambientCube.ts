@@ -36,7 +36,7 @@ class AmbientCube {
 						for (let i = 0; i != 6; ++i) {
 							this.offscreen.set(gl.COLOR_ATTACHMENT0, this.texture, i);
 
-							gl.clear(gl.COLOR_BUFFER_BIT);
+							// gl.clear(gl.COLOR_BUFFER_BIT);
 							this.gSpace.set(AmbientCube.spaceTrans[i]);
 
 							this.vao.bind();
