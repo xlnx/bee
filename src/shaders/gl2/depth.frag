@@ -16,6 +16,7 @@ vec4 normfloat2vec4(float x)
 float encodeDepth(float d) 
 {
 	return exp(- d * d - 1.);
+	return d;
 }
 
 void main()

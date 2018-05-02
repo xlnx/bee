@@ -7,15 +7,10 @@ class ScreenSpaceReflection extends PostProcess {
 	constructor() {
 		super(Shader.create("SSR", false));
 	}
-
-	render() {
-		this.shader.use();
-			this.gP.set(this.viewport.getPers());
-			this.gIP.set(glm.inverse(this.viewport.getPers()));
-			this.vao.bind();
-				this.vao.draw();
-			this.vao.unbind();
-		this.shader.unuse();
+	
+	setUniforms() {
+		this.gP.set(this.viewport.getPers());
+		this.gIP.set(glm.inverse(this.viewport.getPers()));
 	}
 
 	private gP = Shader.uniform("mat4", "gP");

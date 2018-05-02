@@ -9,9 +9,13 @@ uniform mat4 gP;
 
 uniform vec3 gCameraWorldPos;
 
-#define RAYMARCH_MAX_ITER 16
-#define RAYMARCH_ITER_STEP 1e-1
-#define RAYMARCH_EPS 1.5e-2
+// #define RAYMARCH_MAX_ITER 200
+// #define RAYMARCH_ITER_STEP 1e-2
+// #define RAYMARCH_EPS 1.5e-15
+
+#define RAYMARCH_MAX_ITER 12
+#define RAYMARCH_ITER_STEP 5e-2
+#define RAYMARCH_EPS 2e-3
 
 
 in vec2 Position0;
@@ -25,6 +29,18 @@ struct PointInfo
 	float depth;
 };
 
+struct Ray
+{
+	vec2 uv;
+	vec3 dir;
+};
+
+struct HitInfo
+{
+	vec2 uv;
+	bool hit;
+};
+
 float vec42normfloat(vec4 v)
 {
 	const vec4 bitShift = vec4(1.0, 1.0/256.0, 1.0/(256.0*256.0), 1.0/(256.0*256.0*256.0));
@@ -34,6 +50,7 @@ float vec42normfloat(vec4 v)
 float decodeDepth(float d)
 {
 	return sqrt(- log(d) - 1.);
+	return d;
 }
 
 float getPointDepth(vec2 uv)
@@ -50,53 +67,56 @@ PointInfo decodePoint(vec2 uv)
 	return info;
 }
 
+HitInfo Raymarch(Ray ray)
+{
+	vec4 cdir = gP * vec4(ray.dir, 0.);
+	cdir *= vec4(1. / cdir.z, 1. / cdir.z, -1., 0.);
+	vec2 sdir = normalize(cdir.xy);
+	vec3 v = vec3(sdir, cdir.z * sdir.x / cdir.x) * RAYMARCH_ITER_STEP;
+	vec3 p = vec3(ray.uv, getPointDepth(ray.uv));
+	float sgn = sign(v.z);
+
+	for (int i = 0; i != RAYMARCH_MAX_ITER; ++i)
+	{
+		p += v;
+		if (sgn == sign(getPointDepth(p.xy) - p.z))
+		{
+			p -= v; v *= .5;
+		}
+		if (p.x > 1. || p.x < -1. || p.y > 1. || p.y < -1.)
+		{
+			break;
+		}
+	}
+
+	float d = abs(p.z - getPointDepth(p.xy));
+	HitInfo info;
+	info.uv = p.xy;
+	info.hit = d < RAYMARCH_EPS;
+	return info;
+}
+
 void main()
 {
 	vec2 uv = Position0;
 	PointInfo pinfo = decodePoint(uv);
 	vec3 N = pinfo.normal;
 	vec3 I = Incidence0;
-	// if (uv.x > 0.) {
-		vec3 color = vec3(0.);
-		float alpha = 0.;
-		if (pinfo.depth != 0.) {
-			vec3 SR = (gP * vec4(reflect(I, N), 0.)).xyz;
-			vec2 SRP = normalize(SR.xy);
-			vec3 step = vec3(SRP, SR.z * SRP.x / SR.x) * RAYMARCH_ITER_STEP;
-			vec3 p = vec3(uv, pinfo.depth);
-			for (int i = 0; i != RAYMARCH_MAX_ITER; ++i) {
-				p += step;
-				if (p.z > getPointDepth(p.xy)) {
-					p -= step;
-					step = step * .5;
-				}
-				if (p.x > 1. || p.y > 1. || p.x < -1. || p.x < -1.) {
-					p.z = 1e7;
-					break;
-				}
-			}
-			float d = abs(p.z - getPointDepth(p.xy));
-			if (d < RAYMARCH_EPS) {
-				// float mp = cos(2. * d / RAYMARCH_EPS);
-				color = texture(gImage, (p.xy + 1.) * .5).xyz;
-				// alpha += mp * 0.25;
-				alpha = 0.6 * cos(2. * d / RAYMARCH_EPS);
-			} else {
-				// test
-				// if (p.z < getPointDepth(p.xy)) {
-				// 	color = vec3(0.);
-				// } else {
-				// 	color = vec3(1.);
-				// }
-				// alpha = 1.;
-			}
-		}
+	vec3 R = reflect(I, N);
 
-		FragColor = //vec4(1.) * pinfo.depth;
-			vec4(mix(texture(gImage, (uv + 1.) * .5).xyz, 
-			clamp(color, 0., 1.), clamp(alpha, 0., 1.)), .5);//vec4(ray, 0, 1);
-		// FragColor = texture(gImage, (uv + 1.) * .5) + vec4(color, 1);
-	// } else {
-	// 	FragColor = texture(gImage, (uv + 1.) * .5);
-	// }
+	Ray ray;
+	ray.uv = uv;
+	ray.dir = R;
+	HitInfo hinfo = Raymarch(ray);
+
+	if (hinfo.hit)
+	{
+		vec4 color = texture(gImage, hinfo.uv *.5 + .5);
+		// FragColor = vec4(uv * .5 + .5, 0, 0);
+		FragColor = mix(texture(gImage, uv *.5 + .5), color, .6);
+	}
+	else
+	{
+		FragColor = texture(gImage, uv *.5 + .5);
+	}
 }
