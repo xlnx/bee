@@ -14,8 +14,8 @@ uniform vec3 gCameraWorldPos;
 // #define RAYMARCH_EPS 1.5e-15
 
 #define RAYMARCH_MAX_ITER 12
-#define RAYMARCH_ITER_STEP 5e-2
-#define RAYMARCH_EPS 2e-3
+#define RAYMARCH_ITER_STEP 6e-2
+#define RAYMARCH_EPS 2e-4
 
 
 in vec2 Position0;
@@ -70,22 +70,21 @@ PointInfo decodePoint(vec2 uv)
 HitInfo Raymarch(Ray ray)
 {
 	vec4 cdir = gP * vec4(ray.dir, 0.);
-	cdir *= vec4(1. / cdir.z, 1. / cdir.z, -1., 0.);
+	cdir *= vec4(1. / abs(cdir.w), 1. / abs(cdir.w), -sign(cdir.z), 0.);
 	vec2 sdir = normalize(cdir.xy);
 	vec3 v = vec3(sdir, cdir.z * sdir.x / cdir.x) * RAYMARCH_ITER_STEP;
 	vec3 p = vec3(ray.uv, getPointDepth(ray.uv));
-	float sgn = sign(v.z);
 
 	for (int i = 0; i != RAYMARCH_MAX_ITER; ++i)
 	{
 		p += v;
-		if (sgn == sign(getPointDepth(p.xy) - p.z))
+		if (p.z > getPointDepth(p.xy))
 		{
 			p -= v; v *= .5;
 		}
 		if (p.x > 1. || p.x < -1. || p.y > 1. || p.y < -1.)
 		{
-			break;
+			p.z = 1e7; break;
 		}
 	}
 
@@ -104,16 +103,22 @@ void main()
 	vec3 I = Incidence0;
 	vec3 R = reflect(I, N);
 
-	Ray ray;
-	ray.uv = uv;
-	ray.dir = R;
-	HitInfo hinfo = Raymarch(ray);
-
-	if (hinfo.hit)
+	if (pinfo.depth != 0.)
 	{
-		vec4 color = texture(gImage, hinfo.uv *.5 + .5);
-		// FragColor = vec4(uv * .5 + .5, 0, 0);
-		FragColor = mix(texture(gImage, uv *.5 + .5), color, .6);
+		Ray ray;
+		ray.uv = uv;
+		ray.dir = R;
+		HitInfo hinfo = Raymarch(ray);
+
+		if (hinfo.hit)
+		{
+			vec4 color = texture(gImage, hinfo.uv *.5 + .5);
+			FragColor = mix(texture(gImage, uv *.5 + .5), color, .6);
+		}
+		else
+		{
+			FragColor = texture(gImage, uv *.5 + .5);
+		}
 	}
 	else
 	{

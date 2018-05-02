@@ -1,9 +1,9 @@
 import { PostProcess } from "./postProcess";
 import { Shader } from "../gl/shader";
-import { PerspectiveViewport } from "../scene/viewport";
+import { PerspectiveViewport } from "../gl/viewport";
 import { glm } from "../util/glm"
 
-class ScreenSpaceReflection extends PostProcess {
+class SSR extends PostProcess {
 	constructor() {
 		super(Shader.create("SSR", false));
 	}
@@ -19,5 +19,5 @@ class ScreenSpaceReflection extends PostProcess {
 }
 
 export {
-	ScreenSpaceReflection
+	SSR
 }

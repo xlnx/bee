@@ -1,5 +1,5 @@
 import { glm } from "../util/glm"
-import { Viewport } from "./viewport";
+import { Viewport } from "../gl/viewport";
 import { Shader, Uniform } from "../gl/shader";
 import { gl, Renderer } from "../renderer/renderer";
 

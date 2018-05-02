@@ -1,7 +1,7 @@
 import { RBO, FBO } from "../gl/buffer";
 import { gl, Renderer } from "../renderer/renderer";
 import { Texture2D, TextureCube, Texture } from "../gl/texture";
-import { Viewport } from "../scene/viewport";
+import { Viewport } from "../gl/viewport";
 import { glm } from "../util/glm"
 
 // class SingleChannelFBRB {

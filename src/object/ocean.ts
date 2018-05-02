@@ -1,5 +1,5 @@
 import { Terrain } from "./terrain";
-import { Viewport } from "../scene/viewport";
+import { Viewport } from "../gl/viewport";
 import { Shader } from "../gl/shader";
 import { GerstnerWave } from "./gerstnerWave";
 import { Communicators, Communicator } from "../gl/communicator";

@@ -1,7 +1,7 @@
-import Obj from "../scene/object";
+import Obj from "../object/object";
 import { VAO, VertexAttrs } from "../gl/vertexAttrs";
 import { Shader, Uniform } from "../gl/shader";
-import { Viewport } from "../scene/viewport";
+import { Viewport } from "../gl/viewport";
 import { gl } from "../renderer/renderer";
 import { glm }  from "../util/glm"
 

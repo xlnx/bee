@@ -1,5 +1,5 @@
-import Obj from "../scene/object"
-import { Viewport } from "../scene/viewport";
+import Obj from "./object"
+import { Viewport } from "../gl/viewport";
 import { Shader } from "../gl/shader";
 
 export default abstract class MeshObj extends Obj {

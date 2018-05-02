@@ -1,5 +1,5 @@
 // import Obj from "../scene/object"
-// import { Viewport, PerspectiveViewport } from "../scene/viewport";
+// import { Viewport, PerspectiveViewport } from "../gl/viewport";
 // import { Shader, Uniform } from "../gl/shader";
 // import { ulist_elem, ulist } from "../util/ulist"
 // import { Offscreen, RenderBuffer } from "../techniques/offscreen";

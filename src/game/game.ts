@@ -1,24 +1,24 @@
 import { glm } from "../util/glm"
 import { gl, Renderer } from "../renderer/renderer"
-import { PerspectiveViewport, Viewport } from "../scene/viewport"
+import { PerspectiveViewport, Viewport } from "../gl/viewport"
 import Model from "../gl/model"
 import ModelObj from "../object/modelObject"
 import { PointLight } from "../techniques/lighting";
-import { Ocean } from "../techniques/ocean";
+import { Ocean } from "../object/ocean";
 import { Shader } from "../gl/shader";
-import { GerstnerWave } from "../techniques/gerstnerWave";
+import { GerstnerWave } from "../object/gerstnerWave";
 import { AmbientCube } from "../techniques/ambientCube";
 import { TestScreen } from "../techniques/offscreenTest";
-import { Skybox } from "../techniques/skybox";
+import { Skybox } from "../object/skybox";
 import { ulist_elem, ulist } from "../util/ulist";
 import { Observer } from "./camera/observer";
 import { CameraBase } from "./camera/cameraBase";
 import { Communicators } from "../gl/communicator";
-import Obj from "../scene/object";
+import Obj from "../object/object";
 import { currentId } from "async_hooks";
 import { Offscreen, RenderBuffer } from "../techniques/offscreen";
 import { Texture2D } from "../gl/texture";
-import { ScreenSpaceReflection } from "../techniques/screenSpaceReflection";
+import { SSR } from "../techniques/SSR";
 import { DeferImage } from "../techniques/deferImage";
 import { UV_UDP_REUSEADDR } from "constants";
 import { UV } from "../techniques/uv";
@@ -57,7 +57,7 @@ class Game {
 	private offscreen = new Offscreen();
 
 	private ambient = new AmbientCube();
-	private ssr = new ScreenSpaceReflection();
+	private ssr = new SSR();
 	private depthDecode = new DepthDecode();
 	private uv = new UV();
 	private defer = new DeferImage();
