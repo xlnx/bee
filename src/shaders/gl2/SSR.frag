@@ -15,7 +15,7 @@ uniform vec3 gCameraWorldPos;
 
 #define RAYMARCH_MAX_ITER 16
 #define RAYMARCH_ITER_STEP 6e-2
-#define RAYMARCH_EPS 1e-2
+#define RAYMARCH_EPS 7e-3
 
 
 in vec2 Position0;

@@ -20,6 +20,7 @@ class Ocean extends Terrain {
 		this.mesh.bind();
 			this.mesh.draw();
 		this.mesh.unbind();
+		this.material.unuse();
 	}
 	
 	add(wave: GerstnerWave): ulist_elem<Communicator> {
