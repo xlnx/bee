@@ -13,13 +13,7 @@ vec4 normfloat2vec4(float x)
 	return rgba;
 }
 
-float encodeDepth(float d) 
-{
-	return exp(- d * d - 1.);
-	return d;
-}
-
 void main()
 {
-	FragColor = normfloat2vec4(encodeDepth(gl_FragCoord.z));
+	FragColor = normfloat2vec4(gl_FragCoord.z);
 }

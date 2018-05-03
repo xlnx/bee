@@ -23,6 +23,7 @@ import { DeferImage } from "../techniques/deferImage";
 import { UV_UDP_REUSEADDR } from "constants";
 import { UV } from "../techniques/uv";
 import { DepthDecode } from "../techniques/depthDecode";
+import { Noise } from "../techniques/noise";
 
 type CameraMode = "observe" | "follow" | "free" | "periscope"
 
@@ -51,6 +52,7 @@ class Game {
 	private depthImage = new Texture2D(gl.RGBA);
 	private ssrImage = new Texture2D(gl.RGBA);
 	private uvImage = new Texture2D(gl.RGB);
+	private noiseImage = new Texture2D(gl.RGB);
 	private depthDecodeImage = new Texture2D(gl.RGB);
 	private channel: Texture2D;
 
@@ -60,6 +62,7 @@ class Game {
 	private ssr = new SSR();
 	private depthDecode = new DepthDecode();
 	private uv = new UV();
+	private noise = new Noise();
 	private defer = new DeferImage();
 
 	constructor() {
@@ -100,6 +103,7 @@ class Game {
 				"5": this.ssrImage,
 				"6": this.depthDecodeImage,
 				"7": this.uvImage,
+				"8": this.noiseImage,
 			};
 			if (e.key.toLowerCase() in lookup) {
 				this.channel = lookup[e.key.toLowerCase()];
@@ -191,6 +195,9 @@ class Game {
 				this.depthDecode.render();
 			this.depthImage.unuse();
 
+			this.offscreen.set(gl.COLOR_ATTACHMENT0, this.noiseImage);
+			this.noise.render();
+
 			// draw uv image
 			this.offscreen.set(gl.COLOR_ATTACHMENT0, this.uvImage);
 			this.uv.render();
@@ -198,10 +205,6 @@ class Game {
 			this.offscreen.unbind();
 
 			// render defer image
-			// this.mainImage.use("Image");
-			// 	this.defer.render();
-			// this.mainImage.unuse();
-
 			this.channel.use("Image");
 				this.defer.render();
 			this.channel.unuse();
@@ -227,8 +230,8 @@ class Game {
 		let ocean = new Ocean();
 		let wave = new GerstnerWave();
 		let wave1 = new GerstnerWave();
-		wave.set("amplitude", 0.04);
-		wave1.set("amplitude", 0.06);
+		wave.set("amplitude", 0.03);
+		wave1.set("amplitude", 0.04);
 		wave1.set("direction", glm.vec2(1, 2));
 		ocean.add(wave);
 		ocean.add(wave1);

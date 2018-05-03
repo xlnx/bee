@@ -15,15 +15,9 @@ float vec42normfloat(vec4 v)
 	return dot(v, bitShift);
 }
 
-float decodeDepth(float d)
-{
-	return sqrt(- log(d) - 1.);
-	return d;
-}
-
 float getPointDepth(vec2 uv)
 {
-	return decodeDepth(vec42normfloat(texture(gDepth, (uv + 1.) * .5)));
+	return vec42normfloat(texture(gDepth, (uv + 1.) * .5));
 }
 
 void main()
