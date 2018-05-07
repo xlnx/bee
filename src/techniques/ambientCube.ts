@@ -21,38 +21,68 @@ class AmbientCube {
 	}
 
 	render() {
+		let refFactor = this.dayScale / (24 * 60 * 0.1);
+		if (refFactor > 6) {
+			refFactor = 6;
+		} else if (refFactor < 1 / 60) {
+			refFactor = 1 / 60;
+		}
+		let prevRenderFace = Math.floor(this.currRenderFace);
+		this.currRenderFace += refFactor;
+
 		let dt = Renderer.instance.time - this.time;
 		this.time = Renderer.instance.time;
+		this.timeAcc += this.dayScale * dt; 
 
-		this.offscreen.bind();
-			gl.disable(gl.DEPTH_TEST);
-				this.viewport.use();
-					this.shader.use();
-						let alpha = Renderer.instance.time * this.dayScale * 2 * Math.PI / 24 / 3600;
+		if (Math.floor(this.currRenderFace) >prevRenderFace) {
 
-						this.gTime.set(Renderer.instance.time);
-						this.gSunPos.set(glm.vec3(Math.sin(alpha), 0, Math.cos(alpha)));
-						
-						for (let i = 0; i != 6; ++i) {
-							this.offscreen.set(gl.COLOR_ATTACHMENT0, this.texture, i);
+			this.offscreen.bind();
+				gl.disable(gl.DEPTH_TEST);
+					this.viewport.use();
+						this.shader.use();
+							let alpha = this.timeAcc * 2 * Math.PI / 24 / 3600;
 
-							// gl.clear(gl.COLOR_BUFFER_BIT);
-							this.gSpace.set(AmbientCube.spaceTrans[i]);
+							this.gTime.set(Renderer.instance.time);
+							this.gSunPos.set(glm.vec3(Math.sin(alpha), 0, Math.cos(alpha)));
 
-							this.vao.bind();
+							// for (let i = 0; i != 6; ++i) {
+							for (let i = prevRenderFace; i != Math.floor(this.currRenderFace); ++i) {
+								this.offscreen.set(gl.COLOR_ATTACHMENT0, this.texture, i % 6);
+								// gl.clear(gl.COLOR_BUFFER_BIT);
+								this.gSpace.set(AmbientCube.spaceTrans[i % 6]);
+								
+								this.vao.bind();
 								this.vao.draw();
-							this.vao.unbind();
-						}
-					this.shader.unuse();
-				this.viewport.unuse();
-			gl.enable(gl.DEPTH_TEST);
-		this.offscreen.unbind();
+								this.vao.unbind();
+							}
+							
+						this.shader.unuse();
+					this.viewport.unuse();
+				gl.enable(gl.DEPTH_TEST);
+			this.offscreen.unbind();
+		}
+
+		this.currRenderFace %= 6;
+	}
+
+	get scale(): number {
+		return this.dayScale / 24;
+	}
+	set scale(value: number) {
+		if (value > 512) {
+			value = 512;
+		} else if (value < .5) {
+			value = .5;
+		}
+		this.dayScale = value * 24;
 	}
 
 	private offscreen = new Offscreen();
 	private vao: VAO;
 	
 	private time: number = 0;
+	private timeAcc: number = 18 * 3600;
+	private currRenderFace: number = 0;
 	
 	private gSpace: Uniform = Shader.uniform("mat4", "gSpace");
 	private gSunPos: Uniform = Shader.uniform("vec3", "gSunPos");
@@ -71,7 +101,7 @@ class AmbientCube {
 		glm.mat4( -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, -1, 1 )
 	];
 
-	private dayScale: number = 24 * 60 * 6;
+	private dayScale: number = 24 * 60 * 0.2;
 }
 
 export {

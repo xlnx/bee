@@ -24,6 +24,7 @@ import { UV_UDP_REUSEADDR } from "constants";
 import { UV } from "../techniques/uv";
 import { DepthDecode } from "../techniques/depthDecode";
 import { Noise } from "../techniques/noise";
+import { Vessel } from "./vessel/vessel";
 
 type CameraMode = "observe" | "follow" | "free" | "periscope"
 
@@ -42,7 +43,7 @@ class Game {
 		periscope: new Observer()
 	};
 	
-	private objects = new ulist<Obj>();
+	private vessels = new ulist<Vessel>();
 	private worldCom = new Communicators();
 	private renderCom = new Communicators();
 	
@@ -59,7 +60,7 @@ class Game {
 	private offscreen = new Offscreen();
 
 	private ambient = new AmbientCube();
-	private ssr = new SSR();
+	private ssr = new SSR(true);
 	private depthDecode = new DepthDecode();
 	private uv = new UV();
 	private noise = new Noise();
@@ -110,6 +111,7 @@ class Game {
 			}
 		});
 
+		this.ambient.scale = 1;
 		this.sea();
 		// this.cube();
 	}
@@ -129,45 +131,51 @@ class Game {
 				this.offscreen.set(gl.COLOR_ATTACHMENT0, this.mainImage);
 				gl.clear(gl.DEPTH_BUFFER_BIT);
 				this.ambient.texture.use("Ambient");
-					this.objects.visit((e: ulist_elem<Obj>) => {
-						e.get().bindShader();
+					this.ocean.bindShader();
+						this.ocean.render(this.mainViewport);
+					this.ocean.unbindShader();
+					Vessel.bindShader();
+						this.vessels.visit((e: ulist_elem<Vessel>) => {
 							e.get().render(this.mainViewport);
-						e.get().unbindShader();
-					});
+						});
+					Vessel.unbindShader();
 					this.skybox.bindShader();
 						this.skybox.render(this.mainViewport);
 					this.skybox.unbindShader();
 				this.ambient.texture.unuse();
 				
-				// this.offscreen.set(gl.COLOR_ATTACHMENT0, this.normalDepthImage);
+				this.offscreen.set(gl.COLOR_ATTACHMENT0, this.normalDepthImage);
+				gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+				Shader.specify("NormalDepth");
+					this.ocean.bindShader();
+						this.ocean.render(this.mainViewport);
+					this.ocean.unbindShader();
+					Vessel.bindShader();
+						this.vessels.visit((e: ulist_elem<Obj>) => {
+							e.get().render(this.mainViewport);
+						});
+					Vessel.unbindShader();
+				Shader.unspecify();
+				
+				// this.offscreen.set(gl.COLOR_ATTACHMENT0, this.normalImage);
 				// gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-				// Shader.specify("NormalDepth");
+				// Shader.specify("Normal");
 				// 	this.objects.visit((e: ulist_elem<Obj>) => {
 				// 		e.get().bindShader();
 				// 			e.get().render(this.mainViewport);
 				// 		e.get().unbindShader();
 				// 	});
 				// Shader.unspecify();
-				
-				this.offscreen.set(gl.COLOR_ATTACHMENT0, this.normalImage);
-				gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-				Shader.specify("Normal");
-					this.objects.visit((e: ulist_elem<Obj>) => {
-						e.get().bindShader();
-							e.get().render(this.mainViewport);
-						e.get().unbindShader();
-					});
-				Shader.unspecify();
 
-				this.offscreen.set(gl.COLOR_ATTACHMENT0, this.depthImage);
-				gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-				Shader.specify("Depth");
-					this.objects.visit((e: ulist_elem<Obj>) => {
-						e.get().bindShader();
-							e.get().render(this.mainViewport);
-						e.get().unbindShader();
-					});
-				Shader.unspecify();
+				// this.offscreen.set(gl.COLOR_ATTACHMENT0, this.depthImage);
+				// gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+				// Shader.specify("Depth");
+				// 	this.objects.visit((e: ulist_elem<Obj>) => {
+				// 		e.get().bindShader();
+				// 			e.get().render(this.mainViewport);
+				// 		e.get().unbindShader();
+				// 	});
+				// Shader.unspecify();
 
 			this.mainViewport.unuse();
 
@@ -180,27 +188,27 @@ class Game {
 			// do SSR
 			this.offscreen.set(gl.COLOR_ATTACHMENT0, this.ssrImage);
 			this.mainImage.use("Image");
-			// this.normalDepthImage.use("NormalDepth");
-			this.normalImage.use("Normal");
-			this.depthImage.use("Depth");
+			this.normalDepthImage.use("NormalDepth");
+			// this.normalImage.use("Normal");
+			// this.depthImage.use("Depth");
 				this.ssr.render();
-			// this.normalDepthImage.unuse();
-			this.normalImage.unuse();
-			this.depthImage.unuse();
+			this.normalDepthImage.unuse();
+			// this.normalImage.unuse();
+			// this.depthImage.unuse();
 			this.mainImage.unuse();
 
 			// decode depth
-			this.offscreen.set(gl.COLOR_ATTACHMENT0, this.depthDecodeImage);
-			this.depthImage.use("Depth");
-				this.depthDecode.render();
-			this.depthImage.unuse();
+			// this.offscreen.set(gl.COLOR_ATTACHMENT0, this.depthDecodeImage);
+			// this.depthImage.use("Depth");
+			// 	this.depthDecode.render();
+			// this.depthImage.unuse();
 
-			this.offscreen.set(gl.COLOR_ATTACHMENT0, this.noiseImage);
-			this.noise.render();
+			// this.offscreen.set(gl.COLOR_ATTACHMENT0, this.noiseImage);
+			// this.noise.render();
 
 			// draw uv image
-			this.offscreen.set(gl.COLOR_ATTACHMENT0, this.uvImage);
-			this.uv.render();
+			// this.offscreen.set(gl.COLOR_ATTACHMENT0, this.uvImage);
+			// this.uv.render();
 			
 			this.offscreen.unbind();
 
@@ -224,25 +232,21 @@ class Game {
 	}
 
 	sea() {
-		let model = new ModelObj(Model.create("clemson.json"));
-		model.scale(0.5);
-
-		let ocean = new Ocean();
+		this.ocean = new Ocean();
 		let wave = new GerstnerWave();
 		let wave1 = new GerstnerWave();
 		wave.set("amplitude", 0.03);
 		wave1.set("amplitude", 0.04);
 		wave1.set("direction", glm.vec2(1, 2));
-		ocean.add(wave);
-		ocean.add(wave1);
+		this.ocean.add(wave);
+		this.ocean.add(wave1);
 
-		this.objects.push(ocean);
-		this.objects.push(model);
+		this.vessels.push(new Vessel("clemson"));
 	}
 	cube() {
 		let off = new TestScreen();
 
-		this.objects.push(off);
+		// this.objects.push(off);
 	
 		let cameraPositions = [
 			glm.vec3(1, 0, 0),
