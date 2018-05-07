@@ -8,7 +8,10 @@ const url = require('url')
 let mainWindow
 
 function createWindow () {
-  mainWindow = new BrowserWindow({width: 1600, height: 1024})
+  app.commandLine.appendSwitch('--disable-gpu-vsync')
+  app.commandLine.appendSwitch('--use-gl=desktop')
+
+  mainWindow = new BrowserWindow({width: 1600, height: 1024, 'web-preferences': {plugins: true}})
 
   mainWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'build/index.html'),

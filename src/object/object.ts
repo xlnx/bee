@@ -114,8 +114,8 @@ export default abstract class Obj extends ObjBase {
 		Obj.gWVP.set(viewport.getTrans()["*"](this.getTrans()));
 		Obj.gWorld.set(this.getTrans());
 		Obj.gV.set(viewport.getView());
-		Obj.gCameraWorldPos.set(viewport.position);
-		Obj.gTime.set(Renderer.instance.time);
+		Obj.gCameraWorldPos.set(viewport.getCameraPosition());
+		Obj.gTime.set(Renderer.time);
 	}
 	abstract render(viewport: Viewport);
 	bindShader() {

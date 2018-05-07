@@ -16,13 +16,15 @@ class PostProcess {
 	}
 	render() {
 		this.shader.use();
-			this.setUniforms();
+			this.beforeRender();
 			this.vao.bind();
 				this.vao.draw();
 			this.vao.unbind();
+			this.afterRender();
 		this.shader.unuse();
 	}
-	setUniforms() {}
+	beforeRender() {}
+	afterRender() {}
 }
 
 export {

@@ -44,6 +44,9 @@ class ulist<T> {
 	subscribe(index: number): ulist_elem<T> {
 		return this.data.data[index];
 	}
+	clear() {
+		this.data.data = [];
+	}
 }
 
 export {

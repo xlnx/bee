@@ -18,17 +18,35 @@ export default class Model {
 
 	private mesh: { [key: number]: { material: Material, mesh: Mesh[] } } = {};
 
-	constructor(name: string) {
+	constructor(name: string);
+	constructor(name: string, callback: (v: Model) => void);
+	constructor(name: string, callback?: (v: Model) => void) {
 		name = Model.modelPath + name;
-		let scene = assets.import(name);
-		for (let m of scene.meshes) {
-			if (!(m.materialindex in this.mesh)) {
-				this.mesh[m.materialindex] = {
-					material: Material.createFromModel(scene.materials[m.materialindex], Model.modelPath),
-					mesh: []
-				};
+		if (callback == undefined) {
+			let scene = assets.import(name);
+			for (let m of scene.meshes) {
+				if (!(m.materialindex in this.mesh)) {
+					this.mesh[m.materialindex] = {
+						material: Material.createFromModel(scene.materials[m.materialindex], Model.modelPath),
+						mesh: []
+					};
+				}
+				this.mesh[m.materialindex].mesh.push(Model.createMesh(m));
 			}
-			this.mesh[m.materialindex].mesh.push(Model.createMesh(m));
+		} else {
+			let self = this;
+			assets.importAsync(name, (scene: any) => {
+				for (let m of scene.meshes) {
+					if (!(m.materialindex in self.mesh)) {
+						self.mesh[m.materialindex] = {
+							material: Material.createFromModel(scene.materials[m.materialindex], Model.modelPath),
+							mesh: []
+						};
+					}
+					self.mesh[m.materialindex].mesh.push(Model.createMesh(m));
+				}
+				callback(this);
+			});
 		}
 	}
 
@@ -42,11 +60,24 @@ export default class Model {
 		}
 	}
 
-	static create(name: string) {
-		if (!(name in Model.models)) {
-			Model.models[name] = new Model(name);
+	static create(name: string);
+	static create(name: string, callback: (v: Model) => void);
+	static create(name: string, callback?: (v: Model) => void) {
+		if (callback == undefined) {
+			if (!(name in Model.models)) {
+				Model.models[name] = new Model(name);
+			}
+			return Model.models[name];
+		} else {
+			if (!(name in Model.models)) {
+				new Model(name, (v: Model) => {
+					Model.models[name] = v;
+					callback(v);
+				});
+			} else {
+				callback(Model.models[name]);
+			}
 		}
-		return Model.models[name];
 	}
 	static createMesh(mesh: any): Mesh {
 		let attrs: any[] = [];

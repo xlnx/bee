@@ -20,8 +20,12 @@ class AmbientCube {
 		]);
 	}
 
+	setTime(hour: number) {
+		this.dayTimeSec = 3600 * (hour - 12);
+	}
+
 	render() {
-		let refFactor = this.dayScale / (24 * 60 * 0.1);
+		let refFactor = this.dayScale * Renderer.timescale / (24 * 60 * 0.1);
 		if (refFactor > 6) {
 			refFactor = 6;
 		} else if (refFactor < 1 / 60) {
@@ -30,9 +34,7 @@ class AmbientCube {
 		let prevRenderFace = Math.floor(this.currRenderFace);
 		this.currRenderFace += refFactor;
 
-		let dt = Renderer.instance.time - this.time;
-		this.time = Renderer.instance.time;
-		this.timeAcc += this.dayScale * dt; 
+		this.dayTimeSec += this.dayScale * Renderer.dt; 
 
 		if (Math.floor(this.currRenderFace) >prevRenderFace) {
 
@@ -40,9 +42,9 @@ class AmbientCube {
 				gl.disable(gl.DEPTH_TEST);
 					this.viewport.use();
 						this.shader.use();
-							let alpha = this.timeAcc * 2 * Math.PI / 24 / 3600;
+							let alpha = -this.dayTimeSec * 2 * Math.PI / 24 / 3600;
 
-							this.gTime.set(Renderer.instance.time);
+							this.gTime.set(Renderer.time);
 							this.gSunPos.set(glm.vec3(Math.sin(alpha), 0, Math.cos(alpha)));
 
 							// for (let i = 0; i != 6; ++i) {
@@ -65,23 +67,11 @@ class AmbientCube {
 		this.currRenderFace %= 6;
 	}
 
-	get scale(): number {
-		return this.dayScale / 24;
-	}
-	set scale(value: number) {
-		if (value > 512) {
-			value = 512;
-		} else if (value < .5) {
-			value = .5;
-		}
-		this.dayScale = value * 24;
-	}
-
 	private offscreen = new Offscreen();
 	private vao: VAO;
 	
 	private time: number = 0;
-	private timeAcc: number = 18 * 3600;
+	private dayTimeSec: number = 0;
 	private currRenderFace: number = 0;
 	
 	private gSpace: Uniform = Shader.uniform("mat4", "gSpace");
@@ -92,7 +82,7 @@ class AmbientCube {
 	private viewport = new Viewport(0, 0, 
 		Renderer.instance.canvas.height, Renderer.instance.canvas.height);
 	
-	static spaceTrans = [
+	private static spaceTrans = [
 		glm.mat4( 0, 0, -1, 0, 0, -1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1 ),
 		glm.mat4( 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 0, -1, 0, 0, 1 ),
 		glm.mat4( 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1 ),
@@ -101,7 +91,7 @@ class AmbientCube {
 		glm.mat4( -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, -1, 1 )
 	];
 
-	private dayScale: number = 24 * 60 * 0.2;
+	private dayScale: number = 24;
 }
 
 export {

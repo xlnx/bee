@@ -64,6 +64,9 @@ class Viewport {
 	get position(): glm.vec3 {
 		return this.P;
 	}
+	getCameraPosition(): glm.vec3 {
+		return this.P;
+	}
 	getView(): glm.mat4 {
 		if (this.translateModified || this.rotateModified) {
 			if (this.translateModified) {
@@ -123,7 +126,7 @@ class PerspectiveViewport extends Viewport {
 	protected fwhratio: number;
 	protected ffov = glm.radians(45);
 	protected fzNear = 2e-1;
-	protected fzFar = 1e3;
+	protected fzFar = 1.2e3;
 
 	constructor();
 	constructor(left: number, top: number, width: number, height: number);

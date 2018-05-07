@@ -43,12 +43,8 @@ class Observer extends CameraBase {
 		this.Up = glm.vec3(0, 0, 1);
 	}
 
-	set position(pos: glm.vec3) {
-		this.P = pos;
-		this.translateModified = true;
-	}
-	get position(): glm.vec3 {
-		if (this.rModified || this.tModified) {
+	getCameraPosition(): glm.vec3 {
+		if (this.rModified || this.tModified || this.translateModified) {
 			this.updatePTrans();
 		}
 		return this.pos;
@@ -68,37 +64,39 @@ class Observer extends CameraBase {
 			this.rotateModified;
 	}
 	private updatePTrans() {
-		if (this.rModified) {
-			this.rModified = false;
-			let sina = Math.sin(this.R.y - Math.PI / 2), 
-			sinz = Math.sin(this.R.z),
-			cosa = Math.cos(this.R.y - Math.PI / 2), 
-			cosz = Math.cos(this.R.z),
-			cosy = Math.cos(this.R.y),
-			siny = Math.sin(this.R.y);
-			this.rTrans = glm.mat4(
-				-sina * cosz, -sinz , cosa * cosz, 0,
-				-sina * sinz, cosz  , cosa * sinz, 0,
-				-cosa       , 0     , -sina      , 0,
-				0           , 0     , 0          , 1
-			);
-			this.qTrans = glm.mat4(
-				cosy * cosz, cosy * sinz, -siny , 0,
-				-sinz      , cosz       , 0     , 0,
-				siny * cosz, siny * sinz, cosy  , 0,
-				0          , 0          , 0     , 1
-			);
+		if (this.rModified || this.tModified) {
+			if (this.rModified) {
+				this.rModified = false;
+				let sina = Math.sin(this.R.y - Math.PI / 2), 
+				sinz = Math.sin(this.R.z),
+				cosa = Math.cos(this.R.y - Math.PI / 2), 
+				cosz = Math.cos(this.R.z),
+				cosy = Math.cos(this.R.y),
+				siny = Math.sin(this.R.y);
+				this.rTrans = glm.mat4(
+					-sina * cosz, -sinz , cosa * cosz, 0,
+					-sina * sinz, cosz  , cosa * sinz, 0,
+					-cosa       , 0     , -sina      , 0,
+					0           , 0     , 0          , 1
+				);
+				this.qTrans = glm.mat4(
+					cosy * cosz, cosy * sinz, -siny , 0,
+					-sinz      , cosz       , 0     , 0,
+					siny * cosz, siny * sinz, cosy  , 0,
+					0          , 0          , 0     , 1
+				);
+			}
+			if (this.tModified) {
+				this.tModified = false;
+				this.tTrans = glm.mat4(
+					1, 0, 0, 0,
+					0, 1, 0, 0,
+					0, 0, 1, 0,
+					-this.dist, 0, 0, 1
+				);
+			}
+			this.pTrans = this.tTrans["*"](this.rTrans);
 		}
-		if (this.tModified) {
-			this.tModified = false;
-			this.tTrans = glm.mat4(
-				1, 0, 0, 0,
-				0, 1, 0, 0,
-				0, 0, 1, 0,
-				-this.dist, 0, 0, 1
-			);
-		}
-		this.pTrans = this.tTrans["*"](this.rTrans);
 		this.pos = this.P["+"](this.qTrans["*"](glm.vec4(this.dist, 0, 0, 1)).xyz);
 	}
 	getView(): glm.mat4 {
@@ -115,9 +113,7 @@ class Observer extends CameraBase {
 				);
 			}
 			if (this.translateModified || this.rModified || this.tModified) {
-				if (this.rModified || this.tModified) {
-					this.updatePTrans();
-				}
+				this.updatePTrans();
 				if (this.translateModified) {
 					this.translateModified = false;
 					this.translateTrans = glm.mat4(
@@ -151,31 +147,35 @@ class Observer extends CameraBase {
 
 	bind() {
 		this.mousewheel = Renderer.instance.dispatch("mousewheel", (e: MouseWheelEvent) => {
-			let det = clamp(e.deltaY, -this.threshord, this.threshord);
-			det = det / (2 * this.threshord) + 1;
-			this.zoom(det);
+			if (!Renderer.pause) {
+				let det = clamp(e.deltaY, -this.threshord, this.threshord);
+				det = det / (2 * this.threshord) + 1;
+				this.zoom(det);
+			}
 		});
 		this.mousemove = Renderer.instance.dispatch("mousemove", (e: MouseEvent) => {
 			if (this.isDragging) {
-				let c1 = Renderer.instance.canvas.height / Math.tan(this.ffov/2);
-				let c2 = Renderer.instance.canvas.width;
-				let h = 0.5 * Math.sqrt(c1 * c1 - c2 * c2);
-				let dx1 = e.clientX - Renderer.instance.canvas.width / 2;
-				let dx2 = this.prevx - Renderer.instance.canvas.width / 2;
-				let dy1 = e.clientY - Renderer.instance.canvas.height / 2;
-				let dy2 = this.prevy - Renderer.instance.canvas.height / 2;
-				let thetax = Math.atan(dx1/h) - Math.atan(dx2/h);
-				let thetay = Math.atan(dy1/h) - Math.atan(dy2/h);
-				this.rotate(glm.vec3(0, -thetay, -thetax));
-				this.prevx = e.clientX; this.prevy = e.clientY;
+				if (Renderer.pause) {
+					this.isDragging = false;
+				} else {
+					let c1 = Renderer.instance.canvas.height / Math.tan(this.ffov/2);
+					let c2 = Renderer.instance.canvas.width;
+					let h = 0.5 * Math.sqrt(c1 * c1 - c2 * c2);
+					let dx1 = e.clientX - Renderer.instance.canvas.width / 2;
+					let dx2 = this.prevx - Renderer.instance.canvas.width / 2;
+					let dy1 = e.clientY - Renderer.instance.canvas.height / 2;
+					let dy2 = this.prevy - Renderer.instance.canvas.height / 2;
+					let thetax = Math.atan(dx1/h) - Math.atan(dx2/h);
+					let thetay = Math.atan(dy1/h) - Math.atan(dy2/h);
+					this.rotate(glm.vec3(0, -thetay, -thetax));
+					this.prevx = e.clientX; this.prevy = e.clientY;
+				}
 			}
 		});
 		this.mouseup = Renderer.instance.dispatch("mouseup", (e: MouseEvent) => {
-			console.log("up");
 			this.isDragging = false;
 		});
 		this.mousedown = Renderer.instance.dispatch("mousedown", (e: MouseEvent) => {
-			console.log("down");
 			this.prevx = e.clientX;
 			this.prevy = e.clientY;
 			this.isDragging = true;

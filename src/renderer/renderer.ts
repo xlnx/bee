@@ -20,16 +20,22 @@ class RenderEvent {
 }
 
 class Renderer {
-	private static context: Renderer = null;
-	private static prevTime: number = 0;
+	protected static context: Renderer = null;
+	protected static fprevTime: number = 0;
 
-	private fps: number = 0;
-	private events = new EventList();
-	private renderers = new ulist<(time: number) => void>();
+	protected fps: number = 0;
+	protected events = new EventList();
+	protected renderers = new ulist<() => void>();
 	public readonly canvas: HTMLCanvasElement;
-	private canvasWrapper: HTMLDivElement;
-	private animationRequest: number;
-	private ftime: number = 0;
+	protected canvasWrapper: HTMLDivElement;
+	protected animationRequest: number;
+	protected ftime: number = 0;
+	protected fltime: number = 0;
+	protected fprevTick: number = undefined;
+
+	public fpause: boolean = false;
+
+	public static timescale: number = 1;
 
 	constructor(container: HTMLElement, fallback: boolean = false) {
 		if (Renderer.context != null) {
@@ -86,25 +92,54 @@ class Renderer {
 	start() {
 		this.animationRequest = window.requestAnimationFrame(this.render.bind(this));
 	}
-	get time(): number {
-		return this.ftime;
+	
+	static get time(): number {
+		return Renderer.instance.ftime;
+	}
+	static get prevTime(): number {
+		return Renderer.instance.fltime;
+	}
+	static get dt(): number {
+		return Renderer.instance.ftime - Renderer.instance.fltime;
+	}
+
+	static resetClock() {
+		Renderer.instance.ftime = 0;
+		Renderer.instance.fltime = 0;
+	}
+	static pauseClock() {
+		Renderer.instance.fpause = true;
+	}
+	static continueClock() {
+		Renderer.instance.fpause = false;
+	}
+	static get pause(): boolean {
+		return Renderer.instance.fpause;
 	}
 
 	private render(time: number) {
-		this.ftime = time / 1000;
-		this.renderers.visit((e: ulist_elem<(time: number) => void>) => {
-			try {
-				e.get()(time);
-			} catch (err) {
-				console.error(err);
+		time /= 1000;
+		if (this.fprevTick != undefined) {
+			// console.log(Renderer.timescale);
+			if (!this.fpause) {
+				this.fltime = this.ftime;
+				this.ftime += Renderer.timescale * (time - this.fprevTick);
 			}
-		});
-		if (Math.floor(time / 1000) > Renderer.prevTime) {
-			console.log("fps:", this.fps + 1);
-			Renderer.prevTime = Math.floor(time / 1000);
-			this.fps = 0;
+			this.renderers.visit((e: ulist_elem<() => void>) => {
+				try {
+					e.get()();
+				} catch (err) {
+					console.error(err);
+				}
+			});
+			if (Math.floor(time) > Renderer.fprevTime) {
+				console.log("fps:", this.fps + 1);
+				Renderer.fprevTime = Math.floor(time);
+				this.fps = 0;
+			}
+			this.fps += 1;
 		}
-		this.fps += 1;
+		this.fprevTick = time;
 		this.animationRequest = window.requestAnimationFrame(this.render.bind(this));
 	}
 }
