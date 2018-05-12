@@ -8,7 +8,8 @@ import { glm } from "../util/glm"
 import { VAO, VertexAttrs } from "../gl/vertexAttrs";
 
 class AmbientCube {
-	public readonly texture = new TextureCube(gl.RGBA);
+	public readonly texture = new TextureCube(gl.RGBA, 
+		Renderer.instance.canvas.height / 2, Renderer.instance.canvas.height / 2);
 
 	constructor() {
 		let vertices = new VertexAttrs(["pos2"]);
@@ -25,7 +26,7 @@ class AmbientCube {
 	}
 
 	render() {
-		let refFactor = this.dayScale * Renderer.timescale / (24 * 60 * 0.1);
+		let refFactor = this.dayScale * Renderer.timescale / (24 * 60 * 0.08);
 		if (refFactor > 6) {
 			refFactor = 6;
 		} else if (refFactor < 1 / 60) {
@@ -36,7 +37,7 @@ class AmbientCube {
 
 		this.dayTimeSec += this.dayScale * Renderer.dt; 
 
-		if (Math.floor(this.currRenderFace) >prevRenderFace) {
+		if (Math.floor(this.currRenderFace) > prevRenderFace) {
 
 			this.offscreen.bind();
 				gl.disable(gl.DEPTH_TEST);
@@ -80,7 +81,7 @@ class AmbientCube {
 	
 	private shader = Shader.create("ambientCube", false);
 	private viewport = new Viewport(0, 0, 
-		Renderer.instance.canvas.height, Renderer.instance.canvas.height);
+		Renderer.instance.canvas.height / 2, Renderer.instance.canvas.height / 2);
 	
 	private static spaceTrans = [
 		glm.mat4( 0, 0, -1, 0, 0, -1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1 ),

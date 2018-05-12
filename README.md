@@ -35,7 +35,7 @@ Koishi chan likes bee. \>w<
 - [X] PCF
 - [X] Phong Lighting
 - [X] Refraction
-- [ ] Fresnel Blending
+- [X] Fresnel Blending
 - [X] Postprocess
 - [X] Gauss Blur
 - [X] Depth & Normal Texture
@@ -44,12 +44,13 @@ Koishi chan likes bee. \>w<
 - [X] Dynamic Ambient Cube
 > - [ ] Figure out a better Skycolor Function 
 - [X] Depth Based Raymarching
+> - [X] Filter function
 > - [ ] Increase Precision
 - [X] SSR
 > - [ ] Reduce Noise
 - [X] Ocean Terrain LOD
 - [X] Gerstner Waves
-- [ ] FFT Waves
+- [ ] FFT Waves - canceled
 - [ ] AABB
 - [ ] Dynamics
 - [ ] Transform Feedback

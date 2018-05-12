@@ -126,8 +126,8 @@ bool intersect_with_atmosphere(in vec3 ro, in vec3 rd, out float tr)
 	return true;
 }
 
-const int SKYLIGHT_NB_VIEWDIR_SAMPLES = 12;
-const int SKYLIGHT_NB_SUNDIR_SAMPLES = 6;
+const int SKYLIGHT_NB_VIEWDIR_SAMPLES = 4;
+const int SKYLIGHT_NB_SUNDIR_SAMPLES = 2;
 
 float compute_sun_visibility(float alt)
 {

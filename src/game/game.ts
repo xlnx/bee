@@ -244,7 +244,6 @@ class Game {
 		this.inGame = true;
 
 		this.viewports.observe.tie(this.uboat);
-		this.uboat.diveSpeed = 1;
 
 		this.freeMode();
 	}

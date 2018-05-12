@@ -152,6 +152,7 @@ class Texture2D extends Texture {
 
 class TextureCube extends Texture {
 	constructor(component: number);
+	constructor(component: number, width: number, height: number);
 	constructor(component: number, width?: number, height?: number) {
 		super(gl.TEXTURE_CUBE_MAP);
 		if (width == undefined) {

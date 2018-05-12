@@ -9,9 +9,14 @@ uniform samplerCube gAmbient;
 uniform float gSpecularIntensity;
 uniform float gSpecularPower;
 
-const float FresnelBias = 0.4;
-const float FresnelPower = -1.;
-const float FresnelScale = .7;
+const float FresnelBiasAbove = .02;
+const float FresnelPowerAbove = -7.;
+const float FresnelScaleAbove = .98;
+
+const float FresnelBiasBelow = .03;
+const float FresnelPowerBelow = -48.;
+const float FresnelScaleBelow = 2e10;
+
 
 
 
@@ -29,7 +34,8 @@ void main()
 		vec3 r = reflect(-ve, n);
 		vec3 t = refract(-ve, n, 1.0 / 1.33);
 
-		float R = clamp(FresnelBias + FresnelScale * pow(1. + dot(r, n), FresnelPower), 0., 1.);
+		float R = clamp(FresnelBiasAbove + FresnelScaleAbove * 
+			pow(1. + dot(r, n), FresnelPowerAbove), 0., 1.);
 
 		FragColor = R * texture(gAmbient, r) + (1.0 - R) * texture(gAmbient, t);
 	} else {
@@ -38,8 +44,9 @@ void main()
 		vec3 r = reflect(-ve, n);
 		vec3 t = refract(-ve, n, 1.33 / 1.);
 		
-		float R = clamp(FresnelBias + FresnelScale * pow(1. + dot(r, n), FresnelPower), 0., 1.);
+		float R = clamp(FresnelBiasBelow + FresnelScaleBelow * 
+			pow(1. + dot(r, n), FresnelPowerBelow), 0., 1.);
 
-		FragColor = vec4(1.) * R;//R * texture(gAmbient, r) + (1.0 - R) * texture(gAmbient, t);
+		FragColor = R * texture(gAmbient, r) + (1.0 - R) * texture(gAmbient, t);
 	}
 }
