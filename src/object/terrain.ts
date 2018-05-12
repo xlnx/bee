@@ -25,14 +25,15 @@ abstract class Terrain extends Obj {
 		let b = Terrain.cascadeMeshCount;
 		for (let k = 0; k != Terrain.cascadeCount; ++k) {
 			for (let i = -Terrain.cascadeMeshCount; 
-					i <= Terrain.cascadeMeshCount; ++i) {
-				for (let j = -Terrain.cascadeMeshCount; 
+				i <= Terrain.cascadeMeshCount; ++i) {
+					for (let j = -Terrain.cascadeMeshCount; 
 						j <= Terrain.cascadeMeshCount; ++j) {
 					vertices.push({
 						pos2: [ j * meshSize, i * meshSize ]
 					});
 				}
 			}
+			console.log(Terrain.cascadeMeshCount * meshSize, vertices.vertices.length);
 			for (let i = 1; i != line - 2; ++i) {
 				for (let j = 1; j != line - 2; ++j) {
 					if (i < e || i >= b || j < e || j >= b) {

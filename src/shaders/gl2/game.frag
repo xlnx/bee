@@ -11,6 +11,7 @@ uniform vec3 gCameraWorldPos;
 #define RAYMARCH_MAX_ITER 16
 #define RAYMARCH_ITER_STEP 3e-2
 #define RAYMARCH_EPS 1e-2
+#define RAYMARCH_MIND 1e-3
 
 
 in vec2 Position0;
@@ -28,6 +29,7 @@ struct HitInfo
 {
 	vec2 uv;
 	bool hit;
+	float d;
 };
 
 float vec22normfloat(vec2 v)
@@ -84,7 +86,8 @@ HitInfo Raymarch(Ray ray)
 	float d = abs(p.z - linearlizeDepth(p.xy));
 	HitInfo info;
 	info.uv = p.xy;
-	info.hit = d < RAYMARCH_EPS;
+	info.d = length(refinePoint(ray.uv) - refinePoint(p.xy));
+	info.hit = d < RAYMARCH_EPS && info.d > RAYMARCH_MIND;
 	return info;
 }
 
@@ -113,8 +116,16 @@ vec3 SSR(vec2 uv, out bool hit)
 
 			if (hinfo.hit)
 			{
-				hit = true;
-				color += texture(gImage, hinfo.uv *.5 + .5).xyz * w[i];
+				if (pow(clamp(dot(getPointNormal(hinfo.uv), N), 0., 1.), 5.) < .05)
+				{
+					hit = true;
+					float invd = 1. / hinfo.d;
+					color += texture(gImage, hinfo.uv *.5 + .5).xyz * w[i] * 
+						clamp(invd * invd, 0., 1.);
+					// color += vec3(1.) * invd * invd;
+					// color += vec3(1.) * abs(hinfo.d);
+					// color += vec3(hinfo.uv - uv, 0.) * .5 + .5;
+				}
 			}
 		}
 		
@@ -130,7 +141,7 @@ void main()
 	vec3 ssr = SSR(Position0, hit);
 	if (hit)
 	{
-		FragColor = vec4(mix(bg, ssr, 0.6), 1);
+		FragColor = vec4(mix(bg, bg + ssr, 0.8), 1);
 	}
 	else
 	{

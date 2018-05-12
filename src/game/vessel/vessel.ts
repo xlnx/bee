@@ -13,6 +13,7 @@ abstract class VesselBase extends Obj {
 	protected fspeed: number = 0;
 	protected speedVec = glm.vec2(0, 1);
 	protected fspeedAngle: number = glm.radians(0);
+	protected fangleSpeed: number = glm.radians(0);
 
 	protected camera: CameraBase = null;
 
@@ -22,6 +23,13 @@ abstract class VesselBase extends Obj {
 	set speedAngle(degree: number) {
 		this.fspeedAngle = glm.radians(degree);
 		this.speedVec = glm.vec2(Math.cos(this.fspeedAngle), Math.sin(this.fspeedAngle));
+	}
+
+	get angleSpeed(): number {
+		return this.fangleSpeed;
+	}
+	set angleSpeed(omega: number) {
+		this.angleSpeed = omega;
 	}
 
 	set speed(knots: number) {
