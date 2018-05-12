@@ -16,6 +16,10 @@ Koishi chan likes bee. \>w<
 
 ![](docs/sub.png)
 
+## new filter function && ambient
+
+![](docs/new-ambient.png)
+
 # TODOs
 
 - [X] Typescript
