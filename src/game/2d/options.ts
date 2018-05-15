@@ -4,7 +4,7 @@ import { gl } from "../../renderer/renderer";
 import { Shader } from "../../gl/shader";
 
 class Options extends PostProcess {
-	public readonly bg: Texture2D = new Texture2D(gl.RGB);
+	public readonly bg: Texture2D = new Texture2D({ component: gl.RGB });
 
 	constructor() {
 		super(Shader.create("options", false));

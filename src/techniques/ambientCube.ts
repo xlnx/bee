@@ -8,7 +8,7 @@ import { glm } from "../util/glm"
 import { VAO, VertexAttrs } from "../gl/vertexAttrs";
 
 class AmbientCube {
-	public readonly texture = new TextureCube(gl.RGBA, 
+	public readonly texture = new TextureCube({ component: gl.RGBA }, 
 		Renderer.instance.canvas.height / 2, Renderer.instance.canvas.height / 2);
 
 	constructor() {

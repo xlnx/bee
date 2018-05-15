@@ -55,6 +55,8 @@ class RenderBuffer {
 }
 
 class Offscreen {
+	private static offscreens = [];
+
 	private fbo = new FBO();
 
 	set(channel: number, texture: TextureCube, face: number);
@@ -80,9 +82,16 @@ class Offscreen {
 
 	bind() {
 		this.fbo.bind();
+		Offscreen.offscreens.push(this.fbo);
 	}
 	unbind() {
-		this.fbo.unbind();
+		if (Offscreen.offscreens.length) {
+			Offscreen.offscreens.pop();
+			this.fbo.unbind();
+			if (Offscreen.offscreens.length) {
+				Offscreen.offscreens[Offscreen.offscreens.length - 1].bind();
+			}
+		}
 	}
 	check() {
 		this.fbo.check();

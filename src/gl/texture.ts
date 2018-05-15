@@ -82,8 +82,8 @@ class Texture2D extends Texture {
 	private w: number;
 	private h: number;
 
-	constructor(component: number);
-	constructor(component: number, width: number, height: number);
+	constructor(opts: { [key: string]: any });
+	constructor(opts: { [key: string]: any }, width: number, height: number);
 	constructor(filename: string);
 	constructor(filename: string, usemipmap: boolean);
 	constructor(first?: any, second?: any, third?: any) {
@@ -115,7 +115,23 @@ class Texture2D extends Texture {
 			}
 			img.src = filename;
 		} else {
-			let component: number = first;
+			let opts: { [key: string]: any } = first;
+			let component: number = opts.component || gl.RGBA;
+			let internalComponent = component;
+			let type: number = opts.type || gl.UNSIGNED_BYTE;
+			if (type == gl.FLOAT) {
+				if (gl2) {
+					switch (component) {
+						case gl2.RED: internalComponent = gl2.R32F; break;
+						case gl2.RG: internalComponent = gl2.RG32F; break;
+						case gl.RGB: internalComponent = gl2.RGB32F; break;
+						case gl.RGBA: internalComponent = gl2.RGBA32F; break;
+						default: throw "unknown internal format.";
+					}
+				} else {
+					throw "webgl 2.0 required.";
+				}
+			}
 			this.w = second;
 			this.h = third;
 			if (second == undefined) {
@@ -123,14 +139,7 @@ class Texture2D extends Texture {
 				this.h = Renderer.instance.canvas.height;
 			}
 			this.bind();
-				switch (component) {
-					case gl.DEPTH_COMPONENT: {
-						gl.texImage2D(this.type, 0, component, this.w, this.h, 0, component, gl.FLOAT, null);
-					} break;
-					default: {
-						gl.texImage2D(this.type, 0, component, this.w, this.h, 0, component, gl.UNSIGNED_BYTE, null);
-					} break;
-				}
+				gl.texImage2D(this.type, 0, internalComponent, this.w, this.h, 0, component, type, null);
 				// } else {
 				// 	gl.texImage2D(this.type, 0, component, 1, 1, 0, component, gl.FLOAT, null);
 				// }
@@ -151,14 +160,30 @@ class Texture2D extends Texture {
 }
 
 class TextureCube extends Texture {
-	constructor(component: number);
-	constructor(component: number, width: number, height: number);
-	constructor(component: number, width?: number, height?: number) {
+	constructor(opts: { [key: string]: any });
+	constructor(opts: { [key: string]: any }, width: number, height: number);
+	constructor(opts: { [key: string]: any }, width?: number, height?: number) {
 		super(gl.TEXTURE_CUBE_MAP);
 		if (width == undefined) {
 			width = height = Renderer.instance.canvas.height;
 		}
 		this.bind();
+			let component: number = opts.component || gl.RGBA;
+			let type: number = opts.type || gl.UNSIGNED_BYTE;
+			let internalComponent = component;
+			if (type == gl.FLOAT) {
+				if (gl2) {
+					switch (component) {
+						case gl2.RED: internalComponent = gl2.R32F; break;
+						case gl2.RG: internalComponent = gl2.RG32F; break;
+						case gl.RGB: internalComponent = gl2.RGB32F; break;
+						case gl.RGBA: internalComponent = gl2.RGBA32F; break;
+						default: throw "unknown internal format.";
+					}
+				} else {
+					throw "webgl 2.0 required.";
+				}
+			}
 			gl.texParameterf(this.type, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 			gl.texParameterf(this.type, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 			gl.texParameterf(this.type, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -168,8 +193,8 @@ class TextureCube extends Texture {
 			}
 
 			for (let i = 0; i != 6; ++i) {
-				gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, component, 
-						width, height, 0, component, gl.UNSIGNED_BYTE, null);
+				gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalComponent, 
+						width, height, 0, component, type, null);
 			}
 		this.unbind();
 	}

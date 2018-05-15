@@ -44,7 +44,7 @@ class Game {
 
 	private offscreen = new Offscreen();
 	private gaussBlur = new GaussBlur(5);
-	private screenBuffer = new Texture2D(gl.RGB);
+	private screenBuffer = new Texture2D({ component: gl.RGB });
 
 	constructor() {
 		new Communicators().use();

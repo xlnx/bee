@@ -23,14 +23,14 @@ class Engine3d {
 	private worldCom = new Communicators();
 	private renderCom = new Communicators();
 	
-	private mainImage = new Texture2D(gl.RGBA);
-	private normalDepthImage = new Texture2D(gl.RGBA);
-	private normalImage = new Texture2D(gl.RGB);
-	private depthImage = new Texture2D(gl.RGBA);
-	private ssrImage = new Texture2D(gl.RGBA);
-	private uvImage = new Texture2D(gl.RGB);
-	private noiseImage = new Texture2D(gl.RGB);
-	private depthDecodeImage = new Texture2D(gl.RGB);
+	private mainImage = new Texture2D({ component: gl.RGBA });
+	private normalDepthImage = new Texture2D({ component: gl.RGBA });
+	private normalImage = new Texture2D({ component: gl.RGB });
+	private depthImage = new Texture2D({ component: gl.RGBA });
+	private ssrImage = new Texture2D({ component: gl.RGBA });
+	private uvImage = new Texture2D({ component: gl.RGB });
+	private noiseImage = new Texture2D({ component: gl.RGB });
+	private depthDecodeImage = new Texture2D({ component: gl.RGB });
 	private channel: Texture2D;
 
 	private offscreen = new Offscreen();
