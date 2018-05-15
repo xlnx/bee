@@ -3,8 +3,7 @@
 precision mediump float;
 
 uniform sampler2D gImage;
-uniform sampler2D gNormal;
-uniform sampler2D gDepth;
+uniform sampler2D gNormalDepth;
 uniform mat4 gP;
 
 uniform vec3 gCameraWorldPos;
@@ -35,20 +34,27 @@ struct HitInfo
 	bool hit;
 };
 
-float vec42normfloat(vec4 v)
+float vec22normfloat(vec2 v)
 {
-	const vec4 bitShift = vec4(1.0, 1.0/256.0, 1.0/(256.0*256.0), 1.0/(256.0*256.0*256.0));
+	const vec2 bitShift = vec2(1.0, 1.0/256.0);
 	return dot(v, bitShift);
+}
+
+vec3 rgb5652rgb(vec2 rgb565)
+{
+	float rr = fract(rgb565.r * 32.);
+	float bb = fract(rgb565.g * 8.);
+	return vec3(rgb565.r - rr / 32., rr + rgb565.g / 8. - bb / 64., bb);
 }
 
 vec3 getPointNormal(vec2 uv)
 {
-	return texture(gNormal, (uv + 1.) * .5).xyz * 2. - 1.;
+	return rgb5652rgb(texture(gNormalDepth, (uv + 1.) * .5).rg) * 2. - 1.;
 }
 
 float linearlizeDepth(vec2 uv)
 {
-	return - gP[3].z / (1. - vec42normfloat(texture(gDepth, (uv + 1.) * .5)));
+	return - gP[3].z / (1. - vec22normfloat(texture(gNormalDepth, (uv + 1.) * .5).ba));
 }
 
 vec3 refinePoint(vec2 uv)
@@ -93,7 +99,7 @@ vec3 SSR(vec2 uv, out bool hit)
 	vec3 R = reflect(I, N);
 	hit = false;
 
-	if (texture(gDepth, (uv + 1.) * .5) != vec4(0.))
+	if (texture(gNormalDepth, (uv + 1.) * .5).ba != vec2(0.))
 	{
 		const float scale = .15;
 		const float dx[5] = float[5]( 0., 1., -1., 0., 0. );

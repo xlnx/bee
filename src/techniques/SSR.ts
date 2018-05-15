@@ -4,8 +4,8 @@ import { PerspectiveViewport } from "../gl/viewport";
 import { glm } from "../util/glm"
 
 class SSR extends PostProcess {
-	constructor(normalDepth: boolean = false) {
-		super(Shader.create(normalDepth ? "SSR-ND" : "SSR", false));
+	constructor() {
+		super(Shader.create("SSR", false));
 	}
 	
 	beforeRender() {

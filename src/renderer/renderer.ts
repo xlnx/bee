@@ -145,10 +145,23 @@ class Renderer {
 		this.animationRequest = window.requestAnimationFrame(this.render.bind(this));
 	}
 
-	static require(ext: string): boolean {
-		return !!(Renderer.exts[ext] = gl.getExtension(ext));
+	static require(exts: string[]): boolean;
+	static require(exts: string): boolean;
+	static require(ext: any): boolean {
+		if (typeof ext == "string") {
+			return !!(Renderer.exts[ext] || (Renderer.exts[ext] = gl.getExtension(ext)));
+		} else {
+			for (let e of ext) {
+				if (!(Renderer.exts[e] || (Renderer.exts[e] = gl.getExtension(e)))) {
+					return false;
+				}
+			}
+			return true;
+		}
 	}
-	require(ext: string): boolean {
+	require(exts: string[]): boolean;
+	require(exts: string): boolean;
+	require(ext: any): boolean {
 		return Renderer.require(ext);
 	}
 }

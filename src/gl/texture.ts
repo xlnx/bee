@@ -33,6 +33,11 @@ function restoreChannel(channel: number) {
 	channelLookup[channel] = false;
 }
 
+class TextureSpec {
+	component?: number;
+	type?: number;
+};
+
 abstract class Texture {
 	public readonly handle: number;
 
@@ -82,8 +87,8 @@ class Texture2D extends Texture {
 	private w: number;
 	private h: number;
 
-	constructor(opts: { [key: string]: any });
-	constructor(opts: { [key: string]: any }, width: number, height: number);
+	constructor(opts: TextureSpec);
+	constructor(opts: TextureSpec, width: number, height: number);
 	constructor(filename: string);
 	constructor(filename: string, usemipmap: boolean);
 	constructor(first?: any, second?: any, third?: any) {
@@ -121,6 +126,10 @@ class Texture2D extends Texture {
 			let type: number = opts.type || gl.UNSIGNED_BYTE;
 			if (type == gl.FLOAT) {
 				if (gl2) {
+					if (!Renderer.require(["EXT_color_buffer_float", 
+						"OES_texture_float_linear"])) {
+						throw "floating point textures not supported.";
+					}
 					switch (component) {
 						case gl2.RED: internalComponent = gl2.R32F; break;
 						case gl2.RG: internalComponent = gl2.RG32F; break;
@@ -129,7 +138,10 @@ class Texture2D extends Texture {
 						default: throw "unknown internal format.";
 					}
 				} else {
-					throw "webgl 2.0 required.";
+					if (!Renderer.require(["OES_texture_float", 
+						"OES_texture_float_linear"])) {
+						throw "floating point textures not supported.";
+					}
 				}
 			}
 			this.w = second;
@@ -160,9 +172,9 @@ class Texture2D extends Texture {
 }
 
 class TextureCube extends Texture {
-	constructor(opts: { [key: string]: any });
-	constructor(opts: { [key: string]: any }, width: number, height: number);
-	constructor(opts: { [key: string]: any }, width?: number, height?: number) {
+	constructor(opts: TextureSpec);
+	constructor(opts: TextureSpec, width: number, height: number);
+	constructor(opts: TextureSpec, width?: number, height?: number) {
 		super(gl.TEXTURE_CUBE_MAP);
 		if (width == undefined) {
 			width = height = Renderer.instance.canvas.height;
@@ -173,6 +185,10 @@ class TextureCube extends Texture {
 			let internalComponent = component;
 			if (type == gl.FLOAT) {
 				if (gl2) {
+					if (!Renderer.require(["EXT_color_buffer_float", 
+						"OES_texture_float_linear"])) {
+						throw "floating point textures not supported.";
+					}
 					switch (component) {
 						case gl2.RED: internalComponent = gl2.R32F; break;
 						case gl2.RG: internalComponent = gl2.RG32F; break;
@@ -181,7 +197,10 @@ class TextureCube extends Texture {
 						default: throw "unknown internal format.";
 					}
 				} else {
-					throw "webgl 2.0 required.";
+					if (!Renderer.require(["OES_texture_float", 
+						"OES_texture_float_linear"])) {
+						throw "floating point textures not supported.";
+					}
 				}
 			}
 			gl.texParameterf(this.type, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
