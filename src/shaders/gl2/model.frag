@@ -4,6 +4,7 @@ precision mediump float;
 
 // camera
 uniform vec3 gCameraWorldPos;
+uniform mat4 gV;
 
 // materials
 uniform sampler2D gMatDiffuse;
@@ -17,7 +18,8 @@ smooth in vec2 TexCoord0;
 smooth in vec3 WorldPos0;
 smooth in vec3 Normal0;
 
-out vec4 FragColor;
+layout (location = 0) out vec4 FragColor;
+layout (location = 1) out vec4 NormalDepth;
 
 void main()
 {
@@ -30,4 +32,5 @@ void main()
 
 	FragColor = Ambient + texture(gMatDiffuse, TexCoord0.xy) *
 		dot(texture(gAmbient, R).xyz, vec3(1, 1, 1));
+	NormalDepth = vec4(normalize(gV * vec4(Normal0, 0)).xyz, gl_FragCoord.z);
 }

@@ -1,5 +1,5 @@
 import { glm } from "../util/glm"
-import { gl, Renderer, RendererEvent } from "../renderer/renderer"
+import { gl, Renderer, RendererEvent, gl2 } from "../renderer/renderer"
 import { Offscreen, RenderBuffer } from "../techniques/offscreen";
 import { Texture2D } from "../gl/texture";
 import { SSR } from "../techniques/SSR";
@@ -43,12 +43,6 @@ class Engine3d {
 	public readonly ocean = new Ocean();
 
 	constructor() {
-		Shader.require({
-			NormalDepth: {
-				frag: "normalDepth"
-			}
-		});
-
 		this.offscreen.bind();
 			this.offscreen.set(gl.DEPTH_ATTACHMENT, new RenderBuffer(gl.DEPTH_COMPONENT16));
 		this.offscreen.unbind();
@@ -60,6 +54,10 @@ class Engine3d {
 		wave1.set("direction", glm.vec2(1, 2));
 		this.ocean.add(wave);
 		this.ocean.add(wave1);
+
+		if (!gl2) {
+			throw "webgl 2.0 required.";
+		}
 	}
 
 	renderDebug(vessels: ulist<Vessel>, target: Texture2D = null) {
@@ -145,34 +143,31 @@ class Engine3d {
 
 		this.main.viewport.use();
 		
-			this.offscreen.set(gl.COLOR_ATTACHMENT0, this.mainImage);
-			gl.clear(gl.DEPTH_BUFFER_BIT);
-			this.ambient.texture.use("Ambient");
-				this.ocean.bindShader();
-					this.ocean.render(this.main.viewport);
-				this.ocean.unbindShader();
-				Vessel.bindShader();
-					vessels.visit((e: ulist_elem<Vessel>) => {
-						e.get().render(this.main.viewport);
-					});
-				Vessel.unbindShader();
-				this.skybox.bindShader();
-					this.skybox.render(this.main.viewport);
-				this.skybox.unbindShader();
-			this.ambient.texture.unuse();
-			
-			this.offscreen.set(gl.COLOR_ATTACHMENT0, this.normalDepthImage);
+			this.offscreen.set(gl2.COLOR_ATTACHMENT0, this.mainImage);
+			this.offscreen.set(gl2.COLOR_ATTACHMENT1, this.normalDepthImage);
+			gl2.drawBuffers([gl2.COLOR_ATTACHMENT0, gl2.COLOR_ATTACHMENT1]);
+
 			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-			Shader.specify("NormalDepth");
-				this.ocean.bindShader();
-					this.ocean.render(this.main.viewport);
-				this.ocean.unbindShader();
-				Vessel.bindShader();
-					vessels.visit((e: ulist_elem<Vessel>) => {
-						e.get().render(this.main.viewport);
-					});
-				Vessel.unbindShader();
-			Shader.unspecify();
+
+			this.ambient.texture.use("Ambient");
+
+			this.ocean.bindShader();
+				this.ocean.render(this.main.viewport);
+			this.ocean.unbindShader();
+
+			Vessel.bindShader();
+				vessels.visit((e: ulist_elem<Vessel>) => {
+					e.get().render(this.main.viewport);
+				});
+			Vessel.unbindShader();
+
+			gl2.drawBuffers([gl2.COLOR_ATTACHMENT0]);
+			
+			this.skybox.bindShader();
+				this.skybox.render(this.main.viewport);
+			this.skybox.unbindShader();
+
+			this.ambient.texture.unuse();
 
 		this.main.viewport.unuse();
 
@@ -192,7 +187,9 @@ class Engine3d {
 			// main renderer
 			this.mainImage.use("Image");
 			this.normalDepthImage.use("NormalDepth");
+
 				this.main.render();
+				
 			this.normalDepthImage.unuse();
 			this.mainImage.unuse();
 		

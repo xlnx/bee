@@ -3,6 +3,7 @@
 precision mediump float;
 
 uniform vec3 gCameraWorldPos;
+uniform mat4 gV;
 
 // materials
 uniform samplerCube gAmbient;
@@ -23,7 +24,8 @@ const float FresnelScaleBelow = 2e10;
 smooth in vec3 WorldPos0;
 smooth in vec3 Normal0;
 
-out vec4 FragColor;
+layout (location = 0) out vec4 FragColor;
+layout (location = 1) out vec4 NormalDepth;
 
 void main()
 {
@@ -38,6 +40,7 @@ void main()
 			pow(1. + dot(r, n), FresnelPowerAbove), 0., 1.);
 
 		FragColor = R * texture(gAmbient, r) + (1.0 - R) * texture(gAmbient, t);
+		NormalDepth = vec4(normalize(gV * vec4(Normal0, 0)).xyz, gl_FragCoord.z);
 	} else {
 		n = -n;
 
@@ -48,5 +51,6 @@ void main()
 			pow(1. + dot(r, n), FresnelPowerBelow), 0., 1.);
 
 		FragColor = R * texture(gAmbient, r) + (1.0 - R) * texture(gAmbient, t);
+		NormalDepth = vec4(normalize(gV * vec4(Normal0, 0)).xyz, gl_FragCoord.z);
 	}
 }
