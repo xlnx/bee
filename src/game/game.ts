@@ -3,7 +3,7 @@ import { gl, Renderer, RendererEvent } from "../renderer/renderer"
 import { Ocean } from "../object/ocean";
 import { ulist_elem, ulist } from "../util/ulist";
 import { Observer } from "./camera/observer";
-import { CameraBase, Cmaera } from "./camera/cameraBase";
+import { CameraBase } from "./camera/cameraBase";
 import { Vessel } from "./vessel/vessel";
 import { Submarine } from "./vessel/submarine";
 import { Engine3d } from "./engine3d";
@@ -13,6 +13,7 @@ import { Options } from "./2d/options";
 import { Offscreen } from "../techniques/offscreen";
 import { Texture2D } from "../gl/texture";
 import { GaussBlur } from "../techniques/gaussBlur";
+import { Periscope } from "./camera/periscope";
 
 type CameraMode = "observe" | "follow" | "free" | "periscope"
 
@@ -24,13 +25,14 @@ class Game {
 	private viewports = {
 		observe: new Observer(),
 		follow: new Observer(),
-		periscope: new Cmaera()
+		periscope: new Periscope()
 	};
 
 	private vessels = new ulist<Vessel>();
 	private uboat: Submarine;
 
 	private battleKeys: RendererEvent;
+	private battleKeysUp: RendererEvent;
 	private prevDisplayMode: DisplayMode = undefined;
 	private displayMode: DisplayMode = "menu";
 	private renderOption: boolean = false;
@@ -50,7 +52,6 @@ class Game {
 		new Communicators().use();
 
 		// this.mainViewport.rotate(glm.vec3(0, 0, glm.radians(180)));
-		this.viewports.periscope.fov = glm.radians(5);
 
 		// Renderer.instance.dispatch("keydown", (e: KeyboardEvent) => {
 		// 	const lookup = {
@@ -73,6 +74,7 @@ class Game {
 	start() {
 		this.renderer.dispatch("render", () => {
 			if (this.inGame && this.displayMode != "options") {
+				this.viewports.periscope.update();
 				this.updateVessels(Renderer.time - Renderer.prevTime);
 			}
 			const callbacks = {
@@ -146,28 +148,36 @@ class Game {
 		}
 	}
 	
-	periscopeMode() {
-		this.displayMode = "6d"; 
-		this.engine3d.setCamera(this.viewports.periscope);
-	}
-
-	turmMode() {
-		this.displayMode = "3d";
-		this.engine3d.setCamera(this.viewports.follow);
-	}
-
-	mapMode() {
-		this.displayMode = "map";
-	}
-
-	gunMode() {
-		this.displayMode = "3d";
-		this.engine3d.setCamera(this.viewports.follow);
-	}
-
-	freeMode() {
-		this.displayMode = "3d";
-		this.engine3d.setCamera(this.viewports.observe);
+	setMode(mode: string) {
+		if (this.displayMode == "6d" && mode != "periscope") {
+			this.viewports.periscope.stop();
+		}
+		switch (mode) {
+			case "free": {
+				this.displayMode = "3d";
+				this.engine3d.setCamera(this.viewports.observe);
+				this.viewports.observe.tie(this.uboat);
+			} break;
+			case "gun": {
+				this.displayMode = "3d";
+				this.engine3d.setCamera(this.viewports.follow);
+			} break;
+			case "map": {
+				this.displayMode = "map";
+			} break;
+			case "turm": {
+				this.displayMode = "3d";
+				this.engine3d.setCamera(this.viewports.follow);
+			} break;
+			case "periscope": {
+				this.displayMode = "6d"; 
+				this.engine3d.setCamera(this.viewports.periscope);
+				this.viewports.periscope.tie(this.uboat);
+			} break;
+			default: {
+				throw "unknown mode: " + mode;
+			}
+		}
 	}
 
 	beginBattle(opt: { [key: string]: any } = {}) {
@@ -186,11 +196,11 @@ class Game {
 			
 			if (this.displayMode != "options" || e.key.toLowerCase() == "escape") {
 				const lookup = {
-					"f3": this.periscopeMode.bind(this),
-					"f4": this.turmMode.bind(this),
-					"f5": this.mapMode.bind(this),
-					"f10": this.gunMode.bind(this),
-					"f12": this.freeMode.bind(this),
+					"f3": this.setMode.bind(this, "periscope"),
+					"f4": this.setMode.bind(this, "turm"),
+					"f5": this.setMode.bind(this, "map"),
+					"f10": this.setMode.bind(this, "gun"),
+					"f12": this.setMode.bind(this, "free"),
 
 					"`": this.uboat.setSpeedMode.bind(this.uboat, "stop"),
 					"1": this.uboat.setSpeedMode.bind(this.uboat, "slowFw"),
@@ -223,6 +233,9 @@ class Game {
 
 					"x": () => {  },
 
+					",": () => { if (this.displayMode == "6d") this.viewports.periscope.rise(); },
+					".": () => { if (this.displayMode == "6d") this.viewports.periscope.down(); },
+
 					"escape": () => {
 						if (this.displayMode != "options") {
 							this.prevDisplayMode = this.displayMode;
@@ -240,12 +253,21 @@ class Game {
 				}
 			}
 		});
+		this.battleKeysUp = Renderer.instance.dispatch("keyup", (e: KeyboardEvent) => {
+			if (this.displayMode != "options") {
+				const lookup = {
+					",": () => { if (this.displayMode == "6d") this.viewports.periscope.stop(); },
+					".": () => { if (this.displayMode == "6d") this.viewports.periscope.stop(); },
+				};
+				if (e.key.toLowerCase() in lookup) {
+					lookup[e.key.toLowerCase()] ();
+				}
+			}
+		});
 
 		this.inGame = true;
 
-		this.viewports.observe.tie(this.uboat);
-
-		this.freeMode();
+		this.setMode("free");
 	}
 	
 	endBattle() {
@@ -253,6 +275,8 @@ class Game {
 		this.vessels.clear();
 		this.uboat = null;
 		this.battleKeys.cancel();
+		this.battleKeysUp.cancel();
+
 	}
 }
 

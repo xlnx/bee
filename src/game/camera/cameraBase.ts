@@ -1,5 +1,6 @@
 import { PerspectiveViewport } from "../../gl/viewport";
 import { Vessel } from "../vessel/vessel";
+import { glm } from "../../util/glm"
 
 abstract class CameraBase extends PerspectiveViewport {
 	constructor(left?: number, top?: number, width?: number, height?: number) {
@@ -9,7 +10,7 @@ abstract class CameraBase extends PerspectiveViewport {
 	abstract bind();
 	abstract unbind();
 
-	private carrier: Vessel = null;
+	protected carrier: Vessel = null;
 
 	tie(carrier: Vessel) {
 		if (this.carrier) {
@@ -17,17 +18,14 @@ abstract class CameraBase extends PerspectiveViewport {
 		}
 		this.carrier = carrier;
 		if (carrier) {
+			this.locate(carrier.position);
 			carrier.tie(this);
 		}
 	}
-}
 
-class Cmaera extends CameraBase {
-	bind() {}
-	unbind() {}
+	abstract locate(pos: glm.vec3);
 }
 
 export {
-	CameraBase,
-	Cmaera
+	CameraBase
 }

@@ -20,6 +20,7 @@ smooth in vec3 Normal0;
 
 layout (location = 0) out vec4 FragColor;
 layout (location = 1) out vec4 NormalDepth;
+layout (location = 2) out float Type;
 
 void main()
 {
@@ -30,7 +31,8 @@ void main()
 	const float c1 = 0.1;
 	vec4 Ambient = c1 * texture(gAmbient, R);
 
-	FragColor = Ambient + texture(gMatDiffuse, TexCoord0.xy) *
-		dot(texture(gAmbient, R).xyz, vec3(1, 1, 1));
+	FragColor = Ambient + mix(texture(gMatDiffuse, TexCoord0.xy), 
+		texture(gAmbient, R), .2);
 	NormalDepth = vec4(normalize(gV * vec4(Normal0, 0)).xyz, gl_FragCoord.z);
+	Type = 1.; // vessel
 }

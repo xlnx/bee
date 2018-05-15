@@ -24,7 +24,8 @@ class Engine3d {
 	
 	private mainImage = new Texture2D({ component: gl.RGBA });
 	private normalDepthImage = new Texture2D({ component: gl.RGBA, type: gl.FLOAT });
-	private ssrImage = new Texture2D({ component: gl.RGBA });
+	private typeImage = new Texture2D({ component: gl2.RED, type: gl.FLOAT });
+	// private ssrImage = new Texture2D({ component: gl.RGBA });
 	private uvImage = new Texture2D({ component: gl.RGB });
 	private noiseImage = new Texture2D({ component: gl.RGB });
 	private channel: Texture2D;
@@ -145,7 +146,12 @@ class Engine3d {
 		
 			this.offscreen.set(gl2.COLOR_ATTACHMENT0, this.mainImage);
 			this.offscreen.set(gl2.COLOR_ATTACHMENT1, this.normalDepthImage);
-			gl2.drawBuffers([gl2.COLOR_ATTACHMENT0, gl2.COLOR_ATTACHMENT1]);
+			this.offscreen.set(gl2.COLOR_ATTACHMENT2, this.typeImage);
+			gl2.drawBuffers([
+				gl2.COLOR_ATTACHMENT0, 
+				gl2.COLOR_ATTACHMENT1, 
+				gl2.COLOR_ATTACHMENT2
+			]);
 
 			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -160,12 +166,14 @@ class Engine3d {
 					e.get().render(this.main.viewport);
 				});
 			Vessel.unbindShader();
-
-			gl2.drawBuffers([gl2.COLOR_ATTACHMENT0]);
 			
 			this.skybox.bindShader();
 				this.skybox.render(this.main.viewport);
 			this.skybox.unbindShader();
+			
+			gl2.drawBuffers([
+				gl2.COLOR_ATTACHMENT0
+			]);
 
 			this.ambient.texture.unuse();
 
@@ -187,9 +195,11 @@ class Engine3d {
 			// main renderer
 			this.mainImage.use("Image");
 			this.normalDepthImage.use("NormalDepth");
+			this.typeImage.use("Type");
 
 				this.main.render();
-				
+
+			this.typeImage.unuse();
 			this.normalDepthImage.unuse();
 			this.mainImage.unuse();
 		

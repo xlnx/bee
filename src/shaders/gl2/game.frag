@@ -4,6 +4,7 @@ precision mediump float;
 
 uniform sampler2D gImage;
 uniform sampler2D gNormalDepth;
+uniform sampler2D gType;
 uniform mat4 gP;
 
 uniform vec3 gCameraWorldPos;
@@ -74,7 +75,7 @@ HitInfo Raymarch(Ray ray)
 	HitInfo info;
 	info.uv = p.xy;
 	info.d = length(refinePoint(ray.uv) - refinePoint(p.xy));
-	info.hit = d < RAYMARCH_EPS && info.d > RAYMARCH_MIND;
+	info.hit = d < RAYMARCH_EPS;// && info.d > RAYMARCH_MIND;
 	return info;
 }
 
@@ -85,54 +86,86 @@ vec3 SSR(vec2 uv, out bool hit)
 	vec3 R = reflect(I, N);
 	hit = false;
 
-	if (texture(gNormalDepth, (uv + 1.) * .5).a != 0.)
+	const float scale = .15;
+	const float dx[5] = float[5]( 0., 1., -1., 0., 0. );
+	const float dy[5] = float[5]( 0., 0., 0., 1., -1. );
+	const float w[5] = float[5]( .5, .2, .2, .2, .2 );
+	
+	Ray ray;
+	ray.uv = uv;
+	vec3 color = vec3(0.);
+
+	for (int i = 0; i != 1; ++i)
 	{
-		const float scale = .15;
-		const float dx[5] = float[5]( 0., 1., -1., 0., 0. );
-		const float dy[5] = float[5]( 0., 0., 0., 1., -1. );
-		const float w[5] = float[5]( .5, .2, .2, .2, .2 );
-		
-		Ray ray;
-		ray.uv = uv;
-		vec3 color = vec3(0.);
+		ray.dir = R + vec3(dx[i], dy[i], 0.) * scale;
+		HitInfo hinfo = Raymarch(ray);
 
-		for (int i = 0; i != 1; ++i)
+		if (hinfo.hit)
 		{
-			ray.dir = R + vec3(dx[i], dy[i], 0.) * scale;
-			HitInfo hinfo = Raymarch(ray);
-
-			if (hinfo.hit)
+			// if (pow(clamp(dot(getPointNormal(hinfo.uv), N), 0., 1.), 5.) < .05)
+			// {
+			if (texture(gType, hinfo.uv * .5 + .5).r == 1.) // is vessel
 			{
-				if (pow(clamp(dot(getPointNormal(hinfo.uv), N), 0., 1.), 5.) < .05)
-				{
-					hit = true;
-					float invd = 1. / hinfo.d;
-					color += texture(gImage, hinfo.uv *.5 + .5).xyz * w[i] * 
-						clamp(invd * invd, 0., 1.);
-					// color += vec3(1.) * invd * invd;
-					// color += vec3(1.) * abs(hinfo.d);
-					// color += vec3(hinfo.uv - uv, 0.) * .5 + .5;
-				}
+				hit = true;
+				float invd = 1. / hinfo.d;
+				color += texture(gImage, hinfo.uv *.5 + .5).xyz * w[i] * 
+					clamp(invd * invd, 0., 1.);
 			}
 		}
-		
-		return color;// / 5.;
+	}
+	
+	return color;// / 5.;
+}
+
+#define RAYMARCH_SHIPWAVE_MAX_ITER 8
+
+vec2 RayMarchShipWave(vec2 uv, out bool hit)
+{
+	hit = false;
+
+	const float scale = .015;
+	const float dx[4] = float[4]( 1., -1., 0., 0. );
+	const float dy[4] = float[4]( 0., 0., 1., -1. );
+
+	for (int i = 0; i != 4; ++i)
+	{
+		vec2 p = uv;
+		for (int j = 0; j != RAYMARCH_SHIPWAVE_MAX_ITER; ++j)
+		{
+			p += vec2(dx[i], dy[i]) * scale;
+			if (texture(gType, p * .5 + .5).r == 1.)
+			{
+				hit = true;
+				return p;
+			}
+		}
 	}
 }
 
 void main()
 {
-	vec3 bg = texture(gImage, Position0 * .5 + .5).xyz;
+	vec2 uv = Position0;
+	vec3 bg = texture(gImage, uv * .5 + .5).xyz;
+	vec4 color = vec4(bg, 1);
 	bool hit;
 
-	vec3 ssr = SSR(Position0, hit);
-	if (hit)
+	float type = texture(gType, (uv + 1.) * .5).r;
+
+	if (type == 0.) // is sea
 	{
-		FragColor = vec4(mix(bg, bg + ssr, 0.8), 1);
+		vec3 ssr = SSR(Position0, hit);
+		if (hit)
+		{
+			color = mix(color, color + vec4(ssr, 1.), 0.8);
+		}
+
+		// vec2 e = RayMarchShipWave(uv, hit);
+		// if (hit)
+		// {
+		// 	color += vec4(1.);
+		// }
 	}
-	else
-	{
-		FragColor = vec4(bg, 1);
-	}
+
+	FragColor = color;
 	// FragColor = vec4(ssr, 1);
 }

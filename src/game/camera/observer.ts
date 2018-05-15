@@ -190,6 +190,9 @@ class Observer extends CameraBase {
 		this.prevy = 0;
 		this.isDragging = false;
 	}
+	locate(pos: glm.vec3) {
+		this.position = pos;
+	}
 }
 
 export {
