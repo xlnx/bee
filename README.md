@@ -39,20 +39,31 @@ Koishi chan likes bee. \>w<
 - [X] Postprocess
 - [X] Gauss Blur
 - [X] Depth & Normal Texture
-- [ ] Noise
+- [X] Perlin Noise
 - [X] Skybox
 - [X] Dynamic Ambient Cube
 > - [ ] Figure out a better Skycolor Function 
 - [X] Depth Based Raymarching
 > - [X] Filter function
-> - [ ] Increase Precision
+> - [X] Increase Precision
 - [X] SSR
 > - [ ] Reduce Noise
+> - [ ] Edge Blurring
 - [X] Ocean Terrain LOD
 - [X] Gerstner Waves
 - [ ] FFT Waves
 - [ ] AABB
 - [ ] Dynamics
 - [ ] Transform Feedback
+- [X] Floating Point Textures
+- [X] Multiple Render Targets - MRT
+
+- [ ] Beautiful Splash Screens \>w<
+- [ ] Periscope Blurring
+- [ ] Torpedo / Vessel Tracks
+- [ ] Bow Wave
+- [ ] Froth of Jacobi Determinant
+- [ ] Seabed
+- [ ] Caustics!!!
 
 - [X] 60 FPS
