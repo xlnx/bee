@@ -24,7 +24,7 @@ class Engine3d {
 	private renderCom = new Communicators();
 	
 	private mainImage = new Texture2D({ component: gl.RGBA });
-	private normalDepthImage = new Texture2D({ component: gl.RGBA });
+	private normalDepthImage = new Texture2D({ component: gl.RGBA, type: gl.FLOAT });
 	private normalImage = new Texture2D({ component: gl.RGB });
 	private depthImage = new Texture2D({ component: gl.RGBA });
 	private ssrImage = new Texture2D({ component: gl.RGBA });
@@ -48,6 +48,9 @@ class Engine3d {
 	public readonly ocean = new Ocean();
 
 	constructor() {
+		Renderer.require("EXT_color_buffer_float");
+		Renderer.require("OES_texture_float_linear");
+
 		Shader.require({
 			NormalDepth: {
 				frag: "normalDepth"
