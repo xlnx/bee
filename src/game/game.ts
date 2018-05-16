@@ -10,7 +10,7 @@ import { Engine3d } from "./engine3d";
 import { Splash } from "./2d/splash";
 import { Communicators } from "../gl/communicator";
 import { Options } from "./2d/options";
-import { Offscreen } from "../techniques/offscreen";
+import { Offscreen } from "../gl/offscreen";
 import { Texture2D } from "../gl/texture";
 import { GaussBlur } from "../techniques/gaussBlur";
 import { Periscope } from "./camera/periscope";

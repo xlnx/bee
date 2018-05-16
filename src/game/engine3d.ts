@@ -1,6 +1,6 @@
 import { glm } from "../util/glm"
 import { gl, Renderer, RendererEvent, gl2 } from "../renderer/renderer"
-import { Offscreen, RenderBuffer } from "../techniques/offscreen";
+import { Offscreen, RenderBuffer } from "../gl/offscreen";
 import { Texture2D } from "../gl/texture";
 import { SSR } from "../techniques/SSR";
 import { DeferImage } from "../techniques/deferImage";

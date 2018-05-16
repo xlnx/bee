@@ -1,6 +1,6 @@
 import { Viewport, PerspectiveViewport } from "../gl/viewport";
 import { Communicator } from "../gl/communicator";
-import { Offscreen, RenderBuffer } from "./offscreen";
+import { Offscreen, RenderBuffer } from "../gl/offscreen";
 import { Shader, Uniform } from "../gl/shader";
 import { gl, Renderer } from "../renderer/renderer";
 import { TextureCube } from "../gl/texture";
