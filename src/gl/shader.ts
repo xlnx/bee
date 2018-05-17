@@ -74,12 +74,12 @@ class Shader {
 	public readonly handle: WebGLProgram;
 	private partial: { [label: string]: WebGLProgram } = {};
 
-	constructor(vsfilename: string, fsfilename: string, private readonly specify: boolean) {
+	constructor(vsfilename: string, fsfilename: string, private readonly specify: boolean, varyings?: string[]) {
 		vsfilename = Shader.shaderPath + (gl2 ? "gl2/" : "gl/") + vsfilename;
 		fsfilename = Shader.shaderPath + (gl2 ? "gl2/" : "gl/") + fsfilename;
 		this.vert = Shader.compileShader(xhr.getSync(vsfilename), gl.VERTEX_SHADER);
 		this.frag = Shader.compileShader(xhr.getSync(fsfilename), gl.FRAGMENT_SHADER);
-		this.handle = Shader.createProgram(this.vert, this.frag);
+		this.handle = Shader.createProgram(this.vert, this.frag, varyings);
 		if (specify) {
 			for (let label in Shader.requirements) {
 				this.partial[label] = Shader.createProgram(
@@ -156,9 +156,9 @@ class Shader {
 		}
 		return shader;
 	}
-	public static create(name: string, specify: boolean): Shader {
+	public static create(name: string, specify: boolean, varyings?: string[]): Shader {
 		if (!(name in Shader.shaders)) {
-			Shader.shaders[name] = new Shader(name + ".vert", name + ".frag", specify);
+			Shader.shaders[name] = new Shader(name + ".vert", name + ".frag", specify, varyings);
 		}
 		return Shader.shaders[name];
 	}
@@ -182,7 +182,7 @@ class Shader {
 		}
 	}
 
-	private static createProgram(vert: WebGLShader, frag: WebGLShader): WebGLProgram {
+	private static createProgram(vert: WebGLShader, frag: WebGLShader, varyings?: string[]): WebGLProgram {
 		let program = gl.createProgram();
 		gl.bindAttribLocation(program, 0, "Position");
 		gl.bindAttribLocation(program, 1, "Color");
@@ -194,6 +194,14 @@ class Shader {
 		gl.bindAttribLocation(program, 7, "BoneWeight");
 		gl.attachShader(program, vert);
 		gl.attachShader(program, frag);
+
+		if (varyings) {
+			if (!gl2) throw "webgl 2.0 required.";
+			for (let i = 0; i != varyings.length; ++i) {
+				varyings[i] += "_next";
+			}
+			gl2.transformFeedbackVaryings(program, varyings, gl2.INTERLEAVED_ATTRIBS);
+		}
 		gl.linkProgram(program);
 		if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
 			throw gl.getProgramInfoLog(program);

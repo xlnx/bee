@@ -5,7 +5,6 @@ import { Texture2D } from "../gl/texture";
 import { SSR } from "../techniques/SSR";
 import { DeferImage } from "../techniques/deferImage";
 import { UV } from "../techniques/uv";
-import { DepthDecode } from "../techniques/depthDecode";
 import { Noise } from "../techniques/noise";
 import { AmbientCube } from "../techniques/ambientCube";
 import { TestScreen } from "../techniques/offscreenTest";
@@ -23,14 +22,11 @@ class Engine3d {
 	private worldCom = new Communicators();
 	private renderCom = new Communicators();
 	
-	private mainImage = new Texture2D(gl.RGBA);
-	private normalDepthImage = new Texture2D(gl.RGBA);
-	private normalImage = new Texture2D(gl.RGB);
-	private depthImage = new Texture2D(gl.RGBA);
-	private ssrImage = new Texture2D(gl.RGBA);
-	private uvImage = new Texture2D(gl.RGB);
-	private noiseImage = new Texture2D(gl.RGB);
-	private depthDecodeImage = new Texture2D(gl.RGB);
+	private mainImage = new Texture2D({ component: gl.RGBA });
+	private normalDepthImage = new Texture2D({ component: gl.RGBA, type: gl.FLOAT });
+	private ssrImage = new Texture2D({ component: gl.RGBA });
+	private uvImage = new Texture2D({ component: gl.RGB });
+	private noiseImage = new Texture2D({ component: gl.RGB });
 	private channel: Texture2D;
 
 	private offscreen = new Offscreen();
@@ -38,8 +34,7 @@ class Engine3d {
 	public readonly ambient = new AmbientCube();
 	private main = new GameRenderer();
 
-	private ssr = new SSR(true);
-	private depthDecode = new DepthDecode();
+	private ssr = new SSR();
 	private uv = new UV();
 	private noise = new Noise();
 	private defer = new DeferImage();
@@ -114,12 +109,6 @@ class Engine3d {
 		// end world pass
 		gl.disable(gl.DEPTH_TEST);
 		this.renderCom.use();
-		
-		// // decode depth
-		// this.offscreen.set(gl.COLOR_ATTACHMENT0, this.depthDecodeImage);
-		// this.depthImage.use("Depth");
-		// 	this.depthDecode.render();
-		// this.depthImage.unuse();
 		
 		this.offscreen.set(gl.COLOR_ATTACHMENT0, this.noiseImage);
 		this.noise.render();

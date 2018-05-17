@@ -6,7 +6,9 @@ uniform float gTime;
 
 in vec2 Position0;
 
-out float FragColor;
+// layout (location = 0) 
+out vec4 FragColor;
+// layout (location = 1) out vec4 Rev;
 
 vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
 vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
@@ -82,5 +84,11 @@ float noise(vec3 P){
 
 void main()
 {
-	FragColor = noise(vec3(Position0, gTime));
+	vec2 uv = Position0;
+	vec3 p = vec3(uv, 2.);
+	// if ()
+	// FragColor = vec4();
+	//vec4(1.) * noise(vec3(uv * 10., gTime));
+	//vec4(uv * .5 + .5, 0, 1);
+	// Rev = vec4(-uv * .5 + .5, 0, 1);
 }

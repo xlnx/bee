@@ -32,27 +32,14 @@ struct HitInfo
 	float d;
 };
 
-float vec22normfloat(vec2 v)
-{
-	const vec2 bitShift = vec2(1.0, 1.0/256.0);
-	return dot(v, bitShift);
-}
-
-vec3 rgb5652rgb(vec2 rgb565)
-{
-	float rr = fract(rgb565.r * 32.);
-	float bb = fract(rgb565.g * 8.);
-	return vec3(rgb565.r - rr / 32., rr + rgb565.g / 8. - bb / 64., bb);
-}
-
 vec3 getPointNormal(vec2 uv)
 {
-	return rgb5652rgb(texture(gNormalDepth, (uv + 1.) * .5).rg) * 2. - 1.;
+	return texture(gNormalDepth, (uv + 1.) * .5).rgb;
 }
 
 float linearlizeDepth(vec2 uv)
 {
-	return - gP[3].z / (1. - vec22normfloat(texture(gNormalDepth, (uv + 1.) * .5).ba));
+	return - gP[3].z / (1. - texture(gNormalDepth, (uv + 1.) * .5).a);
 }
 
 vec3 refinePoint(vec2 uv)
@@ -98,7 +85,7 @@ vec3 SSR(vec2 uv, out bool hit)
 	vec3 R = reflect(I, N);
 	hit = false;
 
-	if (texture(gNormalDepth, (uv + 1.) * .5).ba != vec2(0.))
+	if (texture(gNormalDepth, (uv + 1.) * .5).a != 0.)
 	{
 		const float scale = .15;
 		const float dx[5] = float[5]( 0., 1., -1., 0., 0. );

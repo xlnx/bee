@@ -4,39 +4,6 @@ import { Texture2D, TextureCube, Texture } from "../gl/texture";
 import { Viewport } from "../gl/viewport";
 import { glm } from "../util/glm"
 
-// class SingleChannelFBRB {
-// 	private rbo = new RBO();
-// 	private dbo = new RBO();
-// 	private fbo = new FBO();
-
-// 	constructor() {
-// 		this.fbo.bind();
-// 			this.rbo.bind();
-// 				if (gl2) {
-// 					gl.renderbufferStorage(gl.RENDERBUFFER, gl2.R32F, 
-// 						Renderer.instance.canvas.width, Renderer.instance.canvas.height);
-// 				} else {
-// 					gl.renderbufferStorage(gl.RENDERBUFFER, gl2.RGB, 
-// 						Renderer.instance.canvas.width, Renderer.instance.canvas.height);
-// 				}
-// 				this.fbo.setRenderBuffer(this.rbo, gl.COLOR_ATTACHMENT0);
-// 			this.rbo.unbind();
-// 			this.dbo.bind();
-// 				gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT,
-// 					Renderer.instance.canvas.width, Renderer.instance.canvas.height);
-// 				this.fbo.setRenderBuffer(this.dbo, gl.DEPTH_ATTACHMENT);
-// 			this.dbo.unbind();
-// 		this.fbo.unbind();
-// 	}
-
-// 	bind() {
-// 		this.fbo.bind();
-// 	}
-// 	unbind() {
-// 		this.rbo.bind();
-// 	}
-// }
-
 class RenderBuffer {
 	public readonly type = "renderbuffer";
 	public readonly rbo = new RBO();
@@ -55,6 +22,8 @@ class RenderBuffer {
 }
 
 class Offscreen {
+	private static offscreens = [];
+
 	private fbo = new FBO();
 
 	set(channel: number, texture: TextureCube, face: number);
@@ -80,9 +49,16 @@ class Offscreen {
 
 	bind() {
 		this.fbo.bind();
+		Offscreen.offscreens.push(this.fbo);
 	}
 	unbind() {
-		this.fbo.unbind();
+		if (Offscreen.offscreens.length) {
+			Offscreen.offscreens.pop();
+			this.fbo.unbind();
+			if (Offscreen.offscreens.length) {
+				Offscreen.offscreens[Offscreen.offscreens.length - 1].bind();
+			}
+		}
 	}
 	check() {
 		this.fbo.check();

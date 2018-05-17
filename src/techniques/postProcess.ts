@@ -1,6 +1,6 @@
 import { VAO, VertexAttrs } from "../gl/vertexAttrs";
 import { Shader } from "../gl/shader";
-import { gl } from "../renderer/renderer";
+import { gl, Renderer } from "../renderer/renderer";
 
 class PostProcess {
 	protected vao: VAO;
@@ -23,8 +23,12 @@ class PostProcess {
 			this.afterRender();
 		this.shader.unuse();
 	}
-	beforeRender() {}
+	beforeRender() {
+		this.gTime.set(Renderer.time);
+	}
 	afterRender() {}
+
+	protected gTime = Shader.uniform("float", "gTime");
 }
 
 export {

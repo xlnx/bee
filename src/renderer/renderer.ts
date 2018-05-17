@@ -37,6 +37,8 @@ class Renderer {
 
 	public static timescale: number = 1;
 
+	private static exts = {}
+
 	constructor(container: HTMLElement, fallback: boolean = false) {
 		if (Renderer.context != null) {
 			throw "Multiple WebGL contexts not supported.";
@@ -141,6 +143,26 @@ class Renderer {
 		}
 		this.fprevTick = time;
 		this.animationRequest = window.requestAnimationFrame(this.render.bind(this));
+	}
+
+	static require(exts: string[]): boolean;
+	static require(exts: string): boolean;
+	static require(ext: any): boolean {
+		if (typeof ext == "string") {
+			return !!(Renderer.exts[ext] || (Renderer.exts[ext] = gl.getExtension(ext)));
+		} else {
+			for (let e of ext) {
+				if (!(Renderer.exts[e] || (Renderer.exts[e] = gl.getExtension(e)))) {
+					return false;
+				}
+			}
+			return true;
+		}
+	}
+	require(exts: string[]): boolean;
+	require(exts: string): boolean;
+	require(ext: any): boolean {
+		return Renderer.require(ext);
 	}
 }
 

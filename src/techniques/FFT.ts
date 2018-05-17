@@ -1,12 +1,12 @@
 import { PostProcess } from "./postProcess";
 import { Shader } from "../gl/shader";
 
-class DepthDecode extends PostProcess {
+class FFT extends PostProcess {
 	constructor() {
-		super(Shader.create("depthDecode", false));
+		super(Shader.create("playground/fft", false));
 	}
 }
 
 export {
-	DepthDecode
+	FFT
 }

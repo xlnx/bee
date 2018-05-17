@@ -1,6 +1,6 @@
 import { glm } from "../util/glm"
-import { gl } from "../renderer/renderer";
-import { VBO, EBO } from "./buffer";
+import { gl, gl2 } from "../renderer/renderer";
+import { VBO, EBO, TBO } from "./buffer";
 
 const attrLocation = {
 	pos: 0, color: 1, norm: 2, tg: 3, bitg: 4, tex: 5, ibone: 6, wbone: 7
@@ -18,29 +18,8 @@ type BoneWeightType = "wbone3" | "wbone4"
 type VertexAttrType = PositionType | ColorType | NormalType |
 	TangentType | BitangentType | TexcoordType | BoneIndexType | BoneWeightType;
 
-class TypeMap {
-	pos2: glm.vec2;
-	pos3: glm.vec3;
-	pos4: glm.vec4;
-	color3: glm.vec3;
-	color4: glm.vec4;
-	norm3: glm.vec3;
-	norm4: glm.vec4;
-	tg3: glm.vec3;
-	tg4: glm.vec4;
-	bitg3: glm.vec3;
-	bitg4: glm.vec4;
-	tex2: glm.vec2;
-	tex3: glm.vec3;
-	tex4: glm.vec4;
-	ibone3: glm.vec3;
-	ibone4: glm.vec4;
-	wbone3: glm.vec3;
-	wbone4: glm.vec4;
-}
-
 type VertexAttr<T extends VertexAttrType> = {
-	[P in T]: TypeMap[P];
+	[P in T]: number[];
 }
 
 type AttrRecord = {
@@ -174,8 +153,121 @@ class VertexAttrs {
 	}
 }
 
+class TAO {
+	private attrs: AttrRecord[];
+	private attrSize: number;
+	private numVertices: number;
+	private tbo = new TBO();
+
+	constructor(attr: TransformAttrs) {
+		this.attrs = attr.attrs;
+		this.attrSize = attr.attrSize;
+		this.numVertices = attr.vertices.length / attr.component;
+		this.tbo.bind();
+			this.tbo.data(attr.vertices);
+		this.tbo.unbind();
+	}
+	bind() {
+		this.tbo.bind();
+		for (let x of this.attrs) {
+			gl.enableVertexAttribArray(x.index);
+			// console.log(x.index, x.size, x.type, false, this.attrSize, x.offset);
+			gl.vertexAttribPointer(x.index, x.size, x.type, false, this.attrSize, x.offset);
+		}
+	}
+	unbind() {
+		for (let x of this.attrs) {
+			gl.disableVertexAttribArray(x.index);
+		}
+		this.tbo.unbind();
+	}
+	draw();
+	draw(first: number, count: number); 
+	draw(first: number = undefined, count: number = undefined) {
+		gl2.beginTransformFeedback(gl.POINTS);
+		if (first != undefined) {
+			gl.drawArrays(gl.POINTS, first, count);
+		} else {
+			gl.drawArrays(gl.POINTS, 0, this.numVertices);
+		}
+		gl2.endTransformFeedback();
+	}
+	swap() {
+		this.tbo.swap();
+	}
+}
+
+class TransformAttrType {
+	name: string;
+	type: number;
+	size: number;
+}
+
+class TransformAttrs {
+	public readonly attrs: AttrRecord[] = [];
+	public readonly attrSize: number = 0;
+	public vertices: number[] = [];
+	public readonly component: number = 0;
+	private readonly attrLookup: { [key: string]: AttrRecord } = {};
+
+	constructor(private attrNames: TransformAttrType[]) {
+		let offset = 0;
+		for (let i in attrNames) {
+			let attr = {
+				index: <number>null,
+				type: <number>null,
+				size: <number>null,
+				offset: <number>null
+			};
+			attr.index = +i;
+			attr.type = attrNames[i].type;
+			attr.size = attrNames[i].size;
+			attr.offset = offset;
+			offset += attr.size * TransformAttrs.getSize(attr.type);
+			this.attrs.push(attr);
+			this.attrLookup[attrNames[i].name] = attr;
+			this.component += attr.size;
+		}
+		this.attrSize = offset;
+	}
+	push(vertex: { [key: string]: number [] }) {
+		for (let x of this.attrNames) {
+			if (x.name in vertex) {
+				this.vertices = this.vertices.concat(vertex[x.name]);
+			} else {
+				throw "lack of vertex attribute: " + x;
+			}
+		}
+	}
+	set(type: string, vs: number[]) {
+		let i = 0;
+		for (let x of this.attrNames) {
+			if (x.name == type) break;
+			i += this.attrLookup[x.name].size;
+		}
+		let dt = this.attrLookup[type].size;
+		for (let j = 0; j < vs.length; j += dt) {
+			for (let k = 0; k != dt; ++k) {
+				this.vertices[i + k] = vs[j + k];
+			}
+			i += this.component;
+		}
+	}
+
+	static getSize(type: number): number {
+		switch (type) {
+			case gl.FLOAT: return 4;
+			case gl.BYTE: case gl.UNSIGNED_BYTE: return 1;
+			case gl.SHORT: case gl.UNSIGNED_SHORT: return 2;
+			case gl.INT: case gl.UNSIGNED_INT: return 4;
+			default: throw "unknown type";
+		}
+	}
+}
+
 export {
-	VertexAttr,
 	VertexAttrs,
-	VAO
+	VAO,
+	TransformAttrs,
+	TAO
 }

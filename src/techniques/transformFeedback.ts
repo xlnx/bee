@@ -1,15 +1,22 @@
-import Obj from "../object/object";
-import { Viewport } from "../gl/viewport";
-import { Shader } from "../gl/shader";
+import { gl2 } from "../renderer/renderer";
+import { TBO } from "../gl/buffer";
 
-class TransformFeedback extends Obj {
+class TransformFeedback {
+	public readonly handle: WebGLTransformFeedback;
+	private vbo = new TBO();
+
 	constructor() {
-		super();
-
+		if (!gl2) {
+			throw "webgl 2.0 required.";
+		}
+		this.handle = gl2.createTransformFeedback();
 	}
 
-	render(viewport: Viewport) {
-		
+	bind() {
+		gl2.bindTransformFeedback(gl2.TRANSFORM_FEEDBACK, this.handle);
+	}
+	unbind() {
+		gl2.bindTransformFeedback(gl2.TRANSFORM_FEEDBACK, null);
 	}
 }
 

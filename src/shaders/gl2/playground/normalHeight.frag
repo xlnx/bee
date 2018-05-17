@@ -2,11 +2,15 @@
 
 precision mediump float;
 
+// uniform sampler2D gNoise;
+uniform vec2 gStep;
 uniform float gTime;
 
 in vec2 Position0;
 
-out float FragColor;
+out vec4 FragColor;
+
+const float scale = 1.;
 
 vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
 vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
@@ -80,7 +84,19 @@ float noise(vec3 P){
   return 2.2 * n_xyz;
 }
 
+float genHeight(vec2 uv)
+{
+	return noise(vec3(uv * 5., gTime)) * .05;
+		//texture(gNoise, uv * .5 + .5).r;
+}
+
 void main()
 {
-	FragColor = noise(vec3(Position0, gTime));
+	vec2 uv = Position0;
+	float h = genHeight(uv);
+	float hx = genHeight(uv + 2. * vec2(gStep.x, 0));
+	float hy = genHeight(uv + 2. * vec2(0, gStep.y));
+	vec3 dx = vec3(scale * gStep.x, 0, hx - h);
+	vec3 dy = vec3(0, scale * gStep.y, hy - h);
+	FragColor = vec4(normalize(cross(dx, dy)), h);
 }

@@ -50,7 +50,7 @@ Koishi chan likes bee. \>w<
 > - [ ] Reduce Noise
 - [X] Ocean Terrain LOD
 - [X] Gerstner Waves
-- [ ] FFT Waves - canceled
+- [ ] FFT Waves
 - [ ] AABB
 - [ ] Dynamics
 - [ ] Transform Feedback
