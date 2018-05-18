@@ -18,6 +18,7 @@ import { TBO } from "./gl/buffer";
 import { TAO, TransformAttrs } from "./gl/vertexAttrs";
 import { FFT } from "./techniques/FFT";
 import { Phillips } from "./techniques/phillips";
+import { DecodeImage } from "./techniques/decodeImage";
 
 let renderer = new Renderer(document.body);
 
@@ -35,7 +36,7 @@ let normalHeight = new NormalHeight();
 let offscreen = new Offscreen();
 // let transformFeedback = new TransformFeedback();
 offscreen.bind();
-	offscreen.set(gl.DEPTH_ATTACHMENT, new RenderBuffer(gl.DEPTH_COMPONENT16));
+	offscreen.set(gl.DEPTH_ATTACHMENT, new RenderBuffer(gl.DEPTH_COMPONENT16, 512, 512));
 offscreen.unbind();
 
 // class Global extends Communicator {
@@ -85,25 +86,51 @@ let water = new SquareMesh("playground/water", 50);
 // let ts = Shader.create("playground/transformParticle", false, ["Position", "Color"]);
 
 
-let phillipsImage = new Texture2D({ component: gl.RGB, type: gl.UNSIGNED_BYTE });
+let gaussianImage = new Texture2D("./assets/gaussian.jpg");
+let phillipsImage = new Texture2D({ component: gl2.RG, type: gl.FLOAT }, 512, 512);
+let hImage = new Texture2D({ component: gl2.RG, type: gl.FLOAT }, 512, 512);
+let dxImage = new Texture2D({ component: gl2.RG, type: gl.FLOAT }, 512, 512);
+let dyImage = new Texture2D({ component: gl2.RG, type: gl.FLOAT }, 512, 512);
 
-let gaussian = new Texture2D("./assets/gaussian.jpg");
 let phillips = new Phillips();
 let fft = new FFT();
+
+let decode = new DecodeImage();
 
 gl.disable(gl.DEPTH_TEST);
 
 renderer.dispatch("render", () => {
+	gl.viewport(0, 0, 512, 512);
 	offscreen.bind();
 		offscreen.set(gl.COLOR_ATTACHMENT0, phillipsImage);
-		gaussian.use("Gaussian");
+		gaussianImage.use("Gaussian");
 			phillips.render();
-		gaussian.unuse();
-	offscreen.unbind();
+		gaussianImage.unuse();
 
-	phillipsImage.use("Image");
-		defer.render();
-	phillipsImage.unuse();
+		offscreen.set(gl.COLOR_ATTACHMENT0, hImage);
+		offscreen.set(gl2.COLOR_ATTACHMENT1, dxImage);
+		offscreen.set(gl2.COLOR_ATTACHMENT2, dyImage);
+		gl2.drawBuffers([
+			gl.COLOR_ATTACHMENT0, 
+			gl2.COLOR_ATTACHMENT1,
+			gl2.COLOR_ATTACHMENT2
+		]);
+		phillipsImage.use("Spectrum");
+			fft.render();
+		phillipsImage.unuse();
+		gl2.drawBuffers([
+			gl.COLOR_ATTACHMENT0
+		]);
+
+	offscreen.unbind();
+	gl.viewport(0, 0, Renderer.instance.canvas.width, Renderer.instance.canvas.height);
+
+	// phillipsImage.use("Image");
+	hImage.use("Image");
+		// defer.render();
+		decode.render();
+	hImage.unuse();
+	// phillipsImage.unuse();
 });
 
 renderer.start();
