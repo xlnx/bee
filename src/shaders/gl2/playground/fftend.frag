@@ -2,23 +2,23 @@
 
 precision mediump float;
 
-uniform sampler2D gPrevStep;
+uniform sampler2D gPrevH;
+uniform sampler2D gPrevDx;
+uniform sampler2D gPrevDy;
 uniform float gN;
 
-out vec2 FragColor;
+// layout (location = 0) out vec2 H;
+// layout (location = 1) out vec2 Dx;
+// layout (location = 2) out vec2 Dy;
+layout (location = 0) out vec3 Displacement;
 
 void main()
 {
 	vec2 mn = floor(gl_FragCoord.xy);
-	FragColor = (1. - 2. * mod(mn.x + mn.y, 2.)) * 
-		texture(gPrevStep, mn / gN).xx * 2e-5;
+	float term = 1. - 2. * mod(mn.x + mn.y, 2.);
+	vec2 tex = mn / gN;
+	float H = term * texture(gPrevH, tex).x;
+	float Dx = term * texture(gPrevDx, tex).x;
+	float Dy = term * texture(gPrevDy, tex).x;
+	Displacement = vec3(Dx, Dy, H) * 3e-5;
 }
-
-// out vec2 FragColor;
-
-// void main()
-// {
-// 	vec2 mn = floor(gl_FragCoord.xy);
-// 	FragColor = //(mod(mn.x + mn.y, 2.) == 1. ? -1.: 1.) * 
-// 		texture(gPrevStep, mn / gN).xy;// * 8e-5;
-// }

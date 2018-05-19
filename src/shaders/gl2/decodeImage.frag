@@ -6,9 +6,9 @@ uniform sampler2D gImage;
 
 in vec2 Position0;
 
-out vec2 FragColor;
+out vec4 FragColor;
 
 void main()
 {
-	FragColor = texture(gImage, Position0 * .5 + .5).xy * .5 + .5;
+	FragColor = texture(gImage, Position0 * .5 + .5) * .5 + .5;
 }

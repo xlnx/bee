@@ -62,14 +62,14 @@ com.use();
 
 // let test = new PostProcess(Shader.create("playground/testMRT", false));
 
-let water = new SquareMesh("playground/water", 50);
+let water = new SquareMesh("playground/water", 160);
 // let pool = new Pool();
 
 // let tiles = new Texture2D("./assets/tiles.jpg");
 
-// let camera = new PerspectiveViewport();
-// camera.position = glm.vec3(3, 0, 1.);
-// camera.target = glm.vec3(-3, 0, -1.5);
+let camera = new PerspectiveViewport();
+camera.position = glm.vec3(10, 0, 3.);
+camera.target = glm.vec3(-3, 0, -1.5);
 
 // let vs = new TransformAttrs([{
 // 	name: "Position",
@@ -99,7 +99,7 @@ let testImage = new Texture2D("./assets/test.bmp");
 let testFFTImage = new Texture2D({ component: gl2.RG, type: gl.FLOAT, filter: gl.NEAREST, wrap: gl.CLAMP_TO_EDGE }, w, w);
 
 let phillips = new Phillips();
-let fft = new FFT(hImage);
+let fft = new FFT([hImage, dxImage, dyImage]);
 let fftsrc = new FFTsrc();
 // let fft = new FFT(testFFTImage);
 
@@ -114,6 +114,7 @@ offscreen.bind();
 offscreen.unbind();
 
 renderer.dispatch("render", () => {
+	gl.disable(gl.DEPTH_TEST);
 	gl.viewport(0, 0, w, w);
 	offscreen.bind();
 		offscreen.set(gl.COLOR_ATTACHMENT0, hImage);
@@ -143,18 +144,29 @@ renderer.dispatch("render", () => {
 
 	offscreen.unbind();
 	gl.viewport(0, 0, Renderer.instance.canvas.width, Renderer.instance.canvas.height);
+	// gl.enable(gl.DEPTH_TEST);
+
+	// gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+	// fft.texture.use("Displacement");
+	// water.bindShader();
+	// 	water.render(camera);
+	// water.unbindShader();
+	// fft.texture.unuse();
 
 	// phillipsImage.use("Image");
-	// hImage.use("Image");
+	// dyImage.use("Image");
 	// gaussianImage.use("Image");
-	fft.texture.use("Image");
+	// let textures = fft.textures;
+	// textures[2].use("Image");
 	// testFFTImage.use("Image");
-		// defer.render();
+	// defer.render();
+	fft.texture.use("Image");
 		decode.render();
-	// testFFTImage.unuse();
 	fft.texture.unuse();
+	// testFFTImage.unuse();
+	// textures[2].unuse();
 	// gaussianImage.unuse();
-	// hImage.unuse();
+	// dyImage.unuse();
 	// phillipsImage.unuse();
 });
 

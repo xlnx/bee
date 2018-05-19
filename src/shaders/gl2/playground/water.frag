@@ -4,6 +4,7 @@ precision mediump float;
 
 uniform vec3 gLight;
 uniform vec3 gCameraWorldPos;
+uniform sampler2D gDisplacement;
 
 
 in vec2 Position0;
@@ -15,7 +16,9 @@ out vec4 FragColor;
 void main()
 {
 	vec2 uv = Position0;
+	vec3 diff = texture(gDisplacement, uv * .5 + .5).xyz;
 	vec3 n = normalize(Normal0);
-	FragColor = vec4(0.2, 0.3, 0.6, 1.) * 1.4 + 
-		vec4(.3) * dot(reflect(normalize(gLight), n), normalize(gCameraWorldPos - WorldPos0));// vec4(n * .5 + .5, 1.);
+	FragColor = vec4(diff, 0);
+		// vec4(0.2, 0.3, 0.6, 1.) * 1.4;// + 
+		// vec4(.3) * dot(reflect(normalize(gLight), n), normalize(gCameraWorldPos - WorldPos0));// vec4(n * .5 + .5, 1.);
 }

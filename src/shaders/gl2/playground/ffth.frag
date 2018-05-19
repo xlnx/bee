@@ -4,11 +4,15 @@ precision mediump float;
 
 #define PI 3.141592654
 
-uniform sampler2D gPrevStep;
+uniform sampler2D gPrevH;
+uniform sampler2D gPrevDx;
+uniform sampler2D gPrevDy;
 uniform float gStep;
 uniform float gN;
 
-out vec2 Step;
+layout (location = 0) out vec2 H;
+layout (location = 1) out vec2 Dx;
+layout (location = 2) out vec2 Dy;
 
 vec2 complexMul(vec2 a, vec2 b)
 {
@@ -20,8 +24,11 @@ void main()
 	vec2 mn = floor(gl_FragCoord.xy);
 	float k = mod(mn.x, gStep * 2.);
 	float theta = PI * k / gStep;
-	vec2 eo = vec2(mn.x, mn.x + gStep) - step(gStep, k) * gStep; // vec2(k >= gStep ? gStep : 0.);
-	vec2 e = texture(gPrevStep, vec2(eo.x, mn.y) / gN).rg;
-	vec2 o = texture(gPrevStep, vec2(eo.y, mn.y) / gN).rg;
-	Step = e + complexMul(o, vec2(cos(theta), sin(theta)));
+	vec2 eo = vec2(mn.x, mn.x + gStep) - step(gStep, k) * gStep;
+	vec2 epos = vec2(eo.x, mn.y) / gN;
+	vec2 opos = vec2(eo.y, mn.y) / gN;
+	vec2 term = vec2(cos(theta), sin(theta));
+	H = texture(gPrevH, epos).rg + complexMul(texture(gPrevH, opos).rg, term);
+	Dx = texture(gPrevDx, epos).rg + complexMul(texture(gPrevDx, opos).rg, term);
+	Dy = texture(gPrevDy, epos).rg + complexMul(texture(gPrevDy, opos).rg, term);
 }
