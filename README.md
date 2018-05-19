@@ -12,13 +12,21 @@ Koishi chan likes bee. \>w<
 
 ![](docs/refined2.png)
 
-## U-Boat 7C
-
-![](docs/sub.png)
-
 ## new filter function && ambient
 
 ![](docs/new-ambient.png)
+
+## Phillips Spectrum
+
+![](docs/h0.jpg)
+
+## Height Field
+
+![](docs/h.jpg)
+
+## Displacement Map
+
+![](docs/displacement.png)
 
 # TODOs
 
@@ -46,18 +54,20 @@ Koishi chan likes bee. \>w<
 - [X] Depth Based Raymarching
 > - [X] Filter function
 > - [X] Increase Precision
+- [X] Transform Feedback
+> - [ ] Transform Feedback Usage
+- [X] Floating Point Textures
+- [X] Multiple Render Targets - MRT
+
 - [X] SSR
 > - [ ] Reduce Noise
 > - [ ] Edge Blurring
 - [X] Ocean Terrain LOD
 - [X] Gerstner Waves
-- [ ] FFT Waves
+- [X] FFT
+> - [ ] FFT Waves
 - [ ] AABB
 - [ ] Dynamics
-- [ ] Transform Feedback
-- [X] Floating Point Textures
-- [X] Multiple Render Targets - MRT
-
 - [ ] Beautiful Splash Screens \>w<
 - [ ] Periscope Blurring
 - [ ] Torpedo / Vessel Tracks
