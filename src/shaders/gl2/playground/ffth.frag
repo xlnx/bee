@@ -20,7 +20,7 @@ void main()
 	vec2 mn = floor(gl_FragCoord.xy);
 	float k = mod(mn.x, gStep * 2.);
 	float theta = PI * k / gStep;
-	vec2 eo = vec2(mn.x, mn.x + gStep) - vec2(k >= gStep ? gStep : 0.);
+	vec2 eo = vec2(mn.x, mn.x + gStep) - step(gStep, k) * gStep; // vec2(k >= gStep ? gStep : 0.);
 	vec2 e = texture(gPrevStep, vec2(eo.x, mn.y) / gN).rg;
 	vec2 o = texture(gPrevStep, vec2(eo.y, mn.y) / gN).rg;
 	Step = e + complexMul(o, vec2(cos(theta), sin(theta)));

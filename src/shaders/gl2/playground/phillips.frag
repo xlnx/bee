@@ -17,7 +17,7 @@ const float g = 9.8;
 // parameter
 const float L = V * V / g;
 // amplitude
-const float A = 3.;
+const float A = .02;
 
 void main()
 {
@@ -25,7 +25,7 @@ void main()
 	float k = length(uv);
 	vec2 kn = normalize(uv);
 	float d = dot(kn, u);
-	vec2 gaussian = (texture(gGaussian, uv * .5 + .5) * 2. - 1.).xy;
+	// vec2 gaussian = (texture(gGaussian, uv * .5 + .5) * 2. - 1.).xy;
 	vec2 ph = vec2(A / pow(k, 4.) * d * d * exp(-1./(k * k * L * L)));
-	Phillips = 1. / sqrt(2.) * gaussian * sqrt(ph);
+	Phillips = sqrt(ph / 2.);
 }

@@ -5,13 +5,13 @@ precision mediump float;
 uniform sampler2D gPrevStep;
 uniform float gN;
 
-out float FragColor;
+out vec2 FragColor;
 
 void main()
 {
 	vec2 mn = floor(gl_FragCoord.xy);
 	FragColor = (1. - 2. * mod(mn.x + mn.y, 2.)) * 
-		texture(gPrevStep, mn / gN).x * 2e-5;
+		texture(gPrevStep, mn / gN).xx * 2e-5;
 }
 
 // out vec2 FragColor;

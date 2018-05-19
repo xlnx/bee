@@ -90,7 +90,7 @@ let water = new SquareMesh("playground/water", 50);
 
 // let ts = Shader.create("playground/transformParticle", false, ["Position", "Color"]);
 
-let gaussianImage = new Texture2D("./assets/gaussian.jpg");
+// let gaussianImage = new Texture2D("./assets/gaussian.jpg");
 let phillipsImage = new Texture2D({ component: gl2.RG, type: gl.FLOAT, filter: gl.NEAREST, wrap: gl.CLAMP_TO_EDGE }, w, w);
 let hImage = new Texture2D({ component: gl2.RG, type: gl.FLOAT, filter: gl.NEAREST, wrap: gl.CLAMP_TO_EDGE }, w, w);
 let dxImage = new Texture2D({ component: gl2.RG, type: gl.FLOAT, filter: gl.NEAREST, wrap: gl.CLAMP_TO_EDGE }, w, w);
@@ -108,14 +108,14 @@ let encode = new EncodeImage();
 
 gl.disable(gl.DEPTH_TEST);
 
+offscreen.bind();
+	offscreen.set(gl.COLOR_ATTACHMENT0, phillipsImage);
+	phillips.render();
+offscreen.unbind();
+
 renderer.dispatch("render", () => {
 	gl.viewport(0, 0, w, w);
 	offscreen.bind();
-		offscreen.set(gl.COLOR_ATTACHMENT0, phillipsImage);
-		gaussianImage.use("Gaussian");
-			phillips.render();
-		gaussianImage.unuse();
-
 		offscreen.set(gl.COLOR_ATTACHMENT0, hImage);
 		offscreen.set(gl2.COLOR_ATTACHMENT1, dxImage);
 		offscreen.set(gl2.COLOR_ATTACHMENT2, dyImage);
@@ -124,10 +124,12 @@ renderer.dispatch("render", () => {
 			gl2.COLOR_ATTACHMENT1,
 			gl2.COLOR_ATTACHMENT2
 		]);
+		// gaussianImage.use("Gaussian");
 		phillipsImage.use("Spectrum");
 			// fft.render();
 			fftsrc.render();
 		phillipsImage.unuse();
+		// gaussianImage.unuse();
 		gl2.drawBuffers([
 			gl.COLOR_ATTACHMENT0
 		]);
@@ -144,12 +146,14 @@ renderer.dispatch("render", () => {
 
 	// phillipsImage.use("Image");
 	// hImage.use("Image");
+	// gaussianImage.use("Image");
 	fft.texture.use("Image");
 	// testFFTImage.use("Image");
 		// defer.render();
 		decode.render();
 	// testFFTImage.unuse();
 	fft.texture.unuse();
+	// gaussianImage.unuse();
 	// hImage.unuse();
 	// phillipsImage.unuse();
 });
