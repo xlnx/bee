@@ -17,7 +17,7 @@ const float g = 9.8;
 // parameter
 const float L = V * V / g;
 // amplitude
-const float A = 2.;
+const float A = 3.;
 
 void main()
 {

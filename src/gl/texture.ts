@@ -36,6 +36,8 @@ function restoreChannel(channel: number) {
 class TextureSpec {
 	component?: number;
 	type?: number;
+	filter?: number;
+	wrap?: number;
 };
 
 abstract class Texture {
@@ -144,6 +146,8 @@ class Texture2D extends Texture {
 					}
 				}
 			}
+			let filter = opts.filter || gl.LINEAR;
+			let wrap = opts.wrap || gl.CLAMP_TO_EDGE;
 			this.w = second;
 			this.h = third;
 			if (second == undefined) {
@@ -155,10 +159,10 @@ class Texture2D extends Texture {
 				// } else {
 				// 	gl.texImage2D(this.type, 0, component, 1, 1, 0, component, gl.FLOAT, null);
 				// }
-				gl.texParameterf(this.type, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-				gl.texParameterf(this.type, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-				gl.texParameterf(this.type, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-				gl.texParameterf(this.type, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+				gl.texParameterf(this.type, gl.TEXTURE_MIN_FILTER, filter);
+				gl.texParameterf(this.type, gl.TEXTURE_MAG_FILTER, filter);
+				gl.texParameterf(this.type, gl.TEXTURE_WRAP_S, wrap);
+				gl.texParameterf(this.type, gl.TEXTURE_WRAP_T, wrap);
 			this.unbind();
 		}
 	}

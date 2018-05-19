@@ -10,5 +10,5 @@ out vec2 FragColor;
 
 void main()
 {
-	FragColor = texture(gImage, Position0 * .5 + .5).xy * .5 + .5;
+	FragColor = texture(gImage, Position0 * .5 + .5).xy * 2. - 1.;
 }

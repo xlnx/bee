@@ -20,7 +20,7 @@ void main()
 	float k = length(uv);
 	float sinv = sin(omega * t);
 	float cosv = cos(omega * t);
-	vec2 H0 = texture(gSpectrum, uv *.5 + .5).xy;
+	vec2 H0 = texture(gSpectrum, uv *.5 + .5).xy * 1e-12;
 	vec2 H0_conj = texture(gSpectrum, -uv * .5 + .5).xy * vec2(1, -1);
 	H = (H0 + H0_conj).xy * cosv + (H0 - H0_conj).yx * vec2(-1, 1) * sinv;
 	Dx = (uv.x / k * H).yx * vec2(-1., 1.);

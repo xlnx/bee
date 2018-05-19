@@ -19,6 +19,11 @@ import { TAO, TransformAttrs } from "./gl/vertexAttrs";
 import { FFT } from "./techniques/FFT";
 import { Phillips } from "./techniques/phillips";
 import { DecodeImage } from "./techniques/decodeImage";
+import { FFTsrc } from "./techniques/FFTsrc";
+import { EncodeImage } from "./techniques/encodeImage";
+
+const w = 512;
+//16;
 
 let renderer = new Renderer(document.body);
 
@@ -36,7 +41,7 @@ let normalHeight = new NormalHeight();
 let offscreen = new Offscreen();
 // let transformFeedback = new TransformFeedback();
 offscreen.bind();
-	offscreen.set(gl.DEPTH_ATTACHMENT, new RenderBuffer(gl.DEPTH_COMPONENT16, 512, 512));
+	offscreen.set(gl.DEPTH_ATTACHMENT, new RenderBuffer(gl.DEPTH_COMPONENT16, w, w));
 offscreen.unbind();
 
 // class Global extends Communicator {
@@ -85,22 +90,26 @@ let water = new SquareMesh("playground/water", 50);
 
 // let ts = Shader.create("playground/transformParticle", false, ["Position", "Color"]);
 
-
 let gaussianImage = new Texture2D("./assets/gaussian.jpg");
-let phillipsImage = new Texture2D({ component: gl2.RG, type: gl.FLOAT }, 512, 512);
-let hImage = new Texture2D({ component: gl2.RG, type: gl.FLOAT }, 512, 512);
-let dxImage = new Texture2D({ component: gl2.RG, type: gl.FLOAT }, 512, 512);
-let dyImage = new Texture2D({ component: gl2.RG, type: gl.FLOAT }, 512, 512);
+let phillipsImage = new Texture2D({ component: gl2.RG, type: gl.FLOAT, filter: gl.NEAREST, wrap: gl.CLAMP_TO_EDGE }, w, w);
+let hImage = new Texture2D({ component: gl2.RG, type: gl.FLOAT, filter: gl.NEAREST, wrap: gl.CLAMP_TO_EDGE }, w, w);
+let dxImage = new Texture2D({ component: gl2.RG, type: gl.FLOAT, filter: gl.NEAREST, wrap: gl.CLAMP_TO_EDGE }, w, w);
+let dyImage = new Texture2D({ component: gl2.RG, type: gl.FLOAT, filter: gl.NEAREST, wrap: gl.CLAMP_TO_EDGE }, w, w);
+let testImage = new Texture2D("./assets/test.bmp");
+let testFFTImage = new Texture2D({ component: gl2.RG, type: gl.FLOAT, filter: gl.NEAREST, wrap: gl.CLAMP_TO_EDGE }, w, w);
 
 let phillips = new Phillips();
-let fft = new FFT();
+let fft = new FFT(hImage);
+let fftsrc = new FFTsrc();
+// let fft = new FFT(testFFTImage);
 
 let decode = new DecodeImage();
+let encode = new EncodeImage();
 
 gl.disable(gl.DEPTH_TEST);
 
 renderer.dispatch("render", () => {
-	gl.viewport(0, 0, 512, 512);
+	gl.viewport(0, 0, w, w);
 	offscreen.bind();
 		offscreen.set(gl.COLOR_ATTACHMENT0, phillipsImage);
 		gaussianImage.use("Gaussian");
@@ -116,20 +125,32 @@ renderer.dispatch("render", () => {
 			gl2.COLOR_ATTACHMENT2
 		]);
 		phillipsImage.use("Spectrum");
-			fft.render();
+			// fft.render();
+			fftsrc.render();
 		phillipsImage.unuse();
 		gl2.drawBuffers([
 			gl.COLOR_ATTACHMENT0
 		]);
+		
+		// offscreen.set(gl.COLOR_ATTACHMENT0, testFFTImage);
+		// testImage.use("Image");
+		// 	encode.render();
+		// testImage.unuse();
+
+		fft.render();
 
 	offscreen.unbind();
 	gl.viewport(0, 0, Renderer.instance.canvas.width, Renderer.instance.canvas.height);
 
 	// phillipsImage.use("Image");
-	hImage.use("Image");
+	// hImage.use("Image");
+	fft.texture.use("Image");
+	// testFFTImage.use("Image");
 		// defer.render();
 		decode.render();
-	hImage.unuse();
+	// testFFTImage.unuse();
+	fft.texture.unuse();
+	// hImage.unuse();
 	// phillipsImage.unuse();
 });
 
