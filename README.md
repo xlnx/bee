@@ -28,6 +28,10 @@ Koishi chan likes bee. \>w<
 
 ![](docs/displacement.png)
 
+## FFT Wave
+
+![](docs/fftwave.png)
+
 # TODOs
 
 - [X] Typescript
@@ -64,8 +68,10 @@ Koishi chan likes bee. \>w<
 > - [ ] Edge Blurring
 - [X] Ocean Terrain LOD
 - [X] Gerstner Waves
-- [X] FFT
-> - [ ] FFT Waves
+- [X] GPU FFT
+> - [X] FFT Waves
+> - [ ] Optimize
+> - [ ] Normals
 - [ ] AABB
 - [ ] Dynamics
 - [ ] Beautiful Splash Screens \>w<
