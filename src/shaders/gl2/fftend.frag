@@ -20,5 +20,5 @@ void main()
 	float H = term * texture(gPrevH, tex).x;
 	float Dx = term * texture(gPrevDx, tex).x;
 	float Dy = term * texture(gPrevDy, tex).x;
-	Displacement = vec3(Dx, Dy, H) * 3e-5;
+	Displacement = vec3(Dx, Dy, H) * 3e-4;
 }

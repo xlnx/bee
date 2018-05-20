@@ -15,7 +15,8 @@ class Ocean extends Terrain {
 
 	render(viewport: Viewport) {
 		this.setBasicUniforms(viewport);
-		this.waves.invoke();
+		this.gN.set(512);
+		// this.waves.invoke();
 		this.material.use();
 		this.mesh.bind();
 			this.mesh.draw();
@@ -23,15 +24,16 @@ class Ocean extends Terrain {
 		this.material.unuse();
 	}
 	
-	add(wave: GerstnerWave): ulist_elem<Communicator> {
-		return this.waves.add(wave);
-	}
+	// add(wave: GerstnerWave): ulist_elem<Communicator> {
+	// 	return this.waves.add(wave);
+	// }
 
-	private waves: Communicators = new Communicators();
+	// private waves: Communicators = new Communicators();
 	private material: Material = new Material({
 		specularPower: 0.5,
 		specularIntensity: 0.56
 	});
+	private gN = Shader.uniform("float", "gN");
 }
 
 export {

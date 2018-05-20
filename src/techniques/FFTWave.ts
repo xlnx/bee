@@ -34,8 +34,17 @@ class FFTWave extends PostProcess {
 			}, this.N, this.N);
 		}
 	}
-
+	private bindTextures() {
+		for (let i = 0; i != 3; ++i) {
+			this.offscreen.set(gl.COLOR_ATTACHMENT0 + i, this.textureB[i]);
+			gl.activeTexture(gl.TEXTURE0 + this.channel[i]);
+			gl.bindTexture(gl.TEXTURE_2D, this.textureA[i].handle);
+			this.gPrev[i].set(this.channel[i]);
+		}
+	}
 	render() {
+		gl.disable(gl.DEPTH_TEST);
+		gl.viewport(0, 0, this.N, this.N);
 		this.offscreen.bind();
 			this.channel = [ 
 				Texture2D.genChannel(), 
@@ -110,19 +119,16 @@ class FFTWave extends PostProcess {
 				Texture2D.restoreChannel(this.channel[i]);
 			}
 		this.offscreen.unbind();
+		gl.viewport(0, 0, Renderer.instance.canvas.width, Renderer.instance.canvas.height);
+		gl.enable(gl.DEPTH_TEST);
 	}
 
 	get texture(): Texture2D {
 		return this.displacement;
 	}
 
-	private bindTextures() {
-		for (let i = 0; i != 3; ++i) {
-			this.offscreen.set(gl.COLOR_ATTACHMENT0 + i, this.textureB[i]);
-			gl.activeTexture(gl.TEXTURE0 + this.channel[i]);
-			gl.bindTexture(gl.TEXTURE_2D, this.textureA[i].handle);
-			this.gPrev[i].set(this.channel[i]);
-		}
+	get textures(): Texture2D[] {
+		return this.textureA;
 	}
 
 	private swapTextures() {
@@ -138,7 +144,6 @@ class FFTWave extends PostProcess {
 
 	private offscreen = new Offscreen();
 
-	private gTime = Shader.uniform("float", "gTime");
 	private gN = Shader.uniform("float", "gN");
 	private gStep = Shader.uniform("float", "gStep");
 	private gPrev = [ 
@@ -147,6 +152,7 @@ class FFTWave extends PostProcess {
 		Shader.uniform("int", "gPrevDy")
 	];
 	private gSpectrum = Shader.uniform("int", "gSpectrum");
+	private gTime = Shader.uniform("float", "gTime");
 
 	private fsrc = Shader.create("fftsrc", false);
 	private vs = Shader.create("fftv", false);

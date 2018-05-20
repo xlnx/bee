@@ -40,6 +40,7 @@ void main()
 		float R = clamp(FresnelBiasAbove + FresnelScaleAbove * 
 			pow(1. + dot(r, n), FresnelPowerAbove), 0., 1.);
 
+		// FragColor = vec4(Normal0, 1);
 		FragColor = R * texture(gAmbient, r) + (1.0 - R) * texture(gAmbient, t);
 		NormalDepth = vec4(normalize(gV * vec4(Normal0, 0)).xyz, gl_FragCoord.z);
 	} else {

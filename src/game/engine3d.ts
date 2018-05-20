@@ -17,6 +17,8 @@ import { CameraBase } from "./camera/cameraBase";
 import { Ocean } from "../object/ocean";
 import { ulist_elem, ulist } from "../util/ulist";
 import { GerstnerWave } from "../object/gerstnerWave";
+import { FFTWave } from "../techniques/FFTWave";
+import { Phillips } from "../techniques/phillips";
 
 class Engine3d {
 	private worldCom = new Communicators();
@@ -28,6 +30,8 @@ class Engine3d {
 	// private ssrImage = new Texture2D({ component: gl.RGBA });
 	private uvImage = new Texture2D({ component: gl.RGB });
 	private noiseImage = new Texture2D({ component: gl.RGB });
+	private phillipsImage = new Texture2D({ component: gl2.RG, type: gl.FLOAT, filter: gl.NEAREST, wrap: gl.CLAMP_TO_EDGE }, 512, 512);
+
 	private channel: Texture2D;
 
 	private offscreen = new Offscreen();
@@ -40,21 +44,31 @@ class Engine3d {
 	private noise = new Noise();
 	private defer = new DeferImage();
 
+	private phillips = new Phillips();
+	private fftWave = new FFTWave(this.phillipsImage);
+
 	private skybox = new Skybox();
 	public readonly ocean = new Ocean();
 
 	constructor() {
+		gl.disable(gl.DEPTH_TEST);
+		this.offscreen.bind();
+			this.offscreen.set(gl.COLOR_ATTACHMENT0, this.phillipsImage);
+			this.phillips.render();
+		this.offscreen.unbind();
+		gl.enable(gl.DEPTH_TEST);
+
 		this.offscreen.bind();
 			this.offscreen.set(gl.DEPTH_ATTACHMENT, new RenderBuffer(gl.DEPTH_COMPONENT16));
 		this.offscreen.unbind();
 
-		let wave = new GerstnerWave();
-		let wave1 = new GerstnerWave();
-		wave.set("amplitude", 0.03);
-		wave1.set("amplitude", 0.04);
-		wave1.set("direction", glm.vec2(1, 2));
-		this.ocean.add(wave);
-		this.ocean.add(wave1);
+		// let wave = new GerstnerWave();
+		// let wave1 = new GerstnerWave();
+		// wave.set("amplitude", 0.03);
+		// wave1.set("amplitude", 0.04);
+		// wave1.set("direction", glm.vec2(1, 2));
+		// this.ocean.add(wave);
+		// this.ocean.add(wave1);
 
 		if (!gl2) {
 			throw "webgl 2.0 required.";
@@ -135,6 +149,8 @@ class Engine3d {
 		// reder ambient cube - offscreen
 		this.ambient.render();
 
+		this.fftWave.render();
+
 		// render main image into mainImage
 		this.offscreen.bind();
 
@@ -157,9 +173,11 @@ class Engine3d {
 
 			this.ambient.texture.use("Ambient");
 
+			this.fftWave.texture.use("Displacement");
 			this.ocean.bindShader();
 				this.ocean.render(this.main.viewport);
 			this.ocean.unbindShader();
+			this.fftWave.texture.unuse();
 
 			Vessel.bindShader();
 				vessels.visit((e: ulist_elem<Vessel>) => {
