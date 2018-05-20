@@ -7,9 +7,6 @@ uniform sampler2D gPrevDx;
 uniform sampler2D gPrevDy;
 uniform float gN;
 
-// layout (location = 0) out vec2 H;
-// layout (location = 1) out vec2 Dx;
-// layout (location = 2) out vec2 Dy;
 layout (location = 0) out vec3 Displacement;
 
 void main()

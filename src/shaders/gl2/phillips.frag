@@ -2,8 +2,6 @@
 
 precision mediump float;
 
-uniform sampler2D gGaussian;
-
 in vec2 Position0;
 
 out vec2 Phillips;
@@ -25,7 +23,6 @@ void main()
 	float k = length(uv);
 	vec2 kn = normalize(uv);
 	float d = dot(kn, u);
-	// vec2 gaussian = (texture(gGaussian, uv * .5 + .5) * 2. - 1.).xy;
 	vec2 ph = vec2(A / pow(k, 4.) * d * d * exp(-1./(k * k * L * L)));
 	Phillips = sqrt(ph / 2.);
 }
