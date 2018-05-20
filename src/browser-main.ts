@@ -16,10 +16,9 @@ import { Shader } from "./gl/shader";
 import { TransformFeedback } from "./techniques/transformFeedback";
 import { TBO } from "./gl/buffer";
 import { TAO, TransformAttrs } from "./gl/vertexAttrs";
-import { FFT } from "./techniques/FFT";
+import { FFTWave } from "./techniques/FFTWave";
 import { Phillips } from "./techniques/phillips";
 import { DecodeImage } from "./techniques/decodeImage";
-import { FFTsrc } from "./techniques/FFTsrc";
 import { EncodeImage } from "./techniques/encodeImage";
 
 const w = 512;
@@ -68,7 +67,7 @@ let water = new SquareMesh("playground/water", 160);
 // let tiles = new Texture2D("./assets/tiles.jpg");
 
 let camera = new PerspectiveViewport();
-camera.position = glm.vec3(10, 0, 3.);
+camera.position = glm.vec3(3, 0, 1.);
 camera.target = glm.vec3(-3, 0, -1.5);
 
 // let vs = new TransformAttrs([{
@@ -99,70 +98,50 @@ let testImage = new Texture2D("./assets/test.bmp");
 let testFFTImage = new Texture2D({ component: gl2.RG, type: gl.FLOAT, filter: gl.NEAREST, wrap: gl.CLAMP_TO_EDGE }, w, w);
 
 let phillips = new Phillips();
-let fft = new FFT([hImage, dxImage, dyImage]);
-let fftsrc = new FFTsrc();
-// let fft = new FFT(testFFTImage);
+let fftWave = new FFTWave(phillipsImage);
+// let fftWave = new FFT(testFFTImage);
 
 let decode = new DecodeImage();
 let encode = new EncodeImage();
 
 gl.disable(gl.DEPTH_TEST);
 
+gl.viewport(0, 0, w, w);
+
 offscreen.bind();
 	offscreen.set(gl.COLOR_ATTACHMENT0, phillipsImage);
 	phillips.render();
 offscreen.unbind();
 
+gl.viewport(0, 0, Renderer.instance.canvas.width, Renderer.instance.canvas.height);
+
 renderer.dispatch("render", () => {
 	gl.disable(gl.DEPTH_TEST);
 	gl.viewport(0, 0, w, w);
 	offscreen.bind();
-		offscreen.set(gl.COLOR_ATTACHMENT0, hImage);
-		offscreen.set(gl2.COLOR_ATTACHMENT1, dxImage);
-		offscreen.set(gl2.COLOR_ATTACHMENT2, dyImage);
-		gl2.drawBuffers([
-			gl.COLOR_ATTACHMENT0, 
-			gl2.COLOR_ATTACHMENT1,
-			gl2.COLOR_ATTACHMENT2
-		]);
-		// gaussianImage.use("Gaussian");
-		phillipsImage.use("Spectrum");
-			// fft.render();
-			fftsrc.render();
-		phillipsImage.unuse();
-		// gaussianImage.unuse();
-		gl2.drawBuffers([
-			gl.COLOR_ATTACHMENT0
-		]);
-		
-		// offscreen.set(gl.COLOR_ATTACHMENT0, testFFTImage);
-		// testImage.use("Image");
-		// 	encode.render();
-		// testImage.unuse();
-
-		fft.render();
-
+		fftWave.render();
 	offscreen.unbind();
 	gl.viewport(0, 0, Renderer.instance.canvas.width, Renderer.instance.canvas.height);
-	// gl.enable(gl.DEPTH_TEST);
+	// gl.viewport(0, 0, 512, 512);
+	gl.enable(gl.DEPTH_TEST);
 
-	// gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-	// fft.texture.use("Displacement");
-	// water.bindShader();
-	// 	water.render(camera);
-	// water.unbindShader();
-	// fft.texture.unuse();
+	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+	fftWave.texture.use("Displacement");
+	water.bindShader();
+		water.render(camera);
+	water.unbindShader();
+	fftWave.texture.unuse();
 
 	// phillipsImage.use("Image");
 	// dyImage.use("Image");
 	// gaussianImage.use("Image");
-	// let textures = fft.textures;
+	// let textures = fftWave.textures;
 	// textures[2].use("Image");
 	// testFFTImage.use("Image");
 	// defer.render();
-	fft.texture.use("Image");
-		decode.render();
-	fft.texture.unuse();
+	// fftWave.texture.use("Image");
+	// 	decode.render();
+	// fftWave.texture.unuse();
 	// testFFTImage.unuse();
 	// textures[2].unuse();
 	// gaussianImage.unuse();

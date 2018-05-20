@@ -47,7 +47,7 @@ void main()
 	float sinv = sin(omega * t);
 	float cosv = cos(omega * t);
 	vec2 tex = uv * .5 + .5;
-	vec2 seed = vec2(1., 2.) * t * 1e-4;
+	vec2 seed = vec2(1., 2.) * t * 1e-8;
 	vec2 h0 = texture(gSpectrum, tex).xy;
 	vec2 H0 = complexMul(h0, gaussian(tex, seed * .5 + 1.));
 	vec2 h0_conj = texture(gSpectrum, -tex).xy * vec2(1, -1);

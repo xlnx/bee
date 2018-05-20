@@ -15,7 +15,7 @@ void main()
 {
 	vec2 uv = Position;
 	vec3 diff = texture(gDisplacement, uv * .5 + .5).xyz;
-	vec3 p = vec3(uv, 0.);// + diff;
+	vec3 p = vec3(uv, 0.) + diff * .1;
 	gl_Position = gWVP * vec4(p, 1);
 	WorldPos0 = (gWorld * vec4(p, 1)).xyz;
 	Position0 = uv;
