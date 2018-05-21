@@ -9,8 +9,8 @@ abstract class Terrain extends Obj {
 	protected mesh: VAO;
 
 	private static cascadeCount = 10;
-	private static cascadeMeshCount = 24;
-	private static minimumMeshSize = 0.1;
+	private static cascadeMeshCount = 36;
+	private static minimumMeshSize = 0.04;
 
 	public readonly isTerrain = true;
 

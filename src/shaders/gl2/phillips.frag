@@ -7,7 +7,7 @@ in vec2 Position0;
 out vec2 Phillips;
 
 // wind speed 
-const float V = 1e4;
+const float V = 20.;
 // wind direction
 const vec2 u = normalize(vec2(1, -1));
 // gravity

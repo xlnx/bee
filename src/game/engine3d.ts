@@ -19,6 +19,7 @@ import { ulist_elem, ulist } from "../util/ulist";
 import { GerstnerWave } from "../object/gerstnerWave";
 import { FFTWave } from "../techniques/FFTWave";
 import { Phillips } from "../techniques/phillips";
+import { DecodeImage } from "../techniques/decodeImage";
 
 class Engine3d {
 	private worldCom = new Communicators();
@@ -43,6 +44,7 @@ class Engine3d {
 	private uv = new UV();
 	private noise = new Noise();
 	private defer = new DeferImage();
+	private decode = new DecodeImage();
 
 	private phillips = new Phillips();
 	private fftWave = new FFTWave(this.phillipsImage);
@@ -52,11 +54,13 @@ class Engine3d {
 
 	constructor() {
 		gl.disable(gl.DEPTH_TEST);
+		gl.viewport(0, 0, this.phillipsImage.width, this.phillipsImage.height);
 		this.offscreen.bind();
 			this.offscreen.set(gl.COLOR_ATTACHMENT0, this.phillipsImage);
 			this.phillips.render();
 		this.offscreen.unbind();
 		gl.enable(gl.DEPTH_TEST);
+		gl.viewport(0, 0, Renderer.instance.canvas.width, Renderer.instance.canvas.height);
 
 		this.offscreen.bind();
 			this.offscreen.set(gl.DEPTH_ATTACHMENT, new RenderBuffer(gl.DEPTH_COMPONENT16));
@@ -214,6 +218,12 @@ class Engine3d {
 			this.positionTypeImage.unuse();
 			this.normalDepthImage.unuse();
 			this.mainImage.unuse();
+
+			// this.fftWave.texture.use("Image");
+
+			// this.decode.render();
+
+			// this.fftWave.texture.unuse();
 		
 		this.renderCom.unuse();
 

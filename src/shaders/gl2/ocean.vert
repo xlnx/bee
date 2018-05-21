@@ -13,8 +13,8 @@ out vec2 Position0;
 out vec3 Normal0;
 out vec3 WorldPos0;
 
-const float amplitude = .007;
-const float range = 40.;
+const float amplitude = 3e-5;
+const float range = 2.5;
 
 void main()
 {
