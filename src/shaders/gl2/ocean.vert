@@ -10,10 +10,10 @@ uniform mediump vec3 gCameraWorldPos;
 in vec2 Position;
 
 out vec2 Position0;
-out vec3 WorldPos0;
 out vec3 Normal0;
+out vec3 WorldPos0;
 
-const float amplitude = 1.;
+const float amplitude = .007;
 const float range = 40.;
 
 void main()

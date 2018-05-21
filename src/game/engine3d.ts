@@ -26,11 +26,11 @@ class Engine3d {
 	
 	private mainImage = new Texture2D({ component: gl.RGBA });
 	private normalDepthImage = new Texture2D({ component: gl.RGBA, type: gl.FLOAT });
-	private typeImage = new Texture2D({ component: gl2.RED, type: gl.FLOAT });
+	private positionTypeImage = new Texture2D({ component: gl2.RGBA, type: gl.FLOAT });
 	// private ssrImage = new Texture2D({ component: gl.RGBA });
 	private uvImage = new Texture2D({ component: gl.RGB });
 	private noiseImage = new Texture2D({ component: gl.RGB });
-	private phillipsImage = new Texture2D({ component: gl2.RG, type: gl.FLOAT, filter: gl.NEAREST, wrap: gl.CLAMP_TO_EDGE }, 512, 512);
+	private phillipsImage = new Texture2D({ component: gl2.RG, type: gl.FLOAT, filter: gl.NEAREST, wrap: gl.CLAMP_TO_EDGE }, 256, 256);
 
 	private channel: Texture2D;
 
@@ -61,14 +61,6 @@ class Engine3d {
 		this.offscreen.bind();
 			this.offscreen.set(gl.DEPTH_ATTACHMENT, new RenderBuffer(gl.DEPTH_COMPONENT16));
 		this.offscreen.unbind();
-
-		// let wave = new GerstnerWave();
-		// let wave1 = new GerstnerWave();
-		// wave.set("amplitude", 0.03);
-		// wave1.set("amplitude", 0.04);
-		// wave1.set("direction", glm.vec2(1, 2));
-		// this.ocean.add(wave);
-		// this.ocean.add(wave1);
 
 		if (!gl2) {
 			throw "webgl 2.0 required.";
@@ -162,7 +154,7 @@ class Engine3d {
 		
 			this.offscreen.set(gl2.COLOR_ATTACHMENT0, this.mainImage);
 			this.offscreen.set(gl2.COLOR_ATTACHMENT1, this.normalDepthImage);
-			this.offscreen.set(gl2.COLOR_ATTACHMENT2, this.typeImage);
+			this.offscreen.set(gl2.COLOR_ATTACHMENT2, this.positionTypeImage);
 			gl2.drawBuffers([
 				gl2.COLOR_ATTACHMENT0, 
 				gl2.COLOR_ATTACHMENT1, 
@@ -188,12 +180,12 @@ class Engine3d {
 			this.skybox.bindShader();
 				this.skybox.render(this.main.viewport);
 			this.skybox.unbindShader();
+
+			this.ambient.texture.unuse();
 			
 			gl2.drawBuffers([
 				gl2.COLOR_ATTACHMENT0
 			]);
-
-			this.ambient.texture.unuse();
 
 		this.main.viewport.unuse();
 
@@ -213,11 +205,13 @@ class Engine3d {
 			// main renderer
 			this.mainImage.use("Image");
 			this.normalDepthImage.use("NormalDepth");
-			this.typeImage.use("Type");
+			this.positionTypeImage.use("PositionType");
+			this.ambient.texture.use("Ambient");
 
 				this.main.render();
 
-			this.typeImage.unuse();
+			this.ambient.texture.unuse();
+			this.positionTypeImage.unuse();
 			this.normalDepthImage.unuse();
 			this.mainImage.unuse();
 		

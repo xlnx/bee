@@ -4,10 +4,12 @@ precision mediump float;
 
 uniform sampler2D gImage;
 uniform sampler2D gNormalDepth;
-uniform sampler2D gType;
-uniform mat4 gP;
+uniform sampler2D gPositionType;
+uniform samplerCube gAmbient;
 
 uniform vec3 gCameraWorldPos;
+uniform mat4 gV;
+uniform mat4 gP;
 
 #define RAYMARCH_MAX_ITER 16
 #define RAYMARCH_ITER_STEP 3e-2
@@ -30,17 +32,26 @@ struct HitInfo
 {
 	vec2 uv;
 	bool hit;
-	float d;
 };
+
+const float FresnelBiasAbove = .02;
+const float FresnelPowerAbove = -7.;
+const float FresnelScaleAbove = .98;
+
+const float FresnelBiasBelow = .03;
+const float FresnelPowerBelow = -48.;
+const float FresnelScaleBelow = 2e10;
+
+const vec4 waterSurface = vec4(.1, .15, .2, 1.);
 
 vec3 getPointNormal(vec2 uv)
 {
-	return texture(gNormalDepth, (uv + 1.) * .5).rgb;
+	return normalize(gV * vec4(texture(gNormalDepth, uv * .5 + .5).rgb, 0.)).xyz;
 }
 
 float linearlizeDepth(vec2 uv)
 {
-	return - gP[3].z / (1. - texture(gNormalDepth, (uv + 1.) * .5).a);
+	return - gP[3].z / (1. - texture(gNormalDepth, uv *.5 + .5).a);
 }
 
 vec3 refinePoint(vec2 uv)
@@ -74,8 +85,7 @@ HitInfo Raymarch(Ray ray)
 	float d = abs(p.z - linearlizeDepth(p.xy));
 	HitInfo info;
 	info.uv = p.xy;
-	info.d = length(refinePoint(ray.uv) - refinePoint(p.xy));
-	info.hit = d < RAYMARCH_EPS;// && info.d > RAYMARCH_MIND;
+	info.hit = d < RAYMARCH_EPS;
 	return info;
 }
 
@@ -102,14 +112,10 @@ vec3 SSR(vec2 uv, out bool hit)
 
 		if (hinfo.hit)
 		{
-			// if (pow(clamp(dot(getPointNormal(hinfo.uv), N), 0., 1.), 5.) < .05)
-			// {
-			if (texture(gType, hinfo.uv * .5 + .5).r == 1.) // is vessel
+			if (texture(gPositionType, hinfo.uv * .5 + .5).w == 1.) // is vessel
 			{
 				hit = true;
-				float invd = 1. / hinfo.d;
-				color += texture(gImage, hinfo.uv *.5 + .5).xyz * w[i] * 
-					clamp(invd * invd, 0., 1.);
+				color += texture(gImage, hinfo.uv *.5 + .5).xyz;
 			}
 		}
 	}
@@ -133,7 +139,7 @@ vec2 RayMarchShipWave(vec2 uv, out bool hit)
 		for (int j = 0; j != RAYMARCH_SHIPWAVE_MAX_ITER; ++j)
 		{
 			p += vec2(dx[i], dy[i]) * scale;
-			if (texture(gType, p * .5 + .5).r == 1.)
+			if (texture(gPositionType, p * .5 + .5).w == 1.)
 			{
 				hit = true;
 				return p;
@@ -145,27 +151,60 @@ vec2 RayMarchShipWave(vec2 uv, out bool hit)
 void main()
 {
 	vec2 uv = Position0;
-	vec3 bg = texture(gImage, uv * .5 + .5).xyz;
-	vec4 color = vec4(bg, 1);
-	bool hit;
+	vec2 tex = uv * .5 + .5;
+	vec4 color = texture(gImage, tex);
+	vec4 nd = texture(gNormalDepth, tex);
+	vec4 pt = texture(gPositionType, tex);
+	
+	vec3 n = normalize(nd.xyz);
+	vec3 p = pt.xyz;
+	float type = pt.w;
 
-	float type = texture(gType, (uv + 1.) * .5).r;
+	if (type == 0.)
+	{   // sea
+		bool hit;
+		vec3 ve = normalize(gCameraWorldPos - p);
+		vec3 r, t;
+		float R;
 
-	if (type == 0.) // is sea
-	{
-		vec3 ssr = SSR(Position0, hit);
+		if (gCameraWorldPos.z >= 0.)
+		{
+			r = reflect(-ve, n); r.z = abs(r.z);
+			t = refract(-ve, n, 1.0 / 1.33);
+
+			R = clamp(FresnelBiasAbove + FresnelScaleAbove * 
+				pow(1. + dot(r, n), FresnelPowerAbove), 0., 1.);
+		}
+		else
+		{
+			n = -n;
+
+			r = reflect(-ve, n); r.z = -abs(r.z);
+			t = refract(-ve, n, 1.33 / 1.);
+			
+			R = clamp(FresnelBiasBelow + FresnelScaleBelow * 
+				pow(1. + dot(r, n), FresnelPowerBelow), 0., 1.);
+		}
+		
+		vec3 ssr = SSR(uv, hit);
 		if (hit)
 		{
-			color = mix(color, color + vec4(ssr, 1.), 0.8);
+			color = R * mix(waterSurface, waterSurface + vec4(ssr, 1.), 0.8) + (1.0 - R) * texture(gAmbient, t);
 		}
-
-		// vec2 e = RayMarchShipWave(uv, hit);
-		// if (hit)
-		// {
-		// 	color += vec4(1.);
-		// }
+		else
+		{
+			color = R * texture(gAmbient, r) * 1.2 + (1.0 - R) * texture(gAmbient, t);
+		}
 	}
+	else if (type == 1.)
+	{   // vessel
+		vec3 ve = gCameraWorldPos - p;
+		vec3 r = reflect(-ve, n);
+		
+		const float c1 = 0.1;
+		vec4 amb = c1 * texture(gAmbient, r);
 
+		color = amb + mix(color, amb, .2);
+	}
 	FragColor = color;
-	// FragColor = vec4(ssr, 1);
 }

@@ -10,11 +10,16 @@ class GameRenderer extends PostProcess {
 
 	beforeRender() {
 		this.gP.set(this.viewport.getPers());
+		this.gV.set(this.viewport.getView());
 		this.gIP.set(glm.inverse(this.viewport.getPers()));
+		this.gCameraWorldPos.set(this.viewport.getCameraPosition());
 	}
 
 	private gP = Shader.uniform("mat4", "gP");
+	private gV = Shader.uniform("mat4", "gV");
 	private gIP = Shader.uniform("mat4", "gIP");
+	private gCameraWorldPos = Shader.uniform("vec3", "gCameraWorldPos");
+
 	public viewport: CameraBase = null;
 }
 

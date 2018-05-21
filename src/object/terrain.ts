@@ -10,7 +10,7 @@ abstract class Terrain extends Obj {
 
 	private static cascadeCount = 10;
 	private static cascadeMeshCount = 24;
-	private static minimumMeshSize = 0.01;
+	private static minimumMeshSize = 0.1;
 
 	public readonly isTerrain = true;
 

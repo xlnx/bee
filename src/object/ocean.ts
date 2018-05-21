@@ -15,7 +15,7 @@ class Ocean extends Terrain {
 
 	render(viewport: Viewport) {
 		this.setBasicUniforms(viewport);
-		this.gN.set(512);
+		this.gN.set(256);
 		// this.waves.invoke();
 		this.material.use();
 		this.mesh.bind();

@@ -2,37 +2,23 @@
 
 precision mediump float;
 
-// camera
-uniform vec3 gCameraWorldPos;
-uniform mat4 gV;
-
 // materials
 uniform sampler2D gMatDiffuse;
-uniform samplerCube gAmbient;
 uniform float gSpecularIntensity;
 uniform float gSpecularPower;
 
 
-
-smooth in vec2 TexCoord0;
-smooth in vec3 WorldPos0;
-smooth in vec3 Normal0;
+in vec2 TexCoord0;
+in vec3 Normal0;
+in vec3 WorldPos0;
 
 layout (location = 0) out vec4 FragColor;
 layout (location = 1) out vec4 NormalDepth;
-layout (location = 2) out float Type;
+layout (location = 2) out vec4 PositionType;
 
 void main()
 {
-	vec3 Normal = normalize(Normal0);
-	vec3 VertexToEye = gCameraWorldPos - WorldPos0;
-	vec3 R = reflect(-VertexToEye, Normal);
-
-	const float c1 = 0.1;
-	vec4 Ambient = c1 * texture(gAmbient, R);
-
-	FragColor = Ambient + mix(texture(gMatDiffuse, TexCoord0.xy), 
-		texture(gAmbient, R), .2);
-	NormalDepth = vec4(normalize(gV * vec4(Normal0, 0)).xyz, gl_FragCoord.z);
-	Type = 1.; // vessel
+	FragColor = texture(gMatDiffuse, TexCoord0.xy);
+	NormalDepth = vec4(Normal0, gl_FragCoord.z);
+	PositionType = vec4(WorldPos0, 1.); // vessel
 }
