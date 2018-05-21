@@ -4,13 +4,9 @@ Koishi chan likes bee. \>w<
 
 # Img
 
-## NDD Clemson 1
+## NDD Clemson
 
 ![](docs/refined.png)
-
-## NDD Clemson 2
-
-![](docs/refined2.png)
 
 ## new filter function && ambient
 
@@ -31,6 +27,8 @@ Koishi chan likes bee. \>w<
 ## FFT Wave
 
 ![](docs/fftwave.png)
+
+![](docs/fftwave2.png)
 
 # TODOs
 
