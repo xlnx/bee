@@ -22,18 +22,6 @@ in vec3 Incidence0;
 
 out vec4 FragColor;
 
-struct Ray
-{
-	vec2 uv;
-	vec3 dir;
-};
-
-struct HitInfo
-{
-	vec2 uv;
-	bool hit;
-};
-
 const float FresnelBiasAbove = .02;
 const float FresnelPowerAbove = -7.;
 const float FresnelScaleAbove = .98;
@@ -44,115 +32,35 @@ const float FresnelScaleBelow = 2e10;
 
 const vec4 waterSurface = vec4(.1, .15, .2, 1.);
 
-vec3 getPointNormal(vec2 uv)
+vec3 RaymarchVessel(vec2 uv, vec3 dir, out bool hit)
 {
-	return normalize(gV * vec4(texture(gNormalDepth, uv * .5 + .5).rgb, 0.)).xyz;
-}
-
-float linearlizeDepth(vec2 uv)
-{
-	return - gP[3].z / (1. - texture(gNormalDepth, uv *.5 + .5).a);
-}
-
-vec3 refinePoint(vec2 uv)
-{
-	float z = linearlizeDepth(uv);
-	return vec3(uv.x / gP[0].x, uv.y / gP[1].y, -1.) * z;
-}
-
-HitInfo Raymarch(Ray ray)
-{
-	vec4 p2 = gP * vec4(refinePoint(ray.uv) + ray.dir, 1.);
-	p2 /= p2.w;
-	vec2 cdir = p2.xy - ray.uv;
+	vec2 tex = uv * .5 + .5;
+	vec4 pw = gV * vec4(texture(gPositionType, tex).xyz, 1.);
+	vec3 p = vec3(tex, pw.z);
+	vec4 p2 = gP * (pw + vec4(dir, 1.)); p2 /= p2.w;
+	vec2 cdir = p2.xy - uv;
 	vec2 sdir = normalize(cdir);
-	vec3 v = vec3(sdir, - ray.dir.z * sdir.x / cdir.x) * RAYMARCH_ITER_STEP;
-	vec3 p = vec3(ray.uv, linearlizeDepth(ray.uv));
+	vec3 v = vec3(sdir * .5, dir.z * sdir.x / cdir.x) * RAYMARCH_ITER_STEP;
 
 	for (int i = 0; i != RAYMARCH_MAX_ITER; ++i)
 	{
 		p += v;
-		if (p.z > linearlizeDepth(p.xy))
+		if (p.z < texture(gImage, p.xy).a)
 		{
 			p -= v; v *= .5;
 		}
-		if (p.x > 1. || p.x < -1. || p.y > 1. || p.y < -1.)
-		{
-			p.z = 1e7; break;
-		}
 	}
 
-	float d = abs(p.z - linearlizeDepth(p.xy));
-	HitInfo info;
-	info.uv = p.xy;
-	info.hit = d < RAYMARCH_EPS;
-	return info;
-}
-
-vec3 SSR(vec2 uv, out bool hit)
-{
-	vec3 N = getPointNormal(uv);
-	vec3 I = Incidence0;
-	vec3 R = reflect(I, N);
-	hit = false;
-
-	const float scale = .15;
-	const float dx[5] = float[5]( 0., 1., -1., 0., 0. );
-	const float dy[5] = float[5]( 0., 0., 0., 1., -1. );
-	const float w[5] = float[5]( .5, .2, .2, .2, .2 );
-	
-	Ray ray;
-	ray.uv = uv;
-	vec3 color = vec3(0.);
-
-	for (int i = 0; i != 1; ++i)
-	{
-		ray.dir = R + vec3(dx[i], dy[i], 0.) * scale;
-		HitInfo hinfo = Raymarch(ray);
-
-		if (hinfo.hit)
-		{
-			if (texture(gPositionType, hinfo.uv * .5 + .5).w == 1.) // is vessel
-			{
-				hit = true;
-				color += texture(gImage, hinfo.uv *.5 + .5).xyz;
-			}
-		}
-	}
-	
-	return color;// / 5.;
-}
-
-#define RAYMARCH_SHIPWAVE_MAX_ITER 8
-
-vec2 RayMarchShipWave(vec2 uv, out bool hit)
-{
-	hit = false;
-
-	const float scale = .015;
-	const float dx[4] = float[4]( 1., -1., 0., 0. );
-	const float dy[4] = float[4]( 0., 0., 1., -1. );
-
-	for (int i = 0; i != 4; ++i)
-	{
-		vec2 p = uv;
-		for (int j = 0; j != RAYMARCH_SHIPWAVE_MAX_ITER; ++j)
-		{
-			p += vec2(dx[i], dy[i]) * scale;
-			if (texture(gPositionType, p * .5 + .5).w == 1.)
-			{
-				hit = true;
-				return p;
-			}
-		}
-	}
+	vec4 color = texture(gImage, p.xy);
+	hit = abs(p.z - color.a) < RAYMARCH_EPS;
+	return color.xyz;
 }
 
 void main()
 {
 	vec2 uv = Position0;
 	vec2 tex = uv * .5 + .5;
-	vec4 color = texture(gImage, tex);
+	vec4 color = vec4(texture(gImage, tex).xyz, 1.);
 	vec4 nd = texture(gNormalDepth, tex);
 	vec4 pt = texture(gPositionType, tex);
 	
@@ -186,15 +94,24 @@ void main()
 				pow(1. + dot(r, n), FresnelPowerBelow), 0., 1.);
 		}
 		
-		vec3 ssr = SSR(uv, hit);
+		vec4 rcolor = texture(gAmbient, r) * 1.2;
+		vec4 tcolor = texture(gAmbient, t);
+
+		vec3 r0 = normalize(gV * vec4(r, 0.)).xyz;
+		vec3 rvessel = RaymarchVessel(uv, r0, hit);
 		if (hit)
 		{
-			color = R * mix(waterSurface, waterSurface + vec4(ssr, 1.), 0.8) + (1.0 - R) * texture(gAmbient, t);
+			rcolor = mix(waterSurface, waterSurface + vec4(rvessel, 1.) * 1.2, 0.8);
 		}
-		else
+
+		vec3 t0 = normalize(gV * vec4(t, 0.)).xyz;
+		vec3 tvessel = RaymarchVessel(uv, t0, hit);
+		if (hit)
 		{
-			color = R * texture(gAmbient, r) * 1.2 + (1.0 - R) * texture(gAmbient, t);
+			tcolor = mix(waterSurface, waterSurface + vec4(tvessel, 1.), 0.8);
 		}
+
+		color = R * rcolor + (1.0 - R) * tcolor;
 	}
 	else if (type == 1.)
 	{   // vessel

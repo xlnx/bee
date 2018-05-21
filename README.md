@@ -62,14 +62,14 @@ Koishi chan likes bee. \>w<
 - [X] Multiple Render Targets - MRT
 
 - [X] SSR
-> - [ ] Reduce Noise
+> - [X] Reduce Noise
 > - [ ] Edge Blurring
 - [X] Ocean Terrain LOD
 - [X] Gerstner Waves
 - [X] GPU FFT
 > - [X] FFT Waves
-> - [ ] Optimize
-> - [ ] Normals
+> - [X] Optimize
+> - [X] Normals
 - [ ] AABB
 - [ ] Dynamics
 - [ ] Beautiful Splash Screens \>w<

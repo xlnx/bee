@@ -25,7 +25,7 @@ class Engine3d {
 	private worldCom = new Communicators();
 	private renderCom = new Communicators();
 	
-	private mainImage = new Texture2D({ component: gl.RGBA });
+	private mainImage = new Texture2D({ component: gl.RGBA, type: gl.FLOAT });
 	private normalDepthImage = new Texture2D({ component: gl.RGBA, type: gl.FLOAT });
 	private positionTypeImage = new Texture2D({ component: gl2.RGBA, type: gl.FLOAT });
 	// private ssrImage = new Texture2D({ component: gl.RGBA });
@@ -155,6 +155,8 @@ class Engine3d {
 		this.worldCom.use();
 
 		this.main.viewport.use();
+
+			gl.clearColor(.0, .0, .0, -1e8);
 		
 			this.offscreen.set(gl2.COLOR_ATTACHMENT0, this.mainImage);
 			this.offscreen.set(gl2.COLOR_ATTACHMENT1, this.normalDepthImage);
@@ -167,7 +169,17 @@ class Engine3d {
 
 			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-			this.ambient.texture.use("Ambient");
+			Vessel.bindShader();
+				vessels.visit((e: ulist_elem<Vessel>) => {
+					e.get().render(this.main.viewport);
+				});
+			Vessel.unbindShader();
+
+			gl2.drawBuffers([
+				gl2.NONE,
+				gl2.COLOR_ATTACHMENT1, 
+				gl2.COLOR_ATTACHMENT2
+			]);
 
 			this.fftWave.texture.use("Displacement");
 			this.ocean.bindShader();
@@ -175,21 +187,23 @@ class Engine3d {
 			this.ocean.unbindShader();
 			this.fftWave.texture.unuse();
 
-			Vessel.bindShader();
-				vessels.visit((e: ulist_elem<Vessel>) => {
-					e.get().render(this.main.viewport);
-				});
-			Vessel.unbindShader();
-			
+			gl2.drawBuffers([
+				gl2.COLOR_ATTACHMENT0, 
+				gl2.NONE,
+				gl2.COLOR_ATTACHMENT2
+			]);
+
+			this.ambient.texture.use("Ambient");
 			this.skybox.bindShader();
 				this.skybox.render(this.main.viewport);
 			this.skybox.unbindShader();
-
 			this.ambient.texture.unuse();
 			
 			gl2.drawBuffers([
 				gl2.COLOR_ATTACHMENT0
 			]);
+
+			gl.clearColor(.0, .0, .0, .0);
 
 		this.main.viewport.unuse();
 

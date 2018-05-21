@@ -2,6 +2,9 @@
 
 precision mediump float;
 
+// camera
+uniform mat4 gV;
+
 // materials
 uniform sampler2D gMatDiffuse;
 uniform float gSpecularIntensity;
@@ -18,7 +21,8 @@ layout (location = 2) out vec4 PositionType;
 
 void main()
 {
-	FragColor = texture(gMatDiffuse, TexCoord0.xy);
-	NormalDepth = vec4(Normal0, gl_FragCoord.z);
+	FragColor = vec4(texture(gMatDiffuse, TexCoord0.xy).xyz, (gV * vec4(WorldPos0, 1.)).z);
+	NormalDepth = vec4(Normal0, 0.);
+		//- gP[3].z / (1. - gl_FragCoord.z));
 	PositionType = vec4(WorldPos0, 1.); // vessel
 }

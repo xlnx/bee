@@ -63,7 +63,9 @@ class Offscreen {
 	set(channel: number, texture: Texture2D)
 	set(channel: number, renderbuffer: RenderBuffer);
 	set(channel: number, second: any, face?: number) {
-		if (second.type == "renderbuffer") {
+		if (second == null) {
+			gl.framebufferTexture2D(gl.FRAMEBUFFER, channel, gl.TEXTURE_2D, null, 0);
+		} else if (second.type == "renderbuffer") {
 			let renderbuffer: RenderBuffer = second;
 			gl.framebufferRenderbuffer(gl.FRAMEBUFFER, channel, gl.RENDERBUFFER, renderbuffer.rbo.handle);
 		} else {
