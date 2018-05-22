@@ -2,7 +2,7 @@
 
 uniform sampler2D gDisplacement;
 uniform mat4 gWVP;
-uniform mat4 gWorld;
+uniform mediump mat4 gWorld;
 uniform float gN;
 uniform mediump vec3 gCameraWorldPos;
 
@@ -29,5 +29,5 @@ void main()
 	gl_Position = gWVP * vec4(p, 1);
 	Position0 = uv / range;
 	WorldPos0 = (gWorld * vec4(p, 1)).xyz;
-	Normal0 = normalize(gWorld * vec4(n0, 0)).xyz;
+	Normal0 = (gWorld * vec4(n0, 0)).xyz;
 }

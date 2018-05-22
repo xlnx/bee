@@ -90,31 +90,14 @@ void main()
 			R = clamp(FresnelBiasBelow + FresnelScaleBelow * 
 				pow(1. + dot(r, n), FresnelPowerBelow), 0., 1.);
 		}
-		
-		vec4 rcolor;
-		vec4 tcolor;
 
-		vec3 r0 = normalize(gV * vec4(r, 0.)).xyz;
-		vec3 rvessel = RaymarchVessel(uv, r0, hit);
-		if (hit)
-		{
-			rcolor = mix(waterSurface, waterSurface + vec4(rvessel, 1.) * 1.2, 0.8);
-		}
-		else
-		{
-			rcolor = texture(gAmbient, r) * 1.2;
-		}
+		vec3 vessel = RaymarchVessel(uv, (gV * vec4(r, 0.)).xyz, hit);
+		vec4 rcolor = hit ? mix(waterSurface, waterSurface + vec4(vessel, 1.) * 1.2, 0.8) :
+			texture(gAmbient, r) * 1.2;
 
-		vec3 t0 = normalize(gV * vec4(t, 0.)).xyz;
-		vec3 tvessel = RaymarchVessel(uv, t0, hit);
-		if (hit)
-		{
-			tcolor = mix(waterSurface, waterSurface + vec4(tvessel, 1.), 0.8);
-		}
-		else
-		{
-			tcolor = texture(gAmbient, t);
-		}
+		vessel = RaymarchVessel(uv, (gV * vec4(t, 0.)).xyz, hit);
+		vec4 tcolor = hit ? mix(waterSurface, waterSurface + vec4(vessel, 1.), 0.8) :
+			texture(gAmbient, t);
 
 		color = R * rcolor + (1.0 - R) * tcolor + texture(gExtra, uv * .5 + .5).w;
 	}

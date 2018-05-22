@@ -82,6 +82,7 @@ export default class Material {
 			gl.activeTexture(gl.TEXTURE0 + this.textures[name].channel);
 			gl.bindTexture(gl.TEXTURE_2D, this.textures[name].texture.handle);
 			Shader.uniform("int", "g" + name).set(this.textures[name].channel);
+			// console.log("g" + name, this.textures[name].channel);
 			// this.textures[name].use(name);
 		}
 		for (let attr of this.attributes) {

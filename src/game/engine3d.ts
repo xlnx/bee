@@ -26,9 +26,9 @@ class Engine3d {
 	private renderCom = new Communicators();
 	
 	private mainImage = new Texture2D({ component: gl.RGBA, type: gl.FLOAT });
+	private bumpImage = new Texture2D("./assets/bump.jpg");
 	private normalTypeImage = new Texture2D({ component: gl.RGBA, type: gl.FLOAT });
 	private extraImage = new Texture2D({ component: gl2.RGBA, type: gl.FLOAT });
-	// private ssrImage = new Texture2D({ component: gl.RGBA });
 	private uvImage = new Texture2D({ component: gl.RGB });
 	private noiseImage = new Texture2D({ component: gl.RGB });
 	private phillipsImage = new Texture2D({ component: gl2.RG, type: gl.FLOAT, filter: gl.NEAREST, wrap: gl.CLAMP_TO_EDGE }, 256, 256);
@@ -71,73 +71,7 @@ class Engine3d {
 		}
 	}
 
-	renderDebug(vessels: ulist<Vessel>, target: Texture2D = null) {
-		// reder ambient cube - offscreen
-		this.ambient.render();
-
-		// render main image into mainImage
-		this.offscreen.bind();
-
-		this.worldCom.use();
-
-		this.main.viewport.use();
-		
-			this.offscreen.set(gl.COLOR_ATTACHMENT0, this.mainImage);
-			gl.clear(gl.DEPTH_BUFFER_BIT);
-			this.ambient.texture.use("Ambient");
-				this.ocean.bindShader();
-					this.ocean.render(this.main.viewport);
-				this.ocean.unbindShader();
-				Vessel.bindShader();
-					vessels.visit((e: ulist_elem<Vessel>) => {
-						e.get().render(this.main.viewport);
-					});
-				Vessel.unbindShader();
-				this.skybox.bindShader();
-					this.skybox.render(this.main.viewport);
-				this.skybox.unbindShader();
-			this.ambient.texture.unuse();
-			
-			this.offscreen.set(gl.COLOR_ATTACHMENT0, this.normalTypeImage);
-			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-			Shader.specify("NormalDepth");
-				this.ocean.bindShader();
-					this.ocean.render(this.main.viewport);
-				this.ocean.unbindShader();
-				Vessel.bindShader();
-					vessels.visit((e: ulist_elem<Vessel>) => {
-						e.get().render(this.main.viewport);
-					});
-				Vessel.unbindShader();
-			Shader.unspecify();
-
-		this.main.viewport.unuse();
-
-		this.worldCom.unuse();
-
-		// end world pass
-		gl.disable(gl.DEPTH_TEST);
-		this.renderCom.use();
-		
-		this.offscreen.set(gl.COLOR_ATTACHMENT0, this.noiseImage);
-		this.noise.render();
-		
-		// draw uv image
-		this.offscreen.set(gl.COLOR_ATTACHMENT0, this.uvImage);
-		this.uv.render();
-		
-		this.offscreen.unbind();
-		
-		// render defer image
-		this.channel.use("Image");
-		this.defer.render();
-		this.channel.unuse();
-		
-		gl.enable(gl.DEPTH_TEST);
-		this.renderCom.unuse();
-	}
-
-	renderRelease(vessels: ulist<Vessel>, target: Texture2D = null) {
+	render(vessels: ulist<Vessel>, target: Texture2D = null) {
 		// set gl state
 		gl.clearColor(0, 0, 0, 0);
 		gl.clearDepth(1);
@@ -187,9 +121,11 @@ class Engine3d {
 			]);
 
 			this.fftWave.texture.use("Displacement");
+			this.bumpImage.use("Bump");
 			this.ocean.bindShader();
 				this.ocean.render(this.main.viewport);
 			this.ocean.unbindShader();
+			this.bumpImage.unuse();
 			this.fftWave.texture.unuse();
 
 			gl2.drawBuffers([
@@ -242,17 +178,6 @@ class Engine3d {
 
 		if (target != null) {
 			this.offscreen.unbind();
-		}
-	}
-
-	render(vessels: ulist<Vessel>, target: Texture2D = null) {
-		const debug = 
-			false;
-			// true;
-		if (debug) {
-			this.renderDebug(vessels, target);
-		} else {
-			this.renderRelease(vessels, target);
 		}
 	}
 
