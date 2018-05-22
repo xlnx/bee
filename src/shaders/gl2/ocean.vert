@@ -14,7 +14,8 @@ out vec3 Normal0;
 out vec3 WorldPos0;
 
 const float amplitude = 3e-5;
-const float range = 2.5;
+const float range = 1.5;
+// 2.5;
 
 void main()
 {

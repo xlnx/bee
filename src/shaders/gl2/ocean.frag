@@ -60,7 +60,7 @@ void main()
 	float jacobian = (1. + dDdx.x) * (1. + dDdy.y) - dDdx.y * dDdy.x;
 	vec2 seed = vec2(t, t * .5);
 	vec2 noise = .3 * gaussian(uv, seed);//vec2(.2); //vec2(1., 1.);
-	float turb = max(0., 1. - jacobian - .1);
+	float turb = max(0., 1. - jacobian - .13);
 		// length(noise));
 
 	Extra = vec4(WorldPos0, smoothstep(0., 1., turb)); // sea
