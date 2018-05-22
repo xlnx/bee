@@ -4,7 +4,7 @@ precision mediump float;
 
 uniform sampler2D gImage;
 uniform sampler2D gNormalType;
-uniform sampler2D gPositionType;
+uniform sampler2D gExtra;
 uniform samplerCube gAmbient;
 
 uniform vec3 gCameraWorldPos;
@@ -34,7 +34,7 @@ const vec4 waterSurface = vec4(.1, .15, .2, 1.);
 vec3 RaymarchVessel(vec2 uv, vec3 dir, out bool hit)
 {
 	vec2 tex = uv * .5 + .5;
-	vec4 pw = gV * vec4(texture(gPositionType, tex).xyz, 1.);
+	vec4 pw = gV * vec4(texture(gExtra, tex).xyz, 1.);
 	vec3 p = vec3(tex, pw.z);
 	vec4 p2 = gP * (pw + vec4(dir, 1.)); p2 /= p2.w;
 	vec2 cdir = p2.xy - uv;
@@ -91,14 +91,18 @@ void main()
 				pow(1. + dot(r, n), FresnelPowerBelow), 0., 1.);
 		}
 		
-		vec4 rcolor = texture(gAmbient, r) * 1.2;
-		vec4 tcolor = texture(gAmbient, t);
+		vec4 rcolor;
+		vec4 tcolor;
 
 		vec3 r0 = normalize(gV * vec4(r, 0.)).xyz;
 		vec3 rvessel = RaymarchVessel(uv, r0, hit);
 		if (hit)
 		{
 			rcolor = mix(waterSurface, waterSurface + vec4(rvessel, 1.) * 1.2, 0.8);
+		}
+		else
+		{
+			rcolor = texture(gAmbient, r) * 1.2;
 		}
 
 		vec3 t0 = normalize(gV * vec4(t, 0.)).xyz;
@@ -107,8 +111,12 @@ void main()
 		{
 			tcolor = mix(waterSurface, waterSurface + vec4(tvessel, 1.), 0.8);
 		}
+		else
+		{
+			tcolor = texture(gAmbient, t);
+		}
 
-		color = R * rcolor + (1.0 - R) * tcolor;
+		color = R * rcolor + (1.0 - R) * tcolor + texture(gExtra, uv * .5 + .5).w;
 	}
 	else if (type == 1.)   // vessel
 	{

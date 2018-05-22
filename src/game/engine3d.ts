@@ -27,7 +27,7 @@ class Engine3d {
 	
 	private mainImage = new Texture2D({ component: gl.RGBA, type: gl.FLOAT });
 	private normalTypeImage = new Texture2D({ component: gl.RGBA, type: gl.FLOAT });
-	private positionTypeImage = new Texture2D({ component: gl2.RGBA, type: gl.FLOAT });
+	private extraImage = new Texture2D({ component: gl2.RGBA, type: gl.FLOAT });
 	// private ssrImage = new Texture2D({ component: gl.RGBA });
 	private uvImage = new Texture2D({ component: gl.RGB });
 	private noiseImage = new Texture2D({ component: gl.RGB });
@@ -160,7 +160,7 @@ class Engine3d {
 		
 			this.offscreen.set(gl2.COLOR_ATTACHMENT0, this.mainImage);
 			this.offscreen.set(gl2.COLOR_ATTACHMENT1, this.normalTypeImage);
-			this.offscreen.set(gl2.COLOR_ATTACHMENT2, this.positionTypeImage);
+			this.offscreen.set(gl2.COLOR_ATTACHMENT2, this.extraImage);
 			gl2.drawBuffers([
 				gl2.COLOR_ATTACHMENT0, 
 				gl2.COLOR_ATTACHMENT1, 
@@ -222,13 +222,13 @@ class Engine3d {
 			// main renderer
 			this.mainImage.use("Image");
 			this.normalTypeImage.use("NormalType");
-			this.positionTypeImage.use("PositionType");
+			this.extraImage.use("Extra");
 			this.ambient.texture.use("Ambient");
 
 				this.main.render();
 
 			this.ambient.texture.unuse();
-			this.positionTypeImage.unuse();
+			this.extraImage.unuse();
 			this.normalTypeImage.unuse();
 			this.mainImage.unuse();
 

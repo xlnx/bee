@@ -6,7 +6,7 @@ const attrLocation = {
 	pos: 0, color: 1, norm: 2, tg: 3, bitg: 4, tex: 5, ibone: 6, wbone: 7
 };
 
-type PositionType = "pos2" | "pos3" | "pos4"
+type Extra = "pos2" | "pos3" | "pos4"
 type ColorType = "color3" | "color4"
 type NormalType = "norm3" | "norm4"
 type TangentType = "tg3" | "tg4"
@@ -15,7 +15,7 @@ type TexcoordType = "tex2" | "tex3" | "tex4"
 type BoneIndexType = "ibone3" | "ibone4"
 type BoneWeightType = "wbone3" | "wbone4"
 
-type VertexAttrType = PositionType | ColorType | NormalType |
+type VertexAttrType = Extra | ColorType | NormalType |
 	TangentType | BitangentType | TexcoordType | BoneIndexType | BoneWeightType;
 
 class TypeMap {

@@ -15,7 +15,7 @@ layout (location = 0) out vec2 H;
 layout (location = 1) out vec2 Dx;
 layout (location = 2) out vec2 Dy;
 
-const float omega = 1.5;
+const float omega = 2.;
 
 vec2 complexMul(vec2 a, vec2 b)
 {

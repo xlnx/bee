@@ -26,6 +26,7 @@ void main()
 	vec3 p = vec3(uv, 0.) + d;
 	vec3 n0 = cross(dx + vec3(2. * range, 0, 0) / gN, dy + vec3(0, 2. * range, 0) / gN);
 	gl_Position = gWVP * vec4(p, 1);
+	Position0 = uv / range;
 	WorldPos0 = (gWorld * vec4(p, 1)).xyz;
 	Normal0 = normalize(gWorld * vec4(n0, 0)).xyz;
 }
