@@ -9,7 +9,6 @@ class FFTWave extends PostProcess {
 
 	constructor(private spectrum: Texture2D) {
 		super(Shader.create("fftsrc", false));
-		console.log(spectrum);
 		if (spectrum.width != spectrum.height) {
 			throw "FFT spectrum must be square.";
 		}

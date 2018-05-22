@@ -3,7 +3,7 @@
 precision mediump float;
 
 uniform sampler2D gImage;
-uniform sampler2D gNormalDepth;
+uniform sampler2D gNormalType;
 uniform sampler2D gPositionType;
 uniform samplerCube gAmbient;
 
@@ -11,10 +11,9 @@ uniform vec3 gCameraWorldPos;
 uniform mat4 gV;
 uniform mat4 gP;
 
-#define RAYMARCH_MAX_ITER 16
-#define RAYMARCH_ITER_STEP 3e-2
-#define RAYMARCH_EPS 1e-2
-#define RAYMARCH_MIND 1e-3
+#define RAYMARCH_MAX_ITER 12
+#define RAYMARCH_ITER_STEP 4e-2
+#define RAYMARCH_EPS 1.2e-2
 
 
 in vec2 Position0;
@@ -52,7 +51,8 @@ vec3 RaymarchVessel(vec2 uv, vec3 dir, out bool hit)
 	}
 
 	vec4 color = texture(gImage, p.xy);
-	hit = abs(p.z - color.a) < RAYMARCH_EPS;
+	vec2 p1 = abs(p.xy * 2. - 1.);
+	hit = abs(p.z - color.a) < RAYMARCH_EPS && max(p1.x, p1.y) < 1.;
 	return color.xyz;
 }
 
@@ -61,17 +61,14 @@ void main()
 	vec2 uv = Position0;
 	vec2 tex = uv * .5 + .5;
 	vec4 color = vec4(texture(gImage, tex).xyz, 1.);
-	vec4 nd = texture(gNormalDepth, tex);
-	vec4 pt = texture(gPositionType, tex);
-	
-	vec3 n = normalize(nd.xyz);
-	vec3 p = pt.xyz;
-	float type = pt.w;
+	vec4 nt = texture(gNormalType, tex);
+	vec3 n = normalize(nt.xyz);
+	float type = nt.w;
 
-	if (type == 0.)
+	if (type == 2.)  // sea
 	{   // sea
 		bool hit;
-		vec3 ve = normalize(gCameraWorldPos - p);
+		vec3 ve = normalize(Incidence0);
 		vec3 r, t;
 		float R;
 
@@ -113,9 +110,9 @@ void main()
 
 		color = R * rcolor + (1.0 - R) * tcolor;
 	}
-	else if (type == 1.)
-	{   // vessel
-		vec3 ve = gCameraWorldPos - p;
+	else if (type == 1.)   // vessel
+	{
+		vec3 ve = Incidence0;
 		vec3 r = reflect(-ve, n);
 		
 		const float c1 = 0.1;

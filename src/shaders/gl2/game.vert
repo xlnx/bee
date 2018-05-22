@@ -1,6 +1,6 @@
 #version 300 es
 
-uniform mat4 gIP;
+uniform mat4 gIVP;
 
 
 in vec2 Position;
@@ -12,5 +12,5 @@ void main()
 {
 	gl_Position = vec4(Position, 0, 1);
 	Position0 = Position;
-	Incidence0 = (gIP * vec4(Position, 0, 1)).xyz;
+	Incidence0 = - (gIVP * vec4(Position, 1, 1)).xyz;
 }

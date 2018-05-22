@@ -26,7 +26,7 @@ class Engine3d {
 	private renderCom = new Communicators();
 	
 	private mainImage = new Texture2D({ component: gl.RGBA, type: gl.FLOAT });
-	private normalDepthImage = new Texture2D({ component: gl.RGBA, type: gl.FLOAT });
+	private normalTypeImage = new Texture2D({ component: gl.RGBA, type: gl.FLOAT });
 	private positionTypeImage = new Texture2D({ component: gl2.RGBA, type: gl.FLOAT });
 	// private ssrImage = new Texture2D({ component: gl.RGBA });
 	private uvImage = new Texture2D({ component: gl.RGB });
@@ -98,7 +98,7 @@ class Engine3d {
 				this.skybox.unbindShader();
 			this.ambient.texture.unuse();
 			
-			this.offscreen.set(gl.COLOR_ATTACHMENT0, this.normalDepthImage);
+			this.offscreen.set(gl.COLOR_ATTACHMENT0, this.normalTypeImage);
 			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 			Shader.specify("NormalDepth");
 				this.ocean.bindShader();
@@ -159,7 +159,7 @@ class Engine3d {
 			gl.clearColor(.0, .0, .0, -1e8);
 		
 			this.offscreen.set(gl2.COLOR_ATTACHMENT0, this.mainImage);
-			this.offscreen.set(gl2.COLOR_ATTACHMENT1, this.normalDepthImage);
+			this.offscreen.set(gl2.COLOR_ATTACHMENT1, this.normalTypeImage);
 			this.offscreen.set(gl2.COLOR_ATTACHMENT2, this.positionTypeImage);
 			gl2.drawBuffers([
 				gl2.COLOR_ATTACHMENT0, 
@@ -168,6 +168,11 @@ class Engine3d {
 			]);
 
 			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+			gl2.drawBuffers([
+				gl2.COLOR_ATTACHMENT0, 
+				gl2.COLOR_ATTACHMENT1
+			]);
 
 			Vessel.bindShader();
 				vessels.visit((e: ulist_elem<Vessel>) => {
@@ -188,22 +193,16 @@ class Engine3d {
 			this.fftWave.texture.unuse();
 
 			gl2.drawBuffers([
-				gl2.COLOR_ATTACHMENT0, 
-				gl2.NONE,
-				gl2.COLOR_ATTACHMENT2
+				gl2.COLOR_ATTACHMENT0
 			]);
+
+			gl.clearColor(.0, .0, .0, .0);
 
 			this.ambient.texture.use("Ambient");
 			this.skybox.bindShader();
 				this.skybox.render(this.main.viewport);
 			this.skybox.unbindShader();
 			this.ambient.texture.unuse();
-			
-			gl2.drawBuffers([
-				gl2.COLOR_ATTACHMENT0
-			]);
-
-			gl.clearColor(.0, .0, .0, .0);
 
 		this.main.viewport.unuse();
 
@@ -222,7 +221,7 @@ class Engine3d {
 
 			// main renderer
 			this.mainImage.use("Image");
-			this.normalDepthImage.use("NormalDepth");
+			this.normalTypeImage.use("NormalType");
 			this.positionTypeImage.use("PositionType");
 			this.ambient.texture.use("Ambient");
 
@@ -230,7 +229,7 @@ class Engine3d {
 
 			this.ambient.texture.unuse();
 			this.positionTypeImage.unuse();
-			this.normalDepthImage.unuse();
+			this.normalTypeImage.unuse();
 			this.mainImage.unuse();
 
 			// this.fftWave.texture.use("Image");
