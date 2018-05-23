@@ -43,6 +43,8 @@ class FFTWave extends PostProcess {
 		}
 	}
 	render() {
+		gl.disable(gl.DEPTH_TEST);
+		gl.viewport(0, 0, this.N, this.N);
 		this.offscreen.bind();
 			this.channel = [ 
 				Texture2D.genChannel(), 
@@ -117,6 +119,8 @@ class FFTWave extends PostProcess {
 				Texture2D.restoreChannel(this.channel[i]);
 			}
 		this.offscreen.unbind();
+		gl.viewport(0, 0, Renderer.instance.canvas.width, Renderer.instance.canvas.height);
+		gl.enable(gl.DEPTH_TEST);
 	}
 
 	get texture(): Texture2D {

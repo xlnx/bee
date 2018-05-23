@@ -1,6 +1,7 @@
 import { glm } from "../util/glm"
 import { gl, gl2 } from "../renderer/renderer";
 import { VBO, EBO, TBO } from "./buffer";
+import { Shader } from "./shader";
 
 const attrLocation = {
 	pos: 0, color: 1, norm: 2, tg: 3, bitg: 4, tex: 5, ibone: 6, wbone: 7

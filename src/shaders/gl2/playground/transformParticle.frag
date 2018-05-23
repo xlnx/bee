@@ -2,12 +2,18 @@
 
 precision mediump float;
 
-in vec3 Position_next;
-in vec3 Color_next;
+uniform float gDt;
+uniform float gMaxLifetime;
+
+// in vec3 Position_next;
+in float Lifetime_next;
 
 out vec4 FragColor;
 
 void main()
 {
-	FragColor = vec4(Color_next, 1);
+	if (Lifetime_next > 0.)
+		FragColor = vec4(1.);
+		// vec4(Lifetime_next / gMaxLifetime);
+		// vec4(vec3(gl_PointCoord.xy, 0), 1);
 }
