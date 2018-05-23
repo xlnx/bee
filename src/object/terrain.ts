@@ -8,9 +8,9 @@ import { gl } from "../renderer/renderer";
 abstract class Terrain extends Obj {
 	protected mesh: VAO;
 
-	private static cascadeCount = 9;
-	private static cascadeMeshCount = 32;
-	private static minimumMeshSize = 0.04;
+	private static cascadeCount = 3;
+	private static cascadeMeshCount = 70;
+	private static minimumMeshSize = 0.02;
 
 	public readonly isTerrain = true;
 
@@ -23,14 +23,17 @@ abstract class Terrain extends Obj {
 		let line = Terrain.cascadeMeshCount * 2 + 1;
 		let e = Terrain.cascadeMeshCount;
 		let b = Terrain.cascadeMeshCount;
+		console.time();
+		let pos2 = []; pos2.length = Terrain.cascadeCount + 
+			(2 * Terrain.cascadeMeshCount + 1) * (2 * Terrain.cascadeMeshCount + 1) * 2;
+		let ipos = 0;
 		for (let k = 0; k != Terrain.cascadeCount; ++k) {
 			for (let i = -Terrain.cascadeMeshCount; 
 				i <= Terrain.cascadeMeshCount; ++i) {
 					for (let j = -Terrain.cascadeMeshCount; 
 						j <= Terrain.cascadeMeshCount; ++j) {
-					vertices.push({
-						pos2: [ j * meshSize, i * meshSize ]
-					});
+					pos2[ipos++] = j * meshSize;
+					pos2[ipos++] = i * meshSize;
 				}
 			}
 			console.log(Terrain.cascadeMeshCount * meshSize, vertices.vertices.length);
@@ -82,6 +85,8 @@ abstract class Terrain extends Obj {
 			e = Terrain.cascadeMeshCount / 2;
 			b = 3 * Terrain.cascadeMeshCount / 2;
 		}
+		vertices.set("pos2", pos2);
+		console.timeEnd();
 		this.mesh = new VAO(vertices, indices);
 	}
 	

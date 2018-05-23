@@ -21,6 +21,10 @@ in vec3 Incidence0;
 
 out vec4 FragColor;
 
+const float WhitecapBlend = .1;
+
+const float FresnelStep = .08;
+
 const float FresnelBiasAbove = .02;
 const float FresnelPowerAbove = -7.;
 const float FresnelScaleAbove = .98;
@@ -31,10 +35,9 @@ const float FresnelScaleBelow = 2e10;
 
 const vec4 waterSurface = vec4(.1, .15, .2, 1.);
 
-vec3 RaymarchVessel(vec2 uv, vec3 dir, out bool hit)
+bool RaymarchVessel(vec2 uv, vec4 pw, vec3 dir, out vec3 rgb)
 {
 	vec2 tex = uv * .5 + .5;
-	vec4 pw = gV * vec4(texture(gExtra, tex).xyz, 1.);
 	vec3 p = vec3(tex, pw.z);
 	vec4 p2 = gP * (pw + vec4(dir, 1.)); p2 /= p2.w;
 	vec2 cdir = p2.xy - uv;
@@ -51,9 +54,9 @@ vec3 RaymarchVessel(vec2 uv, vec3 dir, out bool hit)
 	}
 
 	vec4 color = texture(gImage, p.xy);
+	rgb = color.rgb;
 	vec2 p1 = abs(p.xy * 2. - 1.);
-	hit = abs(p.z - color.a) < RAYMARCH_EPS && max(p1.x, p1.y) < 1.;
-	return color.xyz;
+	return abs(p.z - color.a) < RAYMARCH_EPS && max(p1.x, p1.y) < 1.;
 }
 
 void main()
@@ -71,6 +74,9 @@ void main()
 		vec3 ve = normalize(Incidence0);
 		vec3 r, t;
 		float R;
+		float whitecap = 0.;
+		vec4 pw = gV * vec4(texture(gExtra, tex).xyz, 1.);
+		
 
 		if (gCameraWorldPos.z >= 0.)
 		{
@@ -79,6 +85,8 @@ void main()
 
 			R = clamp(FresnelBiasAbove + FresnelScaleAbove * 
 				pow(1. + dot(r, n), FresnelPowerAbove), 0., 1.);
+			whitecap = texture(gExtra, uv * .5 + .5).w *
+				exp(- length(pw) * WhitecapBlend);
 		}
 		else
 		{
@@ -91,15 +99,28 @@ void main()
 				pow(1. + dot(r, n), FresnelPowerBelow), 0., 1.);
 		}
 
-		vec3 vessel = RaymarchVessel(uv, (gV * vec4(r, 0.)).xyz, hit);
-		vec4 rcolor = hit ? mix(waterSurface, waterSurface + vec4(vessel, 1.) * 1.2, 0.8) :
-			texture(gAmbient, r) * 1.2;
+		vec3 vessel;
+		vec4 rcolor, tcolor;
 
-		vessel = RaymarchVessel(uv, (gV * vec4(t, 0.)).xyz, hit);
-		vec4 tcolor = hit ? mix(waterSurface, waterSurface + vec4(vessel, 1.), 0.8) :
-			texture(gAmbient, t);
+		if (R > FresnelStep && RaymarchVessel(uv, pw, (gV * vec4(r, 0.)).xyz, vessel))
+		{
+			rcolor = mix(waterSurface, waterSurface + vec4(vessel, 1.) * 1.2, 0.8);
+		}
+		else
+		{
+			rcolor = texture(gAmbient, r) * 1.2;
+		}
 
-		color = R * rcolor + (1.0 - R) * tcolor + texture(gExtra, uv * .5 + .5).w;
+		if (R < 1. - FresnelStep && RaymarchVessel(uv, pw, (gV * vec4(t, 0.)).xyz, vessel))
+		{
+			tcolor = mix(waterSurface, waterSurface + vec4(vessel, 1.), 0.8);
+		}
+		else
+		{
+			tcolor = texture(gAmbient, t);
+		}
+
+		color = R * rcolor + (1.0 - R) * tcolor + whitecap;
 	}
 	else if (type == 1.)   // vessel
 	{

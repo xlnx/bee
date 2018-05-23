@@ -20,6 +20,7 @@ import { GerstnerWave } from "../object/gerstnerWave";
 import { FFTWave } from "../techniques/FFTWave";
 import { Phillips } from "../techniques/phillips";
 import { DecodeImage } from "../techniques/decodeImage";
+import { Normal } from "../techniques/normal";
 
 class Engine3d {
 	private worldCom = new Communicators();
@@ -32,10 +33,12 @@ class Engine3d {
 	private uvImage = new Texture2D({ component: gl.RGB });
 	private noiseImage = new Texture2D({ component: gl.RGB });
 	private phillipsImage = new Texture2D({ component: gl2.RG, type: gl.FLOAT, filter: gl.NEAREST, wrap: gl.CLAMP_TO_EDGE }, 256, 256);
+	private normalJImage = new Texture2D({ component: gl2.RGBA, type: gl.FLOAT, filter: gl.LINEAR, wrap: gl.REPEAT }, 256, 256);
 
 	private channel: Texture2D;
 
 	private offscreen = new Offscreen();
+	private suboffscreen = new Offscreen();
 
 	public readonly ambient = new AmbientCube();
 	private main = new GameRenderer();
@@ -48,6 +51,7 @@ class Engine3d {
 
 	private phillips = new Phillips();
 	private fftWave = new FFTWave(this.phillipsImage);
+	private normal = new Normal();
 
 	private skybox = new Skybox();
 	public readonly ocean = new Ocean();
@@ -83,6 +87,19 @@ class Engine3d {
 
 		// render main image into mainImage
 		this.offscreen.bind();
+
+		gl.viewport(0, 0, 256, 256);
+
+		gl.disable(gl.DEPTH_TEST);
+
+			this.suboffscreen.bind();
+
+				this.suboffscreen.set(gl.COLOR_ATTACHMENT0, this.normalJImage);
+				this.fftWave.texture.use("Displacement");
+				this.normal.render();
+				this.fftWave.texture.unuse();
+
+			this.suboffscreen.unbind();
 
 		gl.enable(gl.DEPTH_TEST);
 
@@ -121,11 +138,13 @@ class Engine3d {
 			]);
 
 			this.fftWave.texture.use("Displacement");
+			this.normalJImage.use("NormalJ");
 			this.bumpImage.use("Bump");
 			this.ocean.bindShader();
 				this.ocean.render(this.main.viewport);
 			this.ocean.unbindShader();
 			this.bumpImage.unuse();
+			this.normalJImage.unuse();
 			this.fftWave.texture.unuse();
 
 			gl2.drawBuffers([
@@ -168,11 +187,11 @@ class Engine3d {
 			this.normalTypeImage.unuse();
 			this.mainImage.unuse();
 
-			// this.fftWave.texture.use("Image");
+			// this.normalJImage.use("Image");
 
-			// this.decode.render();
+			// this.defer.render();
 
-			// this.fftWave.texture.unuse();
+			// this.normalJImage.unuse();
 		
 		this.renderCom.unuse();
 
