@@ -8,7 +8,6 @@ uniform mat4 gWorld;
 uniform sampler2D gDisplacement;
 uniform sampler2D gNormalJ;
 uniform sampler2D gBump;
-uniform float gTime;
 
 // materials
 uniform samplerCube gAmbient;

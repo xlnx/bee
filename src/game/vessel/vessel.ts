@@ -5,6 +5,7 @@ import { glm } from "../../util/glm"
 import { CameraBase } from "../camera/cameraBase";
 import xhr from "../../util/xhr";
 import { Shader } from "../../gl/shader";
+import { Smoke } from "./smoke";
 
 const m2screen = .5 * .1;
 const knots2mpers = 0.514444;
@@ -59,24 +60,26 @@ class Vessel extends VesselBase {
 	private static modelPath = "./assets/";
 	private static shader: Shader;
 	private model: Model;
+
+	public particles: Smoke[] = [];
 	
 	constructor(name: string)
 	constructor(name: string, callback: (v: Vessel) => void);
 	constructor(name: string, callback?: (v: Vessel) => void) {
 		super();
 
+		let self = this;
 		xhr.getAsync(Vessel.modelPath + name + "/property.json", "text", (err: any, data: any) => {
-			console.log(data);
-			
+			data = JSON.parse(data);
+			for (let emitter of data.particleGenerator) {
+				self.particles.push(new Smoke(emitter, this));
+			}
 		});
 		// this.scale(.5);
-		if (!Vessel.shader) {
-			Vessel.shader = Shader.create("vessel", false);
-		}
+		Vessel.shader = Vessel.shader || Shader.create("vessel", false);
 		if (callback == undefined) {
 			this.model = Model.create(Vessel.modelPath + name + "/", name + ".json");
 		} else {
-			let self = this;
 			Model.create(Vessel.modelPath + name + "/", name + ".json", (v: Model) => {
 				self.model = v;
 				callback(self);

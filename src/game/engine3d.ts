@@ -20,6 +20,8 @@ import { FFTWave } from "../techniques/FFTWave";
 import { Phillips } from "../techniques/phillips";
 import { DecodeImage } from "../techniques/decodeImage";
 import { Normal } from "../techniques/normal"
+import { TransformFeedback } from "../gl/transformFeedback";
+import { Smoke } from "./vessel/smoke";
 
 class Engine3d {
 	private worldCom = new Communicators();
@@ -38,6 +40,7 @@ class Engine3d {
 
 	private offscreen = new Offscreen();
 	private suboffscreen = new Offscreen();
+	private transformFeedback = new TransformFeedback();
 
 	public readonly ambient = new AmbientCube();
 	private main = new GameRenderer();
@@ -128,6 +131,17 @@ class Engine3d {
 					e.get().render(this.main.viewport);
 				});
 			Vessel.unbindShader();
+
+			this.transformFeedback.bind();
+			Smoke.bindShader();
+				vessels.visit((e: ulist_elem<Vessel>) => {
+					let parent = e.get();
+					for (let s of parent.particles) {
+						s.render(this.main.viewport);
+					}
+				})
+			Smoke.unbindShader();
+			this.transformFeedback.unbind();
 
 			gl2.drawBuffers([
 				gl2.NONE,

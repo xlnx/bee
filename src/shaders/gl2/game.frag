@@ -143,7 +143,7 @@ void main()
 		}
 		else
 		{
-			color = mix(color, waterColor, - h * InWaterBlend);
+			color = mix(color, waterColor, clamp(- h * InWaterBlend, .01, 1.));
 		}
 	}
 	FragColor = color;
