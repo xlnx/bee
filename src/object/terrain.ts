@@ -85,8 +85,31 @@ abstract class Terrain extends Obj {
 			e = Terrain.cascadeMeshCount / 2;
 			b = 3 * Terrain.cascadeMeshCount / 2;
 		}
+
+		// let t = 1e4;
+		// pos2[ipos++] = -t; pos2[ipos++] = t;
+		// pos2[ipos++] = -t; pos2[ipos++] = -t;
+		// pos2[ipos++] = t; pos2[ipos++] = t;
+		// pos2[ipos++] = t; pos2[ipos++] = -t;
+
+		// let p = Terrain.cascadeMeshCount * meshSize / 2;
+		// pos2[ipos++] = -p; pos2[ipos++] = p;
+		// pos2[ipos++] = -p; pos2[ipos++] = -p;
+		// pos2[ipos++] = p; pos2[ipos++] = p;
+		// pos2[ipos++] = p; pos2[ipos++] = -p;
+		
+		// indices = indices.concat([indiceBase + 0, indiceBase + 1, indiceBase + 4]);
+		// indices = indices.concat([indiceBase + 5, indiceBase + 1, indiceBase + 4]);
+		// indices = indices.concat([indiceBase + 0, indiceBase + 6, indiceBase + 4]);
+		// indices = indices.concat([indiceBase + 0, indiceBase + 6, indiceBase + 2]);
+		// indices = indices.concat([indiceBase + 1, indiceBase + 7, indiceBase + 3]);
+		// indices = indices.concat([indiceBase + 1, indiceBase + 5, indiceBase + 7]);
+		// indices = indices.concat([indiceBase + 2, indiceBase + 6, indiceBase + 7]);
+		// indices = indices.concat([indiceBase + 7, indiceBase + 3, indiceBase + 2]);
+		
 		vertices.set("pos2", pos2);
 		console.timeEnd();
+		
 		this.mesh = new VAO(vertices, indices);
 	}
 	

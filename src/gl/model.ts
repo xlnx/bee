@@ -13,21 +13,20 @@ const vertexAttrMap = {
 }
 
 export default class Model {
-	private static modelPath = "./assets/"
 	private static models: { [key: string]: Model } = {};
 
 	private mesh: { [key: number]: { material: Material, mesh: Mesh[] } } = {};
 
-	constructor(name: string);
-	constructor(name: string, callback: (v: Model) => void);
-	constructor(name: string, callback?: (v: Model) => void) {
-		name = Model.modelPath + name;
+	constructor(path: string, name: string);
+	constructor(path: string, name: string, callback: (v: Model) => void);
+	constructor(path: string, name: string, callback?: (v: Model) => void) {
+		name = path + name;
 		if (callback == undefined) {
 			let scene = assets.import(name);
 			for (let m of scene.meshes) {
 				if (!(m.materialindex in this.mesh)) {
 					this.mesh[m.materialindex] = {
-						material: Material.createFromModel(scene.materials[m.materialindex], Model.modelPath),
+						material: Material.createFromModel(scene.materials[m.materialindex], path),
 						mesh: []
 					};
 				}
@@ -39,7 +38,7 @@ export default class Model {
 				for (let m of scene.meshes) {
 					if (!(m.materialindex in self.mesh)) {
 						self.mesh[m.materialindex] = {
-							material: Material.createFromModel(scene.materials[m.materialindex], Model.modelPath),
+							material: Material.createFromModel(scene.materials[m.materialindex], path),
 							mesh: []
 						};
 					}
@@ -60,17 +59,17 @@ export default class Model {
 		}
 	}
 
-	static create(name: string);
-	static create(name: string, callback: (v: Model) => void);
-	static create(name: string, callback?: (v: Model) => void) {
+	static create(path: string, name: string);
+	static create(path: string, name: string, callback: (v: Model) => void);
+	static create(path: string, name: string, callback?: (v: Model) => void) {
 		if (callback == undefined) {
 			if (!(name in Model.models)) {
-				Model.models[name] = new Model(name);
+				Model.models[name] = new Model(path, name);
 			}
 			return Model.models[name];
 		} else {
 			if (!(name in Model.models)) {
-				new Model(name, (v: Model) => {
+				new Model(path, name, (v: Model) => {
 					Model.models[name] = v;
 					callback(v);
 				});

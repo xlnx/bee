@@ -11,9 +11,9 @@ uniform vec3 gCameraWorldPos;
 uniform mat4 gV;
 uniform mat4 gP;
 
-#define RAYMARCH_MAX_ITER 12
+#define RAYMARCH_MAX_ITER 16
 #define RAYMARCH_ITER_STEP 4e-2
-#define RAYMARCH_EPS 1.2e-2
+#define RAYMARCH_EPS .8e-2
 
 
 in vec2 Position0;
@@ -22,6 +22,10 @@ in vec3 Incidence0;
 out vec4 FragColor;
 
 const float WhitecapBlend = .1;
+const float InWaterBlend = .25;
+
+// sampled from sh3
+const vec4 waterColor = vec4(.24, .36, .43, 1.);
 
 const float FresnelStep = .08;
 
@@ -63,7 +67,9 @@ void main()
 {
 	vec2 uv = Position0;
 	vec2 tex = uv * .5 + .5;
-	vec4 color = vec4(texture(gImage, tex).xyz, 1.);
+	vec4 ch = texture(gImage, tex);
+	float h = ch.w;
+	vec4 color = vec4(ch.xyz, 1.);
 	vec4 nt = texture(gNormalType, tex);
 	vec3 n = normalize(nt.xyz);
 	float type = nt.w;
@@ -102,20 +108,21 @@ void main()
 		vec3 vessel;
 		vec4 rcolor, tcolor;
 
-		if (R > FresnelStep && RaymarchVessel(uv, pw, (gV * vec4(r, 0.)).xyz, vessel))
+		if (R > FresnelStep && gCameraWorldPos.z >= 0. &&
+			RaymarchVessel(uv, pw, (gV * vec4(r, 0.)).xyz, vessel))
 		{
-			rcolor = mix(waterSurface, waterSurface + vec4(vessel, 1.) * 1.2, 0.8);
+			rcolor = mix(vec4(-.1), vec4(vessel, 1.), .6);
 		}
 		else
 		{
 			rcolor = texture(gAmbient, r) * 1.2;
 		}
 
-		if (R < 1. - FresnelStep && RaymarchVessel(uv, pw, (gV * vec4(t, 0.)).xyz, vessel))
-		{
-			tcolor = mix(waterSurface, waterSurface + vec4(vessel, 1.), 0.8);
-		}
-		else
+		// if (R < 1. - FresnelStep && RaymarchVessel(uv, pw, (gV * vec4(t, 0.)).xyz, vessel))
+		// {
+		// 	tcolor = mix(waterSurface, waterSurface + vec4(vessel, 1.), 0.8);
+		// }
+		// else
 		{
 			tcolor = texture(gAmbient, t);
 		}
@@ -130,7 +137,14 @@ void main()
 		const float c1 = 0.1;
 		vec4 amb = c1 * texture(gAmbient, r);
 
-		color = amb + mix(color, amb, .2);
+		if (gCameraWorldPos.z > 0.)
+		{
+			color = amb + mix(color, amb, .2);
+		}
+		else
+		{
+			color = mix(color, waterColor, - h * InWaterBlend);
+		}
 	}
 	FragColor = color;
 }

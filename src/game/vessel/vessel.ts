@@ -1,9 +1,10 @@
-import ModelObj from "../../object/modelObject";
 import Obj from "../../object/object";
 import Model from "../../gl/model";
 import { Viewport } from "../../gl/viewport";
 import { glm } from "../../util/glm"
 import { CameraBase } from "../camera/cameraBase";
+import xhr from "../../util/xhr";
+import { Shader } from "../../gl/shader";
 
 const m2screen = .5 * .1;
 const knots2mpers = 0.514444;
@@ -55,22 +56,28 @@ abstract class VesselBase extends Obj {
 }
 
 class Vessel extends VesselBase {
+	private static modelPath = "./assets/";
+	private static shader: Shader;
 	private model: Model;
 	
 	constructor(name: string)
 	constructor(name: string, callback: (v: Vessel) => void);
 	constructor(name: string, callback?: (v: Vessel) => void) {
 		super();
-		
-		if (!Vessel.dummy) {
-			Vessel.dummy = new ModelObj(null);
+
+		xhr.getAsync(Vessel.modelPath + name + "/property.json", "text", (err: any, data: any) => {
+			console.log(data);
+			
+		});
+		// this.scale(.5);
+		if (!Vessel.shader) {
+			Vessel.shader = Shader.create("vessel", false);
 		}
-		this.scale(.5);
 		if (callback == undefined) {
-			this.model = Model.create(name + ".json");
+			this.model = Model.create(Vessel.modelPath + name + "/", name + ".json");
 		} else {
 			let self = this;
-			Model.create(name + ".json", (v: Model) => {
+			Model.create(Vessel.modelPath + name + "/", name + ".json", (v: Model) => {
 				self.model = v;
 				callback(self);
 			});
@@ -83,13 +90,11 @@ class Vessel extends VesselBase {
 	}
 	
 	static bindShader() {
-		Vessel.dummy.bindShader();
+		Vessel.shader.use();
 	}
 	static unbindShader() {
-		Vessel.dummy.unbindShader();
+		Vessel.shader.unuse();
 	}
-
-	private static dummy: ModelObj = null;
 }
 
 export {

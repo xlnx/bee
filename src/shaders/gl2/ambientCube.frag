@@ -5,12 +5,13 @@ precision mediump float;
 uniform vec3 gSunPos;
 
 
-
 in vec3 WorldPos0;
 
 out vec4 FragColor;
 
 const float PI = 3.14159;
+
+const vec4 waterColor = vec4(.24, .36, .43, 1.);
 
 vec3 hsv2rgb(vec3 c)
 {
@@ -33,14 +34,15 @@ void main()
 
 		float angle_scaled = cos(sqrt(12.3 * angle_pos) - 0.8) + 0.4;
 
-		float atmosV = 0.25 + 0.5 * (angle_scaled);
-		float atmosS = 0.9 - angle_scaled / 18.0;
-		float atmosH = mix(0.61, 0.63, p.z);
-		color += hsv2rgb(vec3(atmosH, atmosS, atmosV));
+		// float atmosV = 0.25 + 0.5 * (angle_scaled);
+		// float atmosS = 0.9 - angle_scaled / 18.0;
+		// float atmosH = mix(0.61, 0.63, p.z);
+		// color += hsv2rgb(vec3(atmosH, atmosS, atmosV));
+		color += vec3(.66, .71, .76);
 
 		const float c1 = 0.025, c2 = 0.15;
 		float d = length(sun - p);
-		float I = c1 / d + c2 * pow(2.0, -d);
+		float I = c1 / d + c2 * pow(2.0, - 5. * d);
 		vec3 c = vec3(255./255.,213./255.,73./255.);
 
 		color += c * I;
@@ -49,7 +51,7 @@ void main()
 	}
 	else
 	{
-		FragColor = vec4(14./255., 58./255., 83./255., 1);
+		FragColor = waterColor;
 	}
 }
 

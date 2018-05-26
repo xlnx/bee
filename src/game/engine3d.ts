@@ -2,7 +2,6 @@ import { glm } from "../util/glm"
 import { gl, Renderer, RendererEvent, gl2 } from "../renderer/renderer"
 import { Offscreen, RenderBuffer } from "../gl/offscreen";
 import { Texture2D } from "../gl/texture";
-import { SSR } from "../techniques/SSR";
 import { DeferImage } from "../techniques/deferImage";
 import { UV } from "../techniques/uv";
 import { Noise } from "../techniques/noise";
@@ -20,7 +19,7 @@ import { GerstnerWave } from "../object/gerstnerWave";
 import { FFTWave } from "../techniques/FFTWave";
 import { Phillips } from "../techniques/phillips";
 import { DecodeImage } from "../techniques/decodeImage";
-import { Normal } from "../techniques/normal";
+import { Normal } from "../techniques/normal"
 
 class Engine3d {
 	private worldCom = new Communicators();
@@ -43,7 +42,6 @@ class Engine3d {
 	public readonly ambient = new AmbientCube();
 	private main = new GameRenderer();
 
-	private ssr = new SSR();
 	private uv = new UV();
 	private noise = new Noise();
 	private defer = new DeferImage();
