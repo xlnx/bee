@@ -13,6 +13,7 @@ in vec2 Position;
 out vec2 TexCoord0;
 out vec3 Normal0;
 out vec3 WorldPos0;
+out float Distance0;
 
 const float range = 1.5;
 const float amplitude = 3e-5;
@@ -26,4 +27,5 @@ void main()
 	vec3 p = vec3(uv, 0.) + d;
 	gl_Position = gWVP * vec4(p, 1);
 	WorldPos0 = (gWorld * vec4(p, 1)).xyz;
+	Distance0 = max(abs(Position.x), abs(Position.y));
 }

@@ -5,6 +5,7 @@ precision mediump float;
 uniform sampler2D gImage;
 uniform sampler2D gNormalType;
 uniform sampler2D gExtra;
+uniform sampler2D gSmoke;
 uniform samplerCube gAmbient;
 
 uniform vec3 gCameraWorldPos;
@@ -83,8 +84,7 @@ void main()
 		float whitecap = 0.;
 		vec4 pw = gV * vec4(texture(gExtra, tex).xyz, 1.);
 		
-
-		if (gCameraWorldPos.z >= 0.)
+		if (dot(ve, n) > 0.)
 		{
 			r = reflect(-ve, n); r.z = abs(r.z);
 			t = refract(-ve, n, 1.0 / 1.33);
@@ -128,6 +128,7 @@ void main()
 		}
 
 		color = R * rcolor + (1.0 - R) * tcolor + whitecap;
+		// color = vec4(1.);
 	}
 	else if (type == 1.)   // vessel
 	{
@@ -143,8 +144,9 @@ void main()
 		}
 		else
 		{
-			color = mix(color, waterColor, clamp(- h * InWaterBlend, .01, 1.));
+			color = mix(color, waterColor, clamp(h * h * InWaterBlend, .01, 1.));
 		}
 	}
-	FragColor = color;
+	vec4 smoke = texture(gSmoke, tex);
+	FragColor = mix(color, smoke, smoke.a);
 }

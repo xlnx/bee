@@ -4,7 +4,7 @@ uniform mat4 gWorld;
 uniform mat4 gV;
 uniform mat4 gVP;
 uniform float gDt;
-uniform float gLifetime;
+uniform mediump float gLifetime;
 uniform vec3 gOrigin;
 
 in vec4 WorldPos;

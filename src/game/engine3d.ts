@@ -4,7 +4,7 @@ import { Offscreen, RenderBuffer } from "../gl/offscreen";
 import { Texture2D } from "../gl/texture";
 import { DeferImage } from "../techniques/deferImage";
 import { UV } from "../techniques/uv";
-import { Noise } from "../techniques/noise";
+import { PerlinWave } from "../techniques/perlinWave";
 import { AmbientCube } from "../techniques/ambientCube";
 import { TestScreen } from "../techniques/offscreenTest";
 import { Skybox } from "../object/skybox";
@@ -32,9 +32,10 @@ class Engine3d {
 	private normalTypeImage = new Texture2D({ component: gl.RGBA, type: gl.FLOAT });
 	private extraImage = new Texture2D({ component: gl2.RGBA, type: gl.FLOAT });
 	private uvImage = new Texture2D({ component: gl.RGB });
-	private noiseImage = new Texture2D({ component: gl.RGB });
+	private perlinImage = new Texture2D({ component: gl2.RGBA, type: gl.FLOAT, filter: gl.NEAREST, wrap: gl.REPEAT }, 256, 256);
 	private phillipsImage = new Texture2D({ component: gl2.RG, type: gl.FLOAT, filter: gl.NEAREST, wrap: gl.CLAMP_TO_EDGE }, 256, 256);
 	private normalJImage = new Texture2D({ component: gl2.RGBA, type: gl.FLOAT, filter: gl.LINEAR, wrap: gl.REPEAT }, 256, 256);
+	private smokeImage = new Texture2D({ component: gl.RGBA, type: gl.UNSIGNED_BYTE });
 
 	private channel: Texture2D;
 
@@ -46,7 +47,7 @@ class Engine3d {
 	private main = new GameRenderer();
 
 	private uv = new UV();
-	private noise = new Noise();
+	private perlin = new PerlinWave();
 	private defer = new DeferImage();
 	private decode = new DecodeImage();
 
@@ -95,6 +96,9 @@ class Engine3d {
 
 			this.suboffscreen.bind();
 
+				this.suboffscreen.set(gl.COLOR_ATTACHMENT0, this.perlinImage);
+				this.perlin.render();
+
 				this.suboffscreen.set(gl.COLOR_ATTACHMENT0, this.normalJImage);
 				this.fftWave.texture.use("Displacement");
 				this.normal.render();
@@ -132,17 +136,6 @@ class Engine3d {
 				});
 			Vessel.unbindShader();
 
-			this.transformFeedback.bind();
-			Smoke.bindShader();
-				vessels.visit((e: ulist_elem<Vessel>) => {
-					let parent = e.get();
-					for (let s of parent.particles) {
-						s.render(this.main.viewport);
-					}
-				})
-			Smoke.unbindShader();
-			this.transformFeedback.unbind();
-
 			gl2.drawBuffers([
 				gl2.NONE,
 				gl2.COLOR_ATTACHMENT1, 
@@ -152,9 +145,11 @@ class Engine3d {
 			this.fftWave.texture.use("Displacement");
 			this.normalJImage.use("NormalJ");
 			this.bumpImage.use("Bump");
+			this.perlinImage.use("Perlin");
 			this.ocean.bindShader();
 				this.ocean.render(this.main.viewport);
 			this.ocean.unbindShader();
+			this.perlinImage.unuse();
 			this.bumpImage.unuse();
 			this.normalJImage.unuse();
 			this.fftWave.texture.unuse();
@@ -170,6 +165,24 @@ class Engine3d {
 				this.skybox.render(this.main.viewport);
 			this.skybox.unbindShader();
 			this.ambient.texture.unuse();
+
+			this.offscreen.set(gl2.COLOR_ATTACHMENT0, this.smokeImage);
+			gl.clear(gl.COLOR_BUFFER_BIT);
+			gl.enable(gl.BLEND);
+			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+			gl.disable(gl.DEPTH_TEST);
+			this.transformFeedback.bind();
+			Smoke.bindShader();
+				vessels.visit((e: ulist_elem<Vessel>) => {
+					let parent = e.get();
+					for (let s of parent.particles) {
+						s.render(this.main.viewport);
+					}
+				})
+			Smoke.unbindShader();
+			this.transformFeedback.unbind();
+
+			gl.disable(gl.BLEND);
 
 		this.main.viewport.unuse();
 
@@ -191,19 +204,21 @@ class Engine3d {
 			this.normalTypeImage.use("NormalType");
 			this.extraImage.use("Extra");
 			this.ambient.texture.use("Ambient");
+			this.smokeImage.use("Smoke");
 
 				this.main.render();
 
+			this.smokeImage.unuse();
 			this.ambient.texture.unuse();
 			this.extraImage.unuse();
 			this.normalTypeImage.unuse();
 			this.mainImage.unuse();
 
-			// this.normalJImage.use("Image");
+			// this.perlinImage.use("Image");
 
-			// this.defer.render();
+			// this.decode.render();
 
-			// this.normalJImage.unuse();
+			// this.perlinImage.unuse();
 		
 		this.renderCom.unuse();
 

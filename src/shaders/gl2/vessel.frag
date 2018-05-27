@@ -4,8 +4,6 @@ precision mediump float;
 
 // materials
 uniform sampler2D gMatDiffuse;
-uniform float gSpecularIntensity;
-uniform float gSpecularPower;
 
 
 in vec2 TexCoord0;

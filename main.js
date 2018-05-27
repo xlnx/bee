@@ -8,8 +8,8 @@ const url = require('url')
 let mainWindow
 
 function createWindow () {
-  app.commandLine.appendSwitch('--disable-gpu-vsync')
-  app.commandLine.appendSwitch('--use-gl=desktop')
+  // app.commandLine.appendSwitch('--disable-gpu-vsync')
+  // app.commandLine.appendSwitch('--use-gl=desktop')
 
   mainWindow = new BrowserWindow({width: 1600, height: 900, 'web-preferences': {plugins: true}})
 
