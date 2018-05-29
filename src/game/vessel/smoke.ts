@@ -19,7 +19,7 @@ class Smoke extends Component {
 		Smoke.shader = Smoke.shader || Shader.create("smoke", false, [
 			"WorldPos", "Lifetime"
 		]);
-		console.log(opts);
+		// console.log(opts);
 		let attrs = new TransformAttrs([{
 			name: "WorldPos",
 			type: gl.FLOAT,

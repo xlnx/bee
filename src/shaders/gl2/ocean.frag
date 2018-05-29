@@ -18,8 +18,8 @@ in float Distance0;
 layout (location = 1) out vec4 NormalType;
 layout (location = 2) out vec4 Extra;
 
-const float blendBias = 2.;
-const float blendDist = 5.;
+const float blendBias = 5.;
+const float blendDist = 10.;
 const float disappearBias = 15.;
 const float disappearDist = 35.;
 

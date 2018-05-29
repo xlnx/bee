@@ -60,6 +60,7 @@ abstract class Terrain extends Obj {
 						lt, lt - 1 + line, lt - 1,
 							lt, lt + 2 * line, lt - 1 + line);
 			}
+
 			let lt = offset;
 			indices.push(lt, lt + 2, lt + 1 + line, 
 				lt, lt + 1 + line, lt + 2 * line);

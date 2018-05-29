@@ -214,17 +214,31 @@ class Engine3d {
 			this.normalTypeImage.unuse();
 			this.mainImage.unuse();
 
-			// this.perlinImage.use("Image");
-
-			// this.decode.render();
-
-			// this.perlinImage.unuse();
+			this.debugWindow(this.normalJImage, true, 0);
+			this.debugWindow(this.perlinImage, true, 1);
+			this.debugWindow(this.extraImage, false, 2);
 		
 		this.renderCom.unuse();
 
 		if (target != null) {
 			this.offscreen.unbind();
 		}
+	}
+
+	debugWindow(texture: Texture2D, normalize: boolean, index: number)
+	{
+		let w = index % 3;
+		let h = Math.floor(index / 3);
+		gl.viewport(
+			Renderer.instance.canvas.width/3 * w, 
+			Renderer.instance.canvas.height/3 * h, 
+			Renderer.instance.canvas.width/3, 
+			Renderer.instance.canvas.height/3
+		);
+		texture.use("Image");
+		if (normalize) this.decode.render();
+		else this.defer.render();
+		texture.unuse();
 	}
 
 	setCamera(camera: CameraBase) {

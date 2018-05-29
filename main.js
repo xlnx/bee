@@ -13,6 +13,7 @@ function createWindow () {
 
   mainWindow = new BrowserWindow({width: 1600, height: 900, 'web-preferences': {plugins: true}})
 
+  // mainWindow.webContents.openDevTools();
   mainWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'build/index.html'),
     protocol: 'file:',
