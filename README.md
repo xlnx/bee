@@ -30,6 +30,10 @@ Koishi chan likes bee. \>w<
 
 ![](docs/fftwave2.png)
 
+## Sigmod Filter
+
+![](docs/sigmod-filter.png)
+
 # TODOs
 
 - [X] Typescript

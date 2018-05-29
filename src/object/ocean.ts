@@ -13,7 +13,7 @@ class Ocean extends Terrain {
 		super(3, 64, 0.025);
 		this.defaultShader = Shader.create("ocean", true);
 		
-		let M = 64, w = 0.025 * (1 << 2), W = w * M;
+		let M = 64, w = 0.025 * (1 << 3), W = w * M / 2;
 		let vertices = new VertexAttrs(["pos2"]);
 		let indices = [];
 		let pos2 = [];
@@ -81,7 +81,7 @@ class Ocean extends Terrain {
 			w *= 4;
 		}
 
-		let x = -W, inf = 5e3;
+		let x = -W, inf = 5e4;
 		pos2[ipos + 0] = -inf; pos2[ipos + 1] = -inf;
 		pos2[ipos + 2] = inf; pos2[ipos + 3] = -inf;
 		pos2[ipos + 4] = inf; pos2[ipos + 5] = inf;
@@ -97,31 +97,22 @@ class Ocean extends Terrain {
 		pos2[ipos + 20] = -y; pos2[ipos + 21] = -x;
 		pos2[ipos + 22] = y; pos2[ipos + 23] = -x;
 
-		pos2[ipos + 24] = 0; pos2[ipos + 25] = y;
-		pos2[ipos + 26] = -y; pos2[ipos + 27] = 0;
-		pos2[ipos + 28] = 0; pos2[ipos + 29] = -y;
-		pos2[ipos + 30] = y; pos2[ipos + 31] = 0;
-
 		let p = ipos >> 1;
 		indices.push(
-			p + 0, p + 15, p + 8, 
-			p + 0, p + 4, p + 8, 
-			p + 0, p + 4, p + 12,
-			p + 1, p + 5, p + 12,  
+			p + 0, p + 4, p + 8,
+			p + 0, p + 4, p + 5,
+			p + 1, p + 5, p + 0,
 			p + 1, p + 5, p + 9,
-			p + 1, p + 9, p + 13,
+			p + 1, p + 9, p + 10,
+			p + 1, p + 10, p + 2,
 			p + 2, p + 6, p + 10,
-			p + 2, p + 6, p + 14,
-			p + 2, p + 10, p + 13,
+			p + 2, p + 6, p + 7,
+			p + 2, p + 3, p + 7,
+			p + 3, p + 0, p + 8,
 			p + 3, p + 7, p + 11,
-			p + 3, p + 7, p + 14,
-			p + 3, p + 15, p + 11,
-			p + 0, p + 3, p + 15,
-			p + 0, p + 1, p + 12,
-			p + 2, p + 3, p + 14,
-			p + 2, p + 1, p + 13,
+			p + 3, p + 8, p + 11
 		);
-
+		
 		vertices.set("pos2", pos2);
 		this.vao = new VAO(vertices, indices);
 	}
@@ -136,10 +127,6 @@ class Ocean extends Terrain {
 			this.vao.draw();
 		this.vao.unbind();
 	}
-	
-	// add(wave: GerstnerWave): ulist_elem<Communicator> {
-	// 	return this.waves.add(wave);
-	// }
 
 	private gN = Shader.uniform("float", "gN");
 	private vao: VAO;

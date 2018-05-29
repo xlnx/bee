@@ -21,7 +21,7 @@ layout (location = 2) out vec4 Extra;
 const float blendBias = 2.;
 const float blendDist = 5.;
 const float disappearBias = 15.;
-const float disappearDist = 45.;
+const float disappearDist = 35.;
 
 float sigmod(float x)
 {

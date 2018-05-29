@@ -22,11 +22,12 @@ in vec3 Incidence0;
 
 out vec4 FragColor;
 
-const float WhitecapBlend = .1;
-const float InWaterBlend = .25;
+const float whitecapBlend = .1;
+const float attenDist = 20.;
 
 // sampled from sh3
 const vec4 waterColor = vec4(.24, .36, .43, 1.);
+// const vec3 
 
 const float FresnelStep = .08;
 
@@ -84,7 +85,12 @@ void main()
 		float whitecap = 0.;
 		vec4 pw = gV * vec4(texture(gExtra, tex).xyz, 1.);
 		
-		if (dot(ve, n) > 0.)
+		float f = dot(ve, n);
+		if (abs(f) < .03)
+		{
+			f = sign(gCameraWorldPos.z);
+		}
+		if (f > 0.)
 		{
 			r = reflect(-ve, n); r.z = abs(r.z);
 			t = refract(-ve, n, 1.0 / 1.33);
@@ -92,7 +98,7 @@ void main()
 			R = clamp(FresnelBiasAbove + FresnelScaleAbove * 
 				pow(1. + dot(r, n), FresnelPowerAbove), 0., 1.);
 			whitecap = texture(gExtra, uv * .5 + .5).w *
-				exp(- length(pw) * WhitecapBlend);
+				exp(- length(pw) * whitecapBlend);
 		}
 		else
 		{
@@ -128,7 +134,6 @@ void main()
 		}
 
 		color = R * rcolor + (1.0 - R) * tcolor + whitecap;
-		// color = vec4(1.);
 	}
 	else if (type == 1.)   // vessel
 	{
@@ -144,7 +149,7 @@ void main()
 		}
 		else
 		{
-			color = mix(color, waterColor, clamp(h * h * InWaterBlend, .01, 1.));
+			color = mix(color, waterColor, clamp(abs(h) / attenDist, .5, 1.));
 		}
 	}
 	vec4 smoke = texture(gSmoke, tex);
