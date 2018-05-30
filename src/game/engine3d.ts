@@ -178,7 +178,7 @@ class Engine3d {
 			gl.clear(gl.COLOR_BUFFER_BIT);
 			gl.enable(gl.BLEND);
 			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-			gl.disable(gl.DEPTH_TEST);
+			gl.depthMask(false);
 			this.transformFeedback.bind();
 			this.gaussianImage.use("Gaussian");
 			this.smokeBallImage.use("SmokeBall");
@@ -193,6 +193,7 @@ class Engine3d {
 			this.gaussianImage.unuse();
 			Smoke.unbindShader();
 			this.transformFeedback.unbind();
+			gl.depthMask(true);
 
 			gl.disable(gl.BLEND);
 
@@ -227,7 +228,7 @@ class Engine3d {
 			this.mainImage.unuse();
 
 			// this.debugWindow(this.normalJImage, true, 0);
-			this.debugWindow(this.smokeImage, true, 0);
+			// this.debugWindow(this.smokeImage, true, 0);
 			// this.debugWindow(this.extraImage, false, 2);
 		
 		this.renderCom.unuse();
