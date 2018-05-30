@@ -26,7 +26,7 @@ void main()
 		t -= gLifetime;
 		p = gWorld * vec4(gOrigin, 1);
 		vec3 n = texture(gGaussian, sin(p.yx * 1027.) + vec2(1., .7) * gTime).xyz;
-		Velocity_next = normalize(vec3(n.xy * .4, 1.));
+		Velocity_next = normalize(vec3(n.xy * .3, 1.));
 	}
 	else
 	{

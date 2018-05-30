@@ -171,12 +171,25 @@ class Texture2D extends Texture {
 						case gl2.RG: internalComponent = gl2.RG32F; break;
 						case gl.RGB: internalComponent = gl2.RGB32F; break;
 						case gl.RGBA: internalComponent = gl2.RGBA32F; break;
+						case gl.DEPTH_COMPONENT: internalComponent = gl2.DEPTH_COMPONENT32F; break;
 						default: throw "unknown internal format.";
 					}
 				} else {
 					if (!Renderer.require(["OES_texture_float", 
 						"OES_texture_float_linear"])) {
 						throw "floating point textures not supported.";
+					}
+				}
+			} else if (type == gl.UNSIGNED_SHORT) {
+				if (gl2) {
+					if (component == gl.DEPTH_COMPONENT) {
+						internalComponent = gl2.DEPTH_COMPONENT16;
+					} else {
+						throw "unknown internal format.";
+					}
+				} else {
+					if (!Renderer.require(["WEBGL_depth_texture"])) {
+						throw "depth texture not supported.";
 					}
 				}
 			}

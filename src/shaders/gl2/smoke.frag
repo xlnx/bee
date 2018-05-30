@@ -3,7 +3,7 @@
 precision mediump float;
 
 uniform float gLifetime;
-uniform sampler2D gSmoke;
+uniform sampler2D gSmokeBall;
 
 in float Lifetime_next;
 
@@ -11,7 +11,7 @@ out vec4 FragColor;
 
 void main()
 {
-	FragColor = vec4(vec3(0.), texture(gSmoke, gl_PointCoord.xy).a * .5 * 
-			(cos(Lifetime_next - gLifetime / 2.) + 1.));
-	//vec4(1.);
+	float t = Lifetime_next / gLifetime;
+	FragColor = vec4(vec3(0.), 
+		texture(gSmokeBall, gl_PointCoord.xy).a * (sqrt(t) - t) * 3.);
 }

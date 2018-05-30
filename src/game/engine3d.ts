@@ -36,6 +36,7 @@ class Engine3d {
 	private perlinImage = new Texture2D({ component: gl2.RGBA, type: gl.FLOAT, filter: gl.NEAREST, wrap: gl.REPEAT }, 256, 256);
 	private phillipsImage = new Texture2D({ component: gl2.RG, type: gl.FLOAT, filter: gl.NEAREST, wrap: gl.CLAMP_TO_EDGE }, 256, 256);
 	private normalJImage = new Texture2D({ component: gl2.RGBA, type: gl.FLOAT, filter: gl.LINEAR, wrap: gl.REPEAT }, 256, 256);
+	private smokeBallImage = new Texture2D("./assets/smoke.png");
 	private smokeImage = new Texture2D({ component: gl.RGBA, type: gl.UNSIGNED_BYTE });
 	private gaussianImage = new Texture2D({ component: gl2.RGBA, type: gl.FLOAT, filter: gl.NEAREST, wrap: gl.REPEAT });
 
@@ -180,13 +181,15 @@ class Engine3d {
 			gl.disable(gl.DEPTH_TEST);
 			this.transformFeedback.bind();
 			this.gaussianImage.use("Gaussian");
+			this.smokeBallImage.use("SmokeBall");
 			Smoke.bindShader();
 				vessels.visit((e: ulist_elem<Vessel>) => {
 					let parent = e.get();
 					for (let s of parent.particles) {
 						s.render(this.main.viewport);
 					}
-				})
+				});
+			this.smokeBallImage.unuse();
 			this.gaussianImage.unuse();
 			Smoke.unbindShader();
 			this.transformFeedback.unbind();
@@ -224,7 +227,7 @@ class Engine3d {
 			this.mainImage.unuse();
 
 			// this.debugWindow(this.normalJImage, true, 0);
-			this.debugWindow(this.gaussianImage, true, 0);
+			this.debugWindow(this.smokeImage, true, 0);
 			// this.debugWindow(this.extraImage, false, 2);
 		
 		this.renderCom.unuse();
