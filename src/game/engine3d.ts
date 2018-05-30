@@ -22,6 +22,7 @@ import { DecodeImage } from "../techniques/decodeImage";
 import { Normal } from "../techniques/normal"
 import { TransformFeedback } from "../gl/transformFeedback";
 import { Smoke } from "./vessel/smoke";
+import { Gaussian } from "../techniques/gaussian";
 
 class Engine3d {
 	private worldCom = new Communicators();
@@ -36,6 +37,7 @@ class Engine3d {
 	private phillipsImage = new Texture2D({ component: gl2.RG, type: gl.FLOAT, filter: gl.NEAREST, wrap: gl.CLAMP_TO_EDGE }, 256, 256);
 	private normalJImage = new Texture2D({ component: gl2.RGBA, type: gl.FLOAT, filter: gl.LINEAR, wrap: gl.REPEAT }, 256, 256);
 	private smokeImage = new Texture2D({ component: gl.RGBA, type: gl.UNSIGNED_BYTE });
+	private gaussianImage = new Texture2D({ component: gl2.RGBA, type: gl.FLOAT, filter: gl.NEAREST, wrap: gl.REPEAT });
 
 	private channel: Texture2D;
 
@@ -54,6 +56,7 @@ class Engine3d {
 	private phillips = new Phillips();
 	private fftWave = new FFTWave(this.phillipsImage);
 	private normal = new Normal();
+	private gaussian = new Gaussian();
 
 	private skybox = new Skybox();
 	public readonly ocean = new Ocean();
@@ -70,6 +73,8 @@ class Engine3d {
 
 		this.offscreen.bind();
 			this.offscreen.set(gl.DEPTH_ATTACHMENT, new RenderBuffer(gl.DEPTH_COMPONENT16));
+			this.offscreen.set(gl.COLOR_ATTACHMENT0, this.gaussianImage);
+			this.gaussian.render();
 		this.offscreen.unbind();
 
 		if (!gl2) {
@@ -85,7 +90,9 @@ class Engine3d {
 		// reder ambient cube - offscreen
 		this.ambient.render();
 
-		this.fftWave.render();
+		this.gaussianImage.use("Gaussian");
+			this.fftWave.render();
+		this.gaussianImage.unuse();
 
 		// render main image into mainImage
 		this.offscreen.bind();
@@ -172,6 +179,7 @@ class Engine3d {
 			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 			gl.disable(gl.DEPTH_TEST);
 			this.transformFeedback.bind();
+			this.gaussianImage.use("Gaussian");
 			Smoke.bindShader();
 				vessels.visit((e: ulist_elem<Vessel>) => {
 					let parent = e.get();
@@ -179,6 +187,7 @@ class Engine3d {
 						s.render(this.main.viewport);
 					}
 				})
+			this.gaussianImage.unuse();
 			Smoke.unbindShader();
 			this.transformFeedback.unbind();
 
@@ -214,9 +223,9 @@ class Engine3d {
 			this.normalTypeImage.unuse();
 			this.mainImage.unuse();
 
-			this.debugWindow(this.normalJImage, true, 0);
-			this.debugWindow(this.perlinImage, true, 1);
-			this.debugWindow(this.extraImage, false, 2);
+			// this.debugWindow(this.normalJImage, true, 0);
+			this.debugWindow(this.gaussianImage, true, 0);
+			// this.debugWindow(this.extraImage, false, 2);
 		
 		this.renderCom.unuse();
 

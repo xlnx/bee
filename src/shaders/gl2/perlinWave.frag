@@ -11,7 +11,7 @@ out vec4 FragColor;
 
 const float gN = 256.;
 const float range = 256.;
-const float amplitude = 2e-1;
+const float amplitude = 9e-1;
 
 vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
 vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
@@ -87,7 +87,7 @@ float noise(vec3 P){
 
 void main()
 {
-  float h = amplitude * noise(vec3(Position0 * 10., gTime));
+  float h = amplitude * noise(vec3(Position0 * 5., gTime));
   float dHdx = dFdx(h);
   float dHdy = dFdy(h);
   vec3 dx = vec3(1./gN*range, 0., dHdx);

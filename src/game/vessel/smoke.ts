@@ -17,7 +17,7 @@ class Smoke extends Component {
 	constructor(opts: any, parent: Vessel) {
 		super(parent);
 		Smoke.shader = Smoke.shader || Shader.create("smoke", false, [
-			"WorldPos", "Lifetime"
+			"WorldPos", "Lifetime", "Velocity"
 		]);
 		// console.log(opts);
 		let attrs = new TransformAttrs([{
@@ -28,13 +28,18 @@ class Smoke extends Component {
 			name: "Lifetime",
 			type: gl.FLOAT,
 			size: 1
+		}, {
+			name: "Velocity",
+			type: gl.FLOAT,
+			size: 3
 		}]);
 		this.origin = glm.vec3(opts.position[0], opts.position[1], opts.position[2]);
 		this.lifetime = opts.lifetime;
 		for (let i = 0; i != opts.count; ++i) {
 			attrs.push({
 				WorldPos: [this.origin.x, this.origin.y, this.origin.z, 1],
-				Lifetime: [i / opts.count * this.lifetime]
+				Lifetime: [i / opts.count * this.lifetime],
+				Velocity: [0, 0, 1]
 			});
 		}
 		this.tao = new TAO(attrs);

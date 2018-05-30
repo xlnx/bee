@@ -40,6 +40,14 @@ class TextureSpec {
 	wrap?: number;
 };
 
+class TextureSpecFile {
+	component?: number;
+	type?: number;
+	filter?: number;
+	wrap?: number;
+	mipmap?: boolean;
+};
+
 abstract class Texture {
 	public readonly handle: number;
 
@@ -89,40 +97,66 @@ class Texture2D extends Texture {
 	private w: number;
 	private h: number;
 
+	constructor();
 	constructor(opts: TextureSpec);
 	constructor(opts: TextureSpec, width: number, height: number);
 	constructor(filename: string);
-	constructor(filename: string, usemipmap: boolean);
+	constructor(filename: string);
+	constructor(filename: string, opts: TextureSpecFile);
 	constructor(first?: any, second?: any, third?: any) {
 		super(gl.TEXTURE_2D);
 		if (typeof first == "string") {
 			let filename: string = first;
-			let usemipmap: boolean = second == undefined ? true : second;
+			let opts: { [key: string]: any } = second == undefined ? {} : second;
+			let usemipmap: boolean = opts.mipmap == undefined ? true : opts.mipmap;
+			let component: number = opts.component || gl.RGBA;
+			let internalComponent = component;
+			let type: number = opts.type || gl.UNSIGNED_BYTE;
+			if (type == gl.FLOAT) {
+				if (gl2) {
+					if (!Renderer.require(["EXT_color_buffer_float", 
+						"OES_texture_float_linear"])) {
+						throw "floating point textures not supported.";
+					}
+					switch (component) {
+						case gl2.RED: internalComponent = gl2.R32F; break;
+						case gl2.RG: internalComponent = gl2.RG32F; break;
+						case gl.RGB: internalComponent = gl2.RGB32F; break;
+						case gl.RGBA: internalComponent = gl2.RGBA32F; break;
+						default: throw "unknown internal format.";
+					}
+				} else {
+					if (!Renderer.require(["OES_texture_float", 
+						"OES_texture_float_linear"])) {
+						throw "floating point textures not supported.";
+					}
+				}
+			}
+			let filter = opts.filter || gl.LINEAR;
+			let wrap = opts.wrap || gl.REPEAT;
 			this.bind();
-				gl.texImage2D(this.type, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 0]));
+				gl.texImage2D(this.type, 0, internalComponent, 1, 1, 0, component, type, null);
 			this.unbind();
 			let img = new Image();
 			img.onload = () => {
 				this.bind();
 					gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-					gl.texImage2D(this.type, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-					// gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-					// gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-					gl.texParameteri(this.type, gl.TEXTURE_WRAP_S, gl.REPEAT);
-					gl.texParameteri(this.type, gl.TEXTURE_WRAP_T, gl.REPEAT);
-					gl.texParameteri(this.type, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+					gl.texImage2D(this.type, 0, internalComponent, component, type, img);
+					gl.texParameterf(this.type, gl.TEXTURE_WRAP_S, wrap);
+					gl.texParameterf(this.type, gl.TEXTURE_WRAP_T, wrap);
+					gl.texParameterf(this.type, gl.TEXTURE_MAG_FILTER, filter);
 					if (usemipmap) {
 						gl.texParameteri(this.type, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
 						gl.generateMipmap(this.type);
 					} else {
-						gl.texParameteri(this.type, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+						gl.texParameteri(this.type, gl.TEXTURE_MIN_FILTER, filter);
 					}
 				this.unbind();
 				this.w = img.width; this.h = img.height;
 			}
 			img.src = filename;
 		} else {
-			let opts: { [key: string]: any } = first;
+			let opts: { [key: string]: any } = first == undefined ? {} : first;
 			let component: number = opts.component || gl.RGBA;
 			let internalComponent = component;
 			let type: number = opts.type || gl.UNSIGNED_BYTE;
@@ -156,9 +190,6 @@ class Texture2D extends Texture {
 			}
 			this.bind();
 				gl.texImage2D(this.type, 0, internalComponent, this.w, this.h, 0, component, type, null);
-				// } else {
-				// 	gl.texImage2D(this.type, 0, component, 1, 1, 0, component, gl.FLOAT, null);
-				// }
 				gl.texParameterf(this.type, gl.TEXTURE_MIN_FILTER, filter);
 				gl.texParameterf(this.type, gl.TEXTURE_MAG_FILTER, filter);
 				gl.texParameterf(this.type, gl.TEXTURE_WRAP_S, wrap);
