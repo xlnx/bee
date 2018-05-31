@@ -213,6 +213,10 @@ class Game {
 					"8": () => this.uboat.targetSpeed = -1/2,
 					"9": () => this.uboat.targetSpeed = -3/4,
 
+					"q": () => { if (!e.repeat) this.uboat.diveSignal(-1); },
+					"w": () => { if (!e.repeat) this.uboat.diveSignal(0); },
+					"e": () => { if (!e.repeat) this.uboat.diveSignal(1); },
+
 					"a": () => { if (!e.repeat) this.uboat.rudderSignal(-1); },
 					"s": () => { if (!e.repeat) this.uboat.rudderSignal(0); },
 					"d": () => { if (!e.repeat) this.uboat.rudderSignal(1); },
@@ -240,6 +244,11 @@ class Game {
 		this.battleKeysUp = Renderer.instance.dispatch("keyup", (e: KeyboardEvent) => {
 			if (this.displayMode != "options") {
 				const lookup = {
+
+					"q": () => this.uboat.diveSignal(-1),
+					"w": () => this.uboat.diveSignal(0),
+					"e": () => this.uboat.diveSignal(1),
+
 					"a": () => this.uboat.rudderSignal(-1),
 					"s": () => this.uboat.rudderSignal(0),
 					"d": () => this.uboat.rudderSignal(1),

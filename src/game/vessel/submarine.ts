@@ -13,19 +13,47 @@ class Submarine extends Vessel {
 	private fdepth: number = 0;
 	private fdiveSpeed: number = 0;
 	private fmaxDiveSpeed: number;
+	private fdiveAccelerate: number;
+	
+	private fdiveState: number = 0;
+	private fdiveStop: boolean = false;
+
 	private frudderState: number = 0;
 	private frudderMiddle: boolean = false;
 
 	get diveSpeed(): number {
 		return this.fdiveSpeed / m2screen;
 	}
+
 	set diveSpeed(meters: number) {
 		this.fdiveSpeed = m2screen * meters;
+		if (Math.abs(this.fdiveSpeed) > this.fmaxDiveSpeed) {
+			this.fdiveSpeed = Math.sign(this.fdiveSpeed) * this.fmaxDiveSpeed;
+		}
 	}
 
 	protected processProperty(data: { [key: string]: any}) {
 		super.processProperty(data);
 		this.fmaxDiveSpeed = data.maxDiveSpeed * m2screen;
+		this.fdiveAccelerate = data.diveAccelerate;
+	}
+
+	protected diveStop() {
+		if (this.fdiveSpeed != 0) {
+			let sgn = Math.sign(this.fdiveSpeed);
+			this.diveSpeed -= sgn * Renderer.dt * this.fdiveAccelerate;
+			if (Math.sign(this.fdiveSpeed) != sgn) {
+				this.fdiveSpeed = 0;
+			}
+		}
+	}
+
+	protected diveUp() {
+		this.diveSpeed -= Renderer.dt * this.fdiveAccelerate;
+	}
+
+	protected diveDown() {
+		this.diveSpeed += Renderer.dt * this.fdiveAccelerate;
 	}
 
 	protected updateState() {
@@ -34,6 +62,12 @@ class Submarine extends Vessel {
 		} else switch (this.frudderState) {
 			case 3: case 2: this.rudderLeft(); break;
 			case 1: case 4: this.rudderRight(); break;
+		}
+		if (this.fdiveStop) {
+			this.diveStop();
+		} else switch (this.fdiveState) {
+			case 3: case 2: this.diveUp(); break;
+			case 1: case 4: this.diveDown(); break;
 		}
 		super.updateState();
 	}
@@ -49,7 +83,6 @@ class Submarine extends Vessel {
 	}
 
 	rudderSignal(signal: number) {
-		console.log(this.frudderState);
 		if (signal) {
 			switch (this.frudderState) {
 				case 0: this.frudderState = signal == 1 ? 1 : 2; break;
@@ -62,15 +95,17 @@ class Submarine extends Vessel {
 		}
 	}
 
-	setDiveMode(mode: DiveMode) {
-		const lookup = {
-			"Uw": () => this.diveSpeed = -1,
-			"Dw": () => this.diveSpeed = 1,
-			"keep": () => this.diveSpeed = 0,
-			"extraUw": () => this.diveSpeed = -3,
-			"extraDw": () => this.diveSpeed = 3
-		};
-		lookup[mode] ();
+	diveSignal(signal: number) {
+		if (signal) {
+			switch (this.fdiveState) {
+				case 0: this.fdiveState = signal == 1 ? 1 : 2; break;
+				case 1: this.fdiveState = signal == 1 ? 0 : 3; break;
+				case 2: this.fdiveState = signal == 1 ? 4 : 0; break;
+				case 3: case 4: this.fdiveState = signal == 1 ? 2 : 1; break;
+			}
+		} else {
+			this.fdiveStop = !this.fdiveStop;
+		}
 	}
 }
 
