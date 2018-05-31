@@ -76,6 +76,10 @@ class Submarine extends Vessel {
 		if (this.fdiveSpeed || this.fspeed) {
 			let diff = glm.vec3(this.speedVec["*"](this.fspeed * Renderer.dt), -this.fdiveSpeed * Renderer.dt);
 			this.translate(diff);
+			if (this.position.z > 0) {
+				this.fdiveSpeed = 0;
+				this.position.z = 0;
+			}
 			if (this.camera) {
 				this.camera.position = this.camera.position["+"](diff);
 			}

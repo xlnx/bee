@@ -59,10 +59,10 @@ class Smoke extends Component {
 	}
 	
 	static bindShader() {
-		Smoke.shader.use();
+		!Smoke.shader || Smoke.shader.use();
 	}
 	static unbindShader() {
-		Smoke.shader.unuse();
+		!Smoke.shader || Smoke.shader.unuse();
 	}
 
 	private gDt = Shader.uniform("float", "gDt");

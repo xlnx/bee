@@ -60,10 +60,10 @@ class Track extends Component {
 	}
 
 	static bindShader() {
-		Track.shader.use();
+		!Track.shader || Track.shader.use();
 	}
 	static unbindShader() {
-		Track.shader.unuse();
+		!Track.shader || Track.shader.unuse();
 	}
 
 	private gDt = Shader.uniform("float", "gDt");

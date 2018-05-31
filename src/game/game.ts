@@ -185,7 +185,7 @@ class Game {
 		
 		this.queryObjects = [];
 		this.spawnVessel("torpedo");
-		// this.spawnVessel("clemson");
+		this.spawnVessel("clemson");
 		this.resetUboat("7c");
 
 		Renderer.timescale = 1;

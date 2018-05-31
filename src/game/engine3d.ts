@@ -237,7 +237,7 @@ class Engine3d {
 			this.mainImage.unuse();
 
 			// this.debugWindow(this.normalJImage, true, 0);
-			this.debugWindow(this.perlinImage, true, 0);
+			// this.debugWindow(this.perlinImage, true, 0);
 			// this.debugWindow(this.extraImage, false, 2);
 		
 		this.renderCom.unuse();

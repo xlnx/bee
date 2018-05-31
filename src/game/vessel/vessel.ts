@@ -178,10 +178,10 @@ class Vessel extends VesselBase {
 	}
 	
 	static bindShader() {
-		Vessel.shader.use();
+		!Vessel.shader || Vessel.shader.use();
 	}
 	static unbindShader() {
-		Vessel.shader.unuse();
+		!Vessel.shader || Vessel.shader.unuse();
 	}
 }
 
