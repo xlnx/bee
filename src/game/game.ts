@@ -75,7 +75,7 @@ class Game {
 		this.renderer.dispatch("render", () => {
 			if (this.inGame && this.displayMode != "options") {
 				this.viewports.periscope.update();
-				this.updateVessels(Renderer.time - Renderer.prevTime);
+				this.updateVessels();
 			}
 			const callbacks = {
 				"3d": () => {
@@ -114,9 +114,9 @@ class Game {
 		this.renderer.start();
 	}
 
-	updateVessels(dt: number) {
+	updateVessels() {
 		this.vessels.visit((e: ulist_elem<Vessel>) => {
-			e.get().update(dt);
+			e.get().update();
 		});
 	}
 
@@ -184,7 +184,8 @@ class Game {
 		this.displayMode = "splash";
 		
 		this.queryObjects = [];
-		this.spawnVessel("clemson");
+		this.spawnVessel("torpedo");
+		// this.spawnVessel("clemson");
 		this.resetUboat("7c");
 
 		Renderer.timescale = 1;
@@ -193,7 +194,6 @@ class Game {
 
 	finishLoading() {
 		this.battleKeys = Renderer.instance.dispatch("keydown", (e: KeyboardEvent) => {
-			
 			if (this.displayMode != "options" || e.key.toLowerCase() == "escape") {
 				const lookup = {
 					"f3": this.setMode.bind(this, "periscope"),
@@ -202,36 +202,20 @@ class Game {
 					"f10": this.setMode.bind(this, "gun"),
 					"f12": this.setMode.bind(this, "free"),
 
-					"`": this.uboat.setSpeedMode.bind(this.uboat, "stop"),
-					"1": this.uboat.setSpeedMode.bind(this.uboat, "slowFw"),
-					"2": this.uboat.setSpeedMode.bind(this.uboat, "oneThirdFw"),
-					"3": this.uboat.setSpeedMode.bind(this.uboat, "normalFw"),
-					"4": this.uboat.setSpeedMode.bind(this.uboat, "fullFw"),
-					"5": this.uboat.setSpeedMode.bind(this.uboat, "extraFw"),
-					"6": this.uboat.setSpeedMode.bind(this.uboat, "slowBw"),
-					"7": this.uboat.setSpeedMode.bind(this.uboat, "oneThirdBw"),
-					"8": this.uboat.setSpeedMode.bind(this.uboat, "normalBw"),
-					"9": this.uboat.setSpeedMode.bind(this.uboat, "extraBw"),
+					"`": () => this.uboat.targetSpeed = 0,
+					"1": () => this.uboat.targetSpeed = 1/5,
+					"2": () => this.uboat.targetSpeed = 1/3,
+					"3": () => this.uboat.targetSpeed = 1/2,
+					"4": () => this.uboat.targetSpeed = 3/4,
+					"5": () => this.uboat.targetSpeed = 1,
+					"6": () => this.uboat.targetSpeed = -1/6,
+					"7": () => this.uboat.targetSpeed = -1/4,
+					"8": () => this.uboat.targetSpeed = -1/2,
+					"9": () => this.uboat.targetSpeed = -3/4,
 
-					"[": this.uboat.setRudderMode.bind(this.uboat, "fullLw"),
-					"]": this.uboat.setRudderMode.bind(this.uboat, "fullRw"),
-					"'": this.uboat.setRudderMode.bind(this.uboat, "reset"),
-
-					"s": this.uboat.setDiveMode.bind(this.uboat, "Uw"),
-					"d": this.uboat.setDiveMode.bind(this.uboat, "Dw"),
-					"a": this.uboat.setDiveMode.bind(this.uboat, "keep"),
-					"p": () => {  },
-					";": () => {  },
-					"e": this.uboat.setDiveMode.bind(this.uboat, "extraUw"),
-					"c": this.uboat.setDiveMode.bind(this.uboat, "extraDw"),
-					"z": () => {  },
-
-					"u": () => {  },
-					"o": () => {  },
-					"b": () => {  },
-					"f": () => {  },
-
-					"x": () => {  },
+					"a": () => { if (!e.repeat) this.uboat.rudderSignal(-1); },
+					"s": () => { if (!e.repeat) this.uboat.rudderSignal(0); },
+					"d": () => { if (!e.repeat) this.uboat.rudderSignal(1); },
 
 					",": () => { if (this.displayMode == "6d") this.viewports.periscope.rise(); },
 					".": () => { if (this.displayMode == "6d") this.viewports.periscope.down(); },
@@ -256,6 +240,10 @@ class Game {
 		this.battleKeysUp = Renderer.instance.dispatch("keyup", (e: KeyboardEvent) => {
 			if (this.displayMode != "options") {
 				const lookup = {
+					"a": () => this.uboat.rudderSignal(-1),
+					"s": () => this.uboat.rudderSignal(0),
+					"d": () => this.uboat.rudderSignal(1),
+
 					",": () => { if (this.displayMode == "6d") this.viewports.periscope.stop(); },
 					".": () => { if (this.displayMode == "6d") this.viewports.periscope.stop(); },
 				};

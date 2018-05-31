@@ -23,6 +23,7 @@ import { Normal } from "../techniques/normal"
 import { TransformFeedback } from "../gl/transformFeedback";
 import { Smoke } from "./vessel/smoke";
 import { Gaussian } from "../techniques/gaussian";
+import { Track } from "./vessel/track";
 
 class Engine3d {
 	private worldCom = new Communicators();
@@ -33,7 +34,7 @@ class Engine3d {
 	private normalTypeImage = new Texture2D({ component: gl.RGBA, type: gl.FLOAT });
 	private extraImage = new Texture2D({ component: gl2.RGBA, type: gl.FLOAT });
 	private uvImage = new Texture2D({ component: gl.RGB });
-	private perlinImage = new Texture2D({ component: gl2.RGBA, type: gl.FLOAT, filter: gl.NEAREST, wrap: gl.REPEAT }, 256, 256);
+	private perlinImage = new Texture2D({ component: gl2.RGBA, type: gl.FLOAT, filter: gl.LINEAR, wrap: gl.REPEAT }, 256, 256);
 	private phillipsImage = new Texture2D({ component: gl2.RG, type: gl.FLOAT, filter: gl.NEAREST, wrap: gl.CLAMP_TO_EDGE }, 256, 256);
 	private normalJImage = new Texture2D({ component: gl2.RGBA, type: gl.FLOAT, filter: gl.LINEAR, wrap: gl.REPEAT }, 256, 256);
 	private smokeBallImage = new Texture2D("./assets/smoke.png");
@@ -185,13 +186,21 @@ class Engine3d {
 			Smoke.bindShader();
 				vessels.visit((e: ulist_elem<Vessel>) => {
 					let parent = e.get();
-					for (let s of parent.particles) {
+					for (let s of parent.smokes) {
 						s.render(this.main.viewport);
 					}
 				});
+			Smoke.unbindShader();
+			Track.bindShader();
+				vessels.visit((e: ulist_elem<Vessel>) => {
+					let parent = e.get();
+					for (let s of parent.tracks) {
+						s.render(this.main.viewport);
+					}
+				});
+			Track.unbindShader();
 			this.smokeBallImage.unuse();
 			this.gaussianImage.unuse();
-			Smoke.unbindShader();
 			this.transformFeedback.unbind();
 			gl.depthMask(true);
 
@@ -228,7 +237,7 @@ class Engine3d {
 			this.mainImage.unuse();
 
 			// this.debugWindow(this.normalJImage, true, 0);
-			// this.debugWindow(this.smokeImage, true, 0);
+			this.debugWindow(this.perlinImage, true, 0);
 			// this.debugWindow(this.extraImage, false, 2);
 		
 		this.renderCom.unuse();

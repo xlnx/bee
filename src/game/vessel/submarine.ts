@@ -1,5 +1,6 @@
 import { Vessel, m2screen } from "./vessel";
 import { glm } from "../../util/glm"
+import { Renderer } from "../../renderer/renderer";
 
 type SpeedMode = "stop" | "slowFw" | "oneThirdFw" | "normalFw" | "fullFw" |
 	"extraFw" | "slowBw" | "oneThirdBw" | "normalBw" | "extraBw"
@@ -11,6 +12,9 @@ type DiveMode = "Uw" | "Dw" | "extraUw" | "extraDw" | "keep" | "Pw"
 class Submarine extends Vessel {
 	private fdepth: number = 0;
 	private fdiveSpeed: number = 0;
+	private fmaxDiveSpeed: number;
+	private frudderState: number = 0;
+	private frudderMiddle: boolean = false;
 
 	get diveSpeed(): number {
 		return this.fdiveSpeed / m2screen;
@@ -19,9 +23,24 @@ class Submarine extends Vessel {
 		this.fdiveSpeed = m2screen * meters;
 	}
 
-	update(dt: number) {
+	protected processProperty(data: { [key: string]: any}) {
+		super.processProperty(data);
+		this.fmaxDiveSpeed = data.maxDiveSpeed * m2screen;
+	}
+
+	protected updateState() {
+		if (this.frudderMiddle) {
+			this.rudderMiddle();
+		} else switch (this.frudderState) {
+			case 3: case 2: this.rudderLeft(); break;
+			case 1: case 4: this.rudderRight(); break;
+		}
+		super.updateState();
+	}
+
+	protected updatePosition() {
 		if (this.fdiveSpeed || this.fspeed) {
-			let diff = glm.vec3(this.speedVec["*"](this.fspeed * dt), -this.fdiveSpeed * dt);
+			let diff = glm.vec3(this.speedVec["*"](this.fspeed * Renderer.dt), -this.fdiveSpeed * Renderer.dt);
 			this.translate(diff);
 			if (this.camera) {
 				this.camera.position = this.camera.position["+"](diff);
@@ -29,29 +48,18 @@ class Submarine extends Vessel {
 		}
 	}
 
-	setSpeedMode(mode: SpeedMode) {
-		const lookup = {
-			"stop": () => this.speed = 0,
-			"slowFw": () => this.speed = 1,
-			"oneThirdFw": () => this.speed = 2,
-			"normalFw": () => this.speed = 6,
-			"fullFw": () => this.speed = 8,
-			"extraFw": () => this.speed = 10,
-			"slowBw": () => this.speed = -.4,
-			"oneThirdBw": () => this.speed = -.1,
-			"normalBw": () => this.speed = -3,
-			"extraBw": () => this.speed = -4
-		};
-		lookup[mode] ();
-	}
-
-	setRudderMode(mode: RudderMode) {
-		const lookup = {
-			"Lw": () => this.angleSpeed = -1,
-			"Rw": () => this.angleSpeed = 1,
-			"reset": () => this.angleSpeed = 0,
-		};
-		lookup[mode] ();
+	rudderSignal(signal: number) {
+		console.log(this.frudderState);
+		if (signal) {
+			switch (this.frudderState) {
+				case 0: this.frudderState = signal == 1 ? 1 : 2; break;
+				case 1: this.frudderState = signal == 1 ? 0 : 3; break;
+				case 2: this.frudderState = signal == 1 ? 4 : 0; break;
+				case 3: case 4: this.frudderState = signal == 1 ? 2 : 1; break;
+			}
+		} else {
+			this.frudderMiddle = !this.frudderMiddle;
+		}
 	}
 
 	setDiveMode(mode: DiveMode) {

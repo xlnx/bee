@@ -27,5 +27,5 @@ void main()
 	vec3 p = vec3(uv, 0.) + d;
 	gl_Position = gWVP * vec4(p, 1);
 	WorldPos0 = (gWorld * vec4(p, 1)).xyz;
-	Distance0 = max(abs(Position.x), abs(Position.y));
+	Distance0 = length(Position);
 }

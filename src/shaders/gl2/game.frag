@@ -124,7 +124,8 @@ void main()
 			rcolor = texture(gAmbient, r) * 1.2;
 		}
 
-		// if (R < 1. - FresnelStep && RaymarchVessel(uv, pw, (gV * vec4(t, 0.)).xyz, vessel))
+		// if (R < 1. - FresnelStep && gCameraWorldPos.z < 0. &&
+		// 	RaymarchVessel(uv, pw, (gV * vec4(t, 0.)).xyz, vessel))
 		// {
 		// 	tcolor = mix(waterSurface, waterSurface + vec4(vessel, 1.), 0.8);
 		// }
@@ -134,6 +135,7 @@ void main()
 		}
 
 		color = R * rcolor + (1.0 - R) * tcolor + whitecap;
+		// color = nt.xyzz;
 	}
 	else if (type == 1.)   // vessel
 	{

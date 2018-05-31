@@ -18,7 +18,7 @@ in float Distance0;
 layout (location = 1) out vec4 NormalType;
 layout (location = 2) out vec4 Extra;
 
-const float blendBias = 5.;
+const float blendBias = 4.;
 const float blendDist = 10.;
 const float disappearBias = 15.;
 const float disappearDist = 35.;
@@ -32,10 +32,11 @@ void main()
 {
 	vec4 nj = texture(gNormalJ, TexCoord0);
 	vec3 nb = texture(gBump, TexCoord0 * 3.).xyz * 2. - 1.;
-	vec3 perlin = texture(gPerlin, TexCoord0 * sqrt(blendDist / Distance0)).xyz;
+	vec3 perlin = texture(gPerlin, (TexCoord0 * 2. - 1.) * sqrt(blendDist / Distance0)).xyz;
 	vec3 n = mix(normalize(nb), normalize(nj.xyz), .7);
 	n = mix(normalize(n), normalize(perlin), sigmod((Distance0 - blendDist) / blendBias));
 	n = mix(normalize(n), vec3(0, 0, 1), sigmod((Distance0 - disappearDist) / disappearBias));
+	// n = mod(vec3((TexCoord0 * 2. - 1.) * sqrt(blendDist / Distance0), 0), vec3(1.));
 		// normalize(nj.xyz);
 	// mix(normalize(nb), normalize(nj.xyz), .7);
 
