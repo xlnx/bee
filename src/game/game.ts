@@ -14,6 +14,7 @@ import { Offscreen } from "../gl/offscreen";
 import { Texture2D } from "../gl/texture";
 import { GaussBlur } from "../techniques/gaussBlur";
 import { Periscope } from "./camera/periscope";
+import { Torpedo } from "./vessel/torpedo";
 
 type CameraMode = "observe" | "follow" | "free" | "periscope"
 
@@ -142,6 +143,22 @@ class Game {
 		});
 	}
 
+	spawnTorpedo(className: string, launcher: number) {
+		let self = this;
+		new Torpedo(className, (v: Torpedo) => {
+			let x = self.uboat.torpedoLauncher[launcher];
+			let p = glm.vec4(x.position[0], x.position[1], x.position[2], 1);
+			let m = this.uboat.getTrans();
+			v.position = m["*"](p).xyz;
+			v.speed = this.uboat.speed * 1.5;
+			v.targetSpeed = 1;
+			let u = glm.vec4(x.orient[0], x.orient[1], x.orient[2], 0);
+			v.orient = glm.normalize(m["*"](u).xy);
+			self.vessels.push(v);
+			console.log(self.vessels);
+		});
+	}
+
 	checkLoadingFinish() {
 		if (!this.queryObjects.length) {
 			this.finishLoading();
@@ -184,8 +201,9 @@ class Game {
 		this.displayMode = "splash";
 		
 		this.queryObjects = [];
-		this.spawnVessel("torpedo");
-		this.spawnVessel("clemson");
+		// this.spawnVessel("torpedo");
+		// this.spawnTorpedo("TII_G7e", 0);
+		// this.spawnVessel("clemson");
 		this.resetUboat("7c");
 
 		Renderer.timescale = 1;
@@ -220,6 +238,8 @@ class Game {
 					"a": () => { if (!e.repeat) this.uboat.rudderSignal(-1); },
 					"s": () => { if (!e.repeat) this.uboat.rudderSignal(0); },
 					"d": () => { if (!e.repeat) this.uboat.rudderSignal(1); },
+
+					"z": () => this.spawnTorpedo("TII_G7e", 0),
 
 					",": () => { if (this.displayMode == "6d") this.viewports.periscope.rise(); },
 					".": () => { if (this.displayMode == "6d") this.viewports.periscope.down(); },
@@ -273,7 +293,6 @@ class Game {
 		this.uboat = null;
 		this.battleKeys.cancel();
 		this.battleKeysUp.cancel();
-
 	}
 }
 

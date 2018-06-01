@@ -12,7 +12,13 @@ class Smoke extends Component {
 
 	private tao: TAO;
 	private origin: glm.vec3;
+	private velocity: glm.vec3;
+	private up: glm.vec3;
+	private color: glm.vec3;
+	private scatter: number;
 	private lifetime: number;
+	private opacity: number;
+	private texture: Texture2D;
 
 	constructor(opts: any, parent: Vessel) {
 		super(parent);
@@ -35,11 +41,17 @@ class Smoke extends Component {
 		}]);
 		this.origin = glm.vec3(opts.position[0], opts.position[1], opts.position[2]);
 		this.lifetime = opts.lifetime;
+		this.velocity = glm.vec3(opts.velocity[0], opts.velocity[1], opts.velocity[2]);
+		this.up = glm.vec3(opts.up[0], opts.up[1], opts.up[2]);
+		this.scatter = opts.scatter;
+		this.color = glm.vec3(opts.color[0], opts.color[1], opts.color[2])["/"](255);
+		this.opacity = opts.opacity;
+		this.texture = new Texture2D("./assets/" + opts.texture + ".png");
 		for (let i = 0; i != opts.count; ++i) {
 			attrs.push({
 				WorldPos: [this.origin.x, this.origin.y, this.origin.z, 1],
 				Lifetime: [i / opts.count * this.lifetime],
-				Velocity: [0, 0, 1]
+				Velocity: opts.velocity
 			});
 		}
 		this.tao = new TAO(attrs);
@@ -50,10 +62,21 @@ class Smoke extends Component {
 		this.gDt.set(Renderer.dt);
 		this.gOrigin.set(this.origin);
 		this.gLifetime.set(this.lifetime);
-		this.texture.use("Smoke");
+		this.gScatter.set(this.scatter);
+		this.gVelocity.set(this.velocity);
+		this.gColor.set(this.color);
+		this.gUp.set(this.up);
+		this.gOpacity.set(this.opacity);
+		let tex = Texture2D.genChannel();
+		// this.texture.use("Smoke");
+		gl.activeTexture(gl.TEXTURE0 + tex);
+		this.gSmoke.set(tex);
+		gl.bindTexture(gl.TEXTURE_2D, this.texture.handle);
 		this.tao.bind();
 			this.tao.draw();
 		this.tao.unbind();
+		gl.bindTexture(gl.TEXTURE_2D, null);
+		Texture2D.restoreChannel(tex);
 		this.texture.unuse();
 		this.tao.swap();
 	}
@@ -67,8 +90,13 @@ class Smoke extends Component {
 
 	private gDt = Shader.uniform("float", "gDt");
 	private gOrigin = Shader.uniform("vec3", "gOrigin");
+	private gVelocity = Shader.uniform("vec3", "gVelocity");
+	private gUp = Shader.uniform("vec3", "gUp");
 	private gLifetime = Shader.uniform("float", "gLifetime");
-	private texture = new Texture2D("./assets/smoke.png");
+	private gScatter = Shader.uniform("float", "gScatter");
+	private gSmoke = Shader.uniform("int", "gSmoke");
+	private gColor = Shader.uniform("vec3", "gColor");
+	private gOpacity = Shader.uniform("float", "gOpacity");
 }
 
 export {

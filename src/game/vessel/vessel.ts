@@ -6,7 +6,6 @@ import { CameraBase } from "../camera/cameraBase";
 import xhr from "../../util/xhr";
 import { Shader } from "../../gl/shader";
 import { Smoke } from "./smoke";
-import { Track } from "./track";
 import { Renderer } from "../../renderer/renderer";
 
 const m2screen = .1 * .5;
@@ -18,7 +17,7 @@ abstract class VesselBase extends Obj {
 	// protected speed = glm.vec2(1, 0);
 	protected fmaxSpeed: number;
 	protected fspeed: number = 0;
-	protected speedVec = glm.vec2(0, 1);
+	protected fspeedVec = glm.vec2(0, 1);
 	protected fspeedAngle: number = glm.radians(0);
 	protected frudderOrient: number = 0;
 	protected fmaxRudderOrient: number;
@@ -35,7 +34,7 @@ abstract class VesselBase extends Obj {
 	}
 	set speedAngle(degree: number) {
 		this.fspeedAngle = glm.radians(degree);
-		this.speedVec = glm.vec2(Math.cos(this.fspeedAngle), Math.sin(this.fspeedAngle));
+		this.fspeedVec = glm.vec2(Math.cos(this.fspeedAngle), Math.sin(this.fspeedAngle));
 	}
 
 	set speed(knots: number) {
@@ -96,9 +95,9 @@ abstract class VesselBase extends Obj {
 			let theta = - this.fspeed / this.fmaxSpeed * .1 * this.frudderOrient * Renderer.dt;
 			let sinv = Math.sin(theta);
 			let cosv = Math.cos(theta);
-			this.speedVec = glm.vec2(
-				this.speedVec.x * cosv - this.speedVec.y * sinv,
-				this.speedVec.x * sinv + this.speedVec.y * cosv
+			this.fspeedVec = glm.vec2(
+				this.fspeedVec.x * cosv - this.fspeedVec.y * sinv,
+				this.fspeedVec.x * sinv + this.fspeedVec.y * cosv
 			);
 			this.rotate(glm.vec3(0, 0, theta));
 		}
@@ -106,7 +105,7 @@ abstract class VesselBase extends Obj {
 
 	protected updatePosition() {
 		if (this.fspeed) {
-			let diff = glm.vec3(this.speedVec["*"](this.fspeed * Renderer.dt), 0);
+			let diff = glm.vec3(this.fspeedVec["*"](this.fspeed * Renderer.dt), 0);
 			this.translate(diff);
 			if (this.camera) {
 				this.camera.position = this.camera.position["+"](diff);
@@ -128,10 +127,10 @@ abstract class VesselBase extends Obj {
 class Vessel extends VesselBase {
 	private static modelPath = "./assets/";
 	private static shader: Shader;
+	private static properties: { [key: string]: any } = {};
 	private model: Model;
 
 	public smokes: Smoke[] = [];
-	public tracks: Track[] = [];
 	
 	constructor(name: string)
 	constructor(name: string, callback: (v: Vessel) => void);
@@ -140,9 +139,15 @@ class Vessel extends VesselBase {
 
 		this.scale(.5);
 		let self = this;
-		xhr.getAsync(Vessel.modelPath + name + "/property.json", "text", (err: any, data: any) => {
-			self.processProperty(JSON.parse(data));
-		});
+		if (name in Vessel.properties) {
+			self.processProperty(Vessel.properties[name]);
+		} else {
+			xhr.getAsync(Vessel.modelPath + name + "/property.json", "text", (err: any, data: any) => {
+				data = JSON.parse(data);
+				Vessel.properties[name] = data;
+				self.processProperty(data);
+			});
+		}
 		Vessel.shader = Vessel.shader || Shader.create("vessel", false);
 		if (callback == undefined) {
 			this.model = Model.create(Vessel.modelPath + name + "/", name + ".json");
@@ -156,18 +161,13 @@ class Vessel extends VesselBase {
 
 	protected processProperty(data: { [key: string]: any}) {
 		this.fmaxSpeed = m2screen * knots2mpers * data.maxSpeed;
-		this.fmaxRudderOrient = data.maxRudderOrient;
-		this.frudderSpeed = data.rudderSpeed;
+		if ("rudder" in data) {
+			this.fmaxRudderOrient = data.rudder.maxOrient;
+			this.frudderSpeed = data.rudder.speed;
+		}
 		if ("particleGenerator" in data) {
 			for (let emitter of data.particleGenerator) {
-				switch (emitter.type) {
-				case "smoke": {
-					this.smokes.push(new Smoke(emitter, this));
-				} break;
-				case "track": {
-					this.tracks.push(new Track(emitter, this));
-				}
-				} 
+				this.smokes.push(new Smoke(emitter, this));
 			}
 		}
 	}

@@ -5,8 +5,11 @@ uniform mat4 gV;
 uniform mat4 gVP;
 uniform float gDt;
 uniform float gTime;
+uniform float gScatter;
 uniform mediump float gLifetime;
 uniform vec3 gOrigin;
+uniform vec3 gVelocity;
+uniform vec3 gUp;
 uniform sampler2D gGaussian;
 
 in vec4 WorldPos;
@@ -25,8 +28,10 @@ void main()
 	{
 		t -= gLifetime;
 		p = gWorld * vec4(gOrigin, 1);
-		vec3 n = texture(gGaussian, sin(p.yx * 1027.) + vec2(1., .7) * gTime).xyz;
-		Velocity_next = normalize(vec3(n.xy * .3, 1.));
+		vec3 n = gVelocity;
+		vec2 rn = texture(gGaussian, sin(p.yx * 1027.) + vec2(1., .7) * gTime).xy;
+		vec3 v = cross(gUp, n);
+		Velocity_next = (v * rn.x + gUp * rn.y) * gScatter + n;
 	}
 	else
 	{

@@ -36,7 +36,7 @@ class ulist<T> {
 	size(): number { 
 		return this.data.data.length;
 	}
-	visit(callback: (e: ulist_elem<T>) => void) { 
+	visit(callback: (e: ulist_elem<T>) => void) {
 		for (let elem of this.data.data) {
 			callback(elem);
 		}

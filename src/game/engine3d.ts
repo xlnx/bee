@@ -23,7 +23,6 @@ import { Normal } from "../techniques/normal"
 import { TransformFeedback } from "../gl/transformFeedback";
 import { Smoke } from "./vessel/smoke";
 import { Gaussian } from "../techniques/gaussian";
-import { Track } from "./vessel/track";
 
 class Engine3d {
 	private worldCom = new Communicators();
@@ -37,7 +36,6 @@ class Engine3d {
 	private perlinImage = new Texture2D({ component: gl2.RGBA, type: gl.FLOAT, filter: gl.LINEAR, wrap: gl.REPEAT }, 256, 256);
 	private phillipsImage = new Texture2D({ component: gl2.RG, type: gl.FLOAT, filter: gl.NEAREST, wrap: gl.CLAMP_TO_EDGE }, 256, 256);
 	private normalJImage = new Texture2D({ component: gl2.RGBA, type: gl.FLOAT, filter: gl.LINEAR, wrap: gl.REPEAT }, 256, 256);
-	private smokeBallImage = new Texture2D("./assets/smoke.png");
 	private smokeImage = new Texture2D({ component: gl.RGBA, type: gl.UNSIGNED_BYTE });
 	private gaussianImage = new Texture2D({ component: gl2.RGBA, type: gl.FLOAT, filter: gl.NEAREST, wrap: gl.REPEAT });
 
@@ -182,7 +180,6 @@ class Engine3d {
 			gl.depthMask(false);
 			this.transformFeedback.bind();
 			this.gaussianImage.use("Gaussian");
-			this.smokeBallImage.use("SmokeBall");
 			Smoke.bindShader();
 				vessels.visit((e: ulist_elem<Vessel>) => {
 					let parent = e.get();
@@ -191,15 +188,6 @@ class Engine3d {
 					}
 				});
 			Smoke.unbindShader();
-			Track.bindShader();
-				vessels.visit((e: ulist_elem<Vessel>) => {
-					let parent = e.get();
-					for (let s of parent.tracks) {
-						s.render(this.main.viewport);
-					}
-				});
-			Track.unbindShader();
-			this.smokeBallImage.unuse();
 			this.gaussianImage.unuse();
 			this.transformFeedback.unbind();
 			gl.depthMask(true);

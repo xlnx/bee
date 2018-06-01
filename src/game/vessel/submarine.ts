@@ -21,6 +21,12 @@ class Submarine extends Vessel {
 	private frudderState: number = 0;
 	private frudderMiddle: boolean = false;
 
+	private ftorpedoLauncher: any [];
+
+	get torpedoLauncher(): any [] {
+		return this.ftorpedoLauncher;
+	}
+
 	get diveSpeed(): number {
 		return this.fdiveSpeed / m2screen;
 	}
@@ -34,8 +40,9 @@ class Submarine extends Vessel {
 
 	protected processProperty(data: { [key: string]: any}) {
 		super.processProperty(data);
-		this.fmaxDiveSpeed = data.maxDiveSpeed * m2screen;
-		this.fdiveAccelerate = data.diveAccelerate;
+		this.fmaxDiveSpeed = data.dive.maxSpeed * m2screen;
+		this.fdiveAccelerate = data.dive.accelerate;
+		this.ftorpedoLauncher = data.torpedo.launchers;
 	}
 
 	protected diveStop() {
@@ -74,7 +81,7 @@ class Submarine extends Vessel {
 
 	protected updatePosition() {
 		if (this.fdiveSpeed || this.fspeed) {
-			let diff = glm.vec3(this.speedVec["*"](this.fspeed * Renderer.dt), -this.fdiveSpeed * Renderer.dt);
+			let diff = glm.vec3(this.fspeedVec["*"](this.fspeed * Renderer.dt), -this.fdiveSpeed * Renderer.dt);
 			this.translate(diff);
 			if (this.position.z > 0) {
 				this.fdiveSpeed = 0;
