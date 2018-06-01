@@ -36,7 +36,7 @@ class PeriScreen {
 		);
 		this.main = new Rect({
 			left: 0, top: 0, width: w, height: h, 
-			tex: [0, 1, 1, 1, 1, 0.25, 0, 0.25]
+			tex: [0.15, 1, 1.15, 1, 1.15, 0, 0.15, 0]
 		});
 		this.knobs = [
 			new Rect({

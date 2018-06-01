@@ -6,11 +6,15 @@ Koishi chan likes bee. \>w<
 
 ## NDD Clemson
 
-![](docs/refined.png)
+![](docs/particle-smoke.png)
 
-## new filter function && ambient
+## Periscope
 
-![](docs/new-ambient.png)
+![](docs/periscope.jpg)
+
+## Torpedo
+
+![](docs/particle-torpedo.png)
 
 ## Phillips Spectrum
 
@@ -29,10 +33,6 @@ Koishi chan likes bee. \>w<
 ![](docs/fftwave.png)
 
 ![](docs/fftwave2.png)
-
-## Sigmod Filter
-
-![](docs/sigmod-filter.png)
 
 # TODOs
 
@@ -61,7 +61,7 @@ Koishi chan likes bee. \>w<
 > - [X] Filter function
 > - [X] Increase Precision
 - [X] Transform Feedback
-> - [ ] Transform Feedback Usage
+> - [X] Transform Feedback Usage
 - [X] Floating Point Textures
 - [X] Multiple Render Targets - MRT
 
@@ -75,12 +75,13 @@ Koishi chan likes bee. \>w<
 > - [X] Optimize
 > - [X] Normals
 - [ ] AABB
-- [ ] Dynamics
+- [X] Dynamics
 - [ ] Beautiful Splash Screens \>w<
 - [ ] Periscope Blurring
-- [ ] Torpedo / Vessel Tracks
+- [X] Torpedo / Vessel Tracks
+> - [ ] Make Them Pretty
 - [ ] Bow Wave
-- [ ] Froth of Jacobi Determinant
+- [X] Froth of Jacobi Determinant
 - [ ] Seabed
 - [ ] Caustics!!!
 
