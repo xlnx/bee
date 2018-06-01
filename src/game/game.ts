@@ -15,10 +15,16 @@ import { Texture2D } from "../gl/texture";
 import { GaussBlur } from "../techniques/gaussBlur";
 import { Periscope } from "./camera/periscope";
 import { Torpedo } from "./vessel/torpedo";
+import { DeferImage } from "../techniques/deferImage";
+import { PeriScreen } from "./2d/periscreen";
 
 type CameraMode = "observe" | "follow" | "free" | "periscope"
 
-type DisplayMode = "3d" | "6d" | "menu" | "map" | "splash" | "options"
+type DisplayMode = "3d" | "periscope" | "menu" | "map" | "splash" | "options"
+
+function inRect(x: number, y: number, x0: number, y0: number, x1: number, y1: number): boolean {
+	return x >= x0 && x < x1 && y >= y0 && y < y1;
+}
 
 class Game {
 	private renderer = new Renderer(document.body);
@@ -34,6 +40,8 @@ class Game {
 
 	private battleKeys: RendererEvent;
 	private battleKeysUp: RendererEvent;
+	private battleMouses: RendererEvent;
+	private battleMousesUp: RendererEvent;
 	private prevDisplayMode: DisplayMode = undefined;
 	private displayMode: DisplayMode = "menu";
 	private renderOption: boolean = false;
@@ -42,6 +50,8 @@ class Game {
 	private engine3d = new Engine3d();
 	private splash = new Splash("loading.png");
 	private options = new Options();
+	private periscreen = new PeriScreen();
+	private defer = new DeferImage();
 
 	private queryObjects: string[] = [];
 
@@ -75,15 +85,17 @@ class Game {
 	start() {
 		this.renderer.dispatch("render", () => {
 			if (this.inGame && this.displayMode != "options") {
-				this.viewports.periscope.update();
+				let d = this.viewports.periscope.update();
+				this.periscreen.indicatorState(d);
 				this.updateVessels();
 			}
 			const callbacks = {
 				"3d": () => {
 					this.engine3d.render(this.vessels);
 				},
-				"6d": () => { 
-					this.engine3d.render(this.vessels);
+				"periscope": () => { 
+					this.engine3d.render(this.vessels, this.screenBuffer);
+					this.periscreen.render(this.screenBuffer);
 				},
 				"menu": () => {
 					// this.engine3d.render(this.vessels); 
@@ -140,6 +152,8 @@ class Game {
 			self.vessels.push(self.uboat);
 			self.queryObjects.splice(self.queryObjects.indexOf(className), 1);
 			self.checkLoadingFinish();
+			self.viewports.periscope.configureUboat(v);
+			self.periscreen.configureUboat(v);
 		});
 	}
 
@@ -155,7 +169,6 @@ class Game {
 			let u = glm.vec4(x.orient[0], x.orient[1], x.orient[2], 0);
 			v.orient = glm.normalize(m["*"](u).xy);
 			self.vessels.push(v);
-			console.log(self.vessels);
 		});
 	}
 
@@ -166,7 +179,7 @@ class Game {
 	}
 	
 	setMode(mode: string) {
-		if (this.displayMode == "6d" && mode != "periscope") {
+		if (this.displayMode == "periscope" && mode != "periscope") {
 			this.viewports.periscope.stop();
 		}
 		switch (mode) {
@@ -187,7 +200,7 @@ class Game {
 				this.engine3d.setCamera(this.viewports.follow);
 			} break;
 			case "periscope": {
-				this.displayMode = "6d"; 
+				this.displayMode = "periscope"; 
 				this.engine3d.setCamera(this.viewports.periscope);
 				this.viewports.periscope.tie(this.uboat);
 			} break;
@@ -203,7 +216,8 @@ class Game {
 		this.queryObjects = [];
 		// this.spawnVessel("torpedo");
 		// this.spawnTorpedo("TII_G7e", 0);
-		// this.spawnVessel("clemson");
+		this.spawnVessel("clemson");
+		// this.spawnVessel("fiji");
 		this.resetUboat("7c");
 
 		Renderer.timescale = 1;
@@ -241,9 +255,6 @@ class Game {
 
 					"z": () => this.spawnTorpedo("TII_G7e", 0),
 
-					",": () => { if (this.displayMode == "6d") this.viewports.periscope.rise(); },
-					".": () => { if (this.displayMode == "6d") this.viewports.periscope.down(); },
-
 					"escape": () => {
 						if (this.displayMode != "options") {
 							this.prevDisplayMode = this.displayMode;
@@ -271,14 +282,33 @@ class Game {
 
 					"a": () => this.uboat.rudderSignal(-1),
 					"s": () => this.uboat.rudderSignal(0),
-					"d": () => this.uboat.rudderSignal(1),
-
-					",": () => { if (this.displayMode == "6d") this.viewports.periscope.stop(); },
-					".": () => { if (this.displayMode == "6d") this.viewports.periscope.stop(); },
+					"d": () => this.uboat.rudderSignal(1)
 				};
 				if (e.key.toLowerCase() in lookup) {
 					lookup[e.key.toLowerCase()] ();
 				}
+			}
+		});
+		this.battleMouses = Renderer.instance.dispatch("mousedown", (e: MouseEvent) => {
+			switch (this.displayMode) {
+				case "periscope": {
+					console.log(e.clientX, e.clientY);
+					if (inRect(e.clientX, e.clientY, 858, 572, 938, 612)) {
+						this.viewports.periscope.rise();
+						this.periscreen.periscopeState(1);
+					} else if (inRect(e.clientX, e.clientY, 858, 612, 938, 652)) {
+						this.viewports.periscope.down();
+						this.periscreen.periscopeState(0);
+					}
+				} break;
+			}
+		});
+		this.battleMousesUp = Renderer.instance.dispatch("mouseup", (e: MouseEvent) => {
+			switch (this.displayMode) {
+				case "periscope": {
+					this.viewports.periscope.stop();
+					this.periscreen.periscopeState(2);
+				} break;
 			}
 		});
 
@@ -293,6 +323,8 @@ class Game {
 		this.uboat = null;
 		this.battleKeys.cancel();
 		this.battleKeysUp.cancel();
+		this.battleMouses.cancel();
+		this.battleMousesUp.cancel();
 	}
 }
 

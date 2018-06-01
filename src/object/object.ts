@@ -51,8 +51,14 @@ class ObjBase {
 		this.P = pos;
 		this.translateModified = true;
 	}
-	rotateIdentity() {
-		this.R = glm.vec3(0, 0, 0);
+	rotateIdentity();
+	rotateIdentity(mask: glm.vec3);
+	rotateIdentity(mask?: glm.vec3) {
+		if (mask) {
+			this.R = this.R["*"](mask);
+		} else {
+			this.R = glm.vec3(0, 0, 0);
+		}
 		this.rotateModified = true;
 	}
 	rotate(angle: glm.vec3) {

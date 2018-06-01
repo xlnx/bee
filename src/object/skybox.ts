@@ -12,7 +12,7 @@ class Skybox extends Obj {
 		super();
 		this.defaultShader = Shader.create("skybox", false);
 		let vertices = new VertexAttrs(["pos3"]);
-		let t = 6e2;
+		let t = 4.2e2;
 		vertices.set("pos3",[
 			-t, -t, -t, -t, -t, t, -t, t, -t, -t, t, t,
 			t, -t, -t, t, -t, t, t, t, -t, t, t, t

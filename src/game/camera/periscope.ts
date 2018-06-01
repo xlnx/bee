@@ -1,26 +1,68 @@
 import { CameraBase } from "./cameraBase";
 import { glm } from "../../util/glm"
-import { Renderer } from "../../renderer/renderer";
+import { Renderer, RendererEvent } from "../../renderer/renderer";
+import { m2screen } from "../vessel/vessel";
+import { Submarine } from "../vessel/submarine";
 
 class Periscope extends CameraBase {
-	private static speed: number = .2;
-	private static maxH: number = 1.;
-	private static minH: number = -1.;
+	private static speed: number = .5 * m2screen;
+	private static maxH: number = 5 * m2screen;
+	private static minH: number = 0.;
+
+	private mousedown: RendererEvent;
+	private mousemove: RendererEvent;
+	private mouseup: RendererEvent;
+
+	private prevx: number = 0;
+	private isDragging: boolean = false;
 
 	private risev: number;
 	private diff: number = 0;
 
+	private parent: Submarine;
+
 	constructor() {
 		super();
-		this.fov = glm.radians(5);
+		this.zNear = 2e-2;
+		this.fzFar = 8e2;
+		// this.fov = glm.radians(5);
 	}
 
 	bind() {
-
+		this.mousemove = Renderer.instance.dispatch("mousemove", (e: MouseEvent) => {
+			if (this.isDragging) {
+				if (Renderer.pause) {
+					this.isDragging = false;
+				} else {
+					let c1 = Renderer.instance.canvas.height / Math.tan(this.ffov/2);
+					let c2 = Renderer.instance.canvas.width;
+					let h = 0.5 * Math.sqrt(c1 * c1 - c2 * c2);
+					let dx1 = e.clientX - Renderer.instance.canvas.width / 2;
+					let dx2 = this.prevx - Renderer.instance.canvas.width / 2;
+					let thetax = Math.atan(dx1/h) - Math.atan(dx2/h);
+					this.rotate(glm.vec3(0, 0, -thetax));
+					this.prevx = e.clientX;
+				}
+			}
+		});
+		this.mouseup = Renderer.instance.dispatch("mouseup", (e: MouseEvent) => {
+			this.isDragging = false;
+		});
+		this.mousedown = Renderer.instance.dispatch("mousedown", (e: MouseEvent) => {
+			if ((e.clientX - 425) * (e.clientX - 425) + (e.clientY - 374) * (e.clientY - 374)
+					<= 325 * 325) {
+				this.prevx = e.clientX;
+				this.isDragging = true;
+			}
+		});
 	}
 
 	unbind() {
-
+		this.mousedown.cancel();
+		this.mouseup.cancel();
+		this.mousemove.cancel();
+		this.prevx = 0;
+		this.isDragging = false;
 	}
 
 	rise() {
@@ -35,7 +77,7 @@ class Periscope extends CameraBase {
 		this.risev = 0;
 	}
 
-	update() {
+	update(): number {
 		if (this.risev) {
 			let d = this.risev * 
 				Periscope.speed * Renderer.dt;
@@ -44,7 +86,9 @@ class Periscope extends CameraBase {
 			this.diff += fix;
 			d += fix;
 			this.translate(glm.vec3(0, 0, d));
+			return d / (Periscope.maxH - Periscope.minH);
 		}
+		return 0;
 	}
 
 	private checkRange(): number { 
@@ -58,8 +102,11 @@ class Periscope extends CameraBase {
 	}
 
 	locate(pos: glm.vec3) {
-		console.log(pos);
-		this.position = pos["+"](this.diff);
+		this.position = pos["+"](this.diff)["+"](glm.vec3(0, m2screen * 3.8, m2screen * 5));
+	}
+
+	configureUboat(uboat: Submarine) {
+		this.parent = uboat;
 	}
 }
 

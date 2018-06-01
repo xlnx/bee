@@ -27,6 +27,9 @@ abstract class VesselBase extends Obj {
 	protected foriginalSpeed: number = 0;
 	protected ftargetSpeed: number = 0;
 
+	protected fjitterAngle: number;
+	protected fjitterCycle: number;
+
 	protected camera: CameraBase = null;
 
 	get speedAngle(): number {
@@ -113,9 +116,15 @@ abstract class VesselBase extends Obj {
 		}
 	}
 
+	protected jitter() {
+		this.rotateIdentity(glm.vec3(1, 0, 1));
+		this.rotate(glm.vec3(0, Math.sin(Renderer.time * this.fjitterCycle) * this.fjitterAngle, 0));
+	}
+
 	update() {
 		// console.log(this);
 		this.updateState();
+		this.jitter();
 		this.updatePosition();
 	}
 	
@@ -161,6 +170,10 @@ class Vessel extends VesselBase {
 
 	protected processProperty(data: { [key: string]: any}) {
 		this.fmaxSpeed = m2screen * knots2mpers * data.maxSpeed;
+		if ("jitter" in data) {
+			this.fjitterAngle = glm.radians(data.jitter.angle);
+			this.fjitterCycle = Math.PI * 2 / data.jitter.cycle;
+		}
 		if ("rudder" in data) {
 			this.fmaxRudderOrient = data.rudder.maxOrient;
 			this.frudderSpeed = data.rudder.speed;

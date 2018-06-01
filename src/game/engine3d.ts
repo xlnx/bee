@@ -82,7 +82,7 @@ class Engine3d {
 		}
 	}
 
-	render(vessels: ulist<Vessel>, target: Texture2D = null) {
+	render(vessels: ulist<Vessel>, target?: Texture2D) {
 		// set gl state
 		gl.clearColor(0, 0, 0, 0);
 		gl.clearDepth(1);
@@ -164,6 +164,8 @@ class Engine3d {
 			gl2.drawBuffers([
 				gl2.COLOR_ATTACHMENT0
 			]);
+			this.offscreen.set(gl2.COLOR_ATTACHMENT1, null);
+			this.offscreen.set(gl2.COLOR_ATTACHMENT2, null);
 
 			gl.clearColor(.0, .0, .0, .0);
 
@@ -191,7 +193,6 @@ class Engine3d {
 			this.gaussianImage.unuse();
 			this.transformFeedback.unbind();
 			gl.depthMask(true);
-
 			gl.disable(gl.BLEND);
 
 		this.main.viewport.unuse();
@@ -201,10 +202,10 @@ class Engine3d {
 		// end world pass
 		gl.disable(gl.DEPTH_TEST);
 		
-		if (target == null) {
+		if (!target) {
 			this.offscreen.unbind();
 		} else {
-			this.offscreen.set(gl.COLOR_ATTACHMENT0, target)
+			this.offscreen.set(gl.COLOR_ATTACHMENT0, target);
 		}
 		
 		this.renderCom.use();
@@ -224,13 +225,13 @@ class Engine3d {
 			this.normalTypeImage.unuse();
 			this.mainImage.unuse();
 
-			// this.debugWindow(this.normalJImage, true, 0);
+			// this.debugWindow(this.normalTypeImage, true, 0);
 			// this.debugWindow(this.perlinImage, true, 0);
 			// this.debugWindow(this.extraImage, false, 2);
 		
 		this.renderCom.unuse();
 
-		if (target != null) {
+		if (target) {
 			this.offscreen.unbind();
 		}
 	}
@@ -249,6 +250,7 @@ class Engine3d {
 		if (normalize) this.decode.render();
 		else this.defer.render();
 		texture.unuse();
+		gl.viewport(0, 0, Renderer.instance.canvas.width, Renderer.instance.canvas.height);
 	}
 
 	setCamera(camera: CameraBase) {

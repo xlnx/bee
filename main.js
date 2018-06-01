@@ -11,7 +11,7 @@ function createWindow () {
   // app.commandLine.appendSwitch('--disable-gpu-vsync')
   // app.commandLine.appendSwitch('--use-gl=desktop')
 
-  mainWindow = new BrowserWindow({width: 1600, height: 900, 'web-preferences': {plugins: true}})
+  mainWindow = new BrowserWindow({width: 1200, height: 900, 'web-preferences': {plugins: true}})
 
   // mainWindow.webContents.openDevTools();
   mainWindow.loadURL(url.format({
