@@ -202,7 +202,6 @@ class Game {
 			case "periscope": {
 				this.displayMode = "periscope"; 
 				this.engine3d.setCamera(this.viewports.periscope);
-				this.viewports.periscope.tie(this.uboat);
 			} break;
 			default: {
 				throw "unknown mode: " + mode;

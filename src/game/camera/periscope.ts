@@ -28,6 +28,20 @@ class Periscope extends CameraBase {
 		// this.fov = glm.radians(5);
 	}
 
+	viewModified() {
+		return true;
+	}
+
+	getView(): glm.mat4 {
+		return super.getView()["*"](this.parent.getSpace());
+	}
+
+	getCameraPosition(): glm.vec3 {
+		// let p = 
+		// console.log(p.array);
+		return this.parent.getTrival()["*"](glm.vec4(super.getCameraPosition(), 1)).xyz;
+	}
+
 	bind() {
 		this.mousemove = Renderer.instance.dispatch("mousemove", (e: MouseEvent) => {
 			if (this.isDragging) {
@@ -102,11 +116,13 @@ class Periscope extends CameraBase {
 	}
 
 	locate(pos: glm.vec3) {
-		this.position = pos["+"](this.diff)["+"](glm.vec3(0, m2screen * 3.8, m2screen * 5));
+
 	}
 
 	configureUboat(uboat: Submarine) {
 		this.parent = uboat;
+		this.diff = 0;
+		this.position = glm.vec3(0, m2screen * 3.8, m2screen * 5);
 	}
 }
 

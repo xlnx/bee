@@ -17,6 +17,8 @@ class ObjBase {
 	private rotateTrans: glm.mat4;
 
 	private trans: glm.mat4;
+	private itrans: glm.mat4;
+	private ntrans: glm.mat4;
 
 	scaleIdentity() {
 		this.S = glm.vec3(1, 1, 1); 
@@ -65,7 +67,7 @@ class ObjBase {
 		this.R["+="](angle);
 		this.rotateModified = true;
 	}
-	getTrans(): glm.mat4 {
+	private updateTrans() {
 		if (this.translateModified || this.scaleModified || this.rotateModified) {
 			if (this.translateModified) {
 				this.translateModified = false;
@@ -101,10 +103,23 @@ class ObjBase {
 					0, 0, 0, 1
 				);
 			}
-			this.trans = this.translateTrans["*"](this.rotateTrans["*"](this.scaleTrans));
+			this.ntrans = this.translateTrans["*"](this.rotateTrans);
+			this.trans = this.ntrans["*"](this.scaleTrans);
+			this.itrans = glm.inverse(this.ntrans);
 		}
+	}
+	getTrans(): glm.mat4 {
+		this.updateTrans();
 		return this.trans;
 	} 
+	getSpace(): glm.mat4 {
+		this.updateTrans();
+		return this.itrans;
+	} 
+	getTrival(): glm.mat4 {
+		this.updateTrans();
+		return this.ntrans;
+	}
 }
 
 export default abstract class Obj extends ObjBase {
