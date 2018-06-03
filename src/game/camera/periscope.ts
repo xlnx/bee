@@ -25,7 +25,7 @@ class Periscope extends CameraBase {
 		super();
 		this.zNear = 2e-2;
 		this.fzFar = 8e2;
-		// this.fov = glm.radians(5);
+		this.fov = glm.radians(28);
 	}
 
 	viewModified() {

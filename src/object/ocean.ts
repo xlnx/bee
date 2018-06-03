@@ -10,10 +10,10 @@ import { VAO, VertexAttrs } from "../gl/vertexAttrs";
 
 class Ocean extends Terrain {
 	constructor() {
-		super(6, 64, 0.02);
+		super(8, 64, 0.005);
 		this.defaultShader = Shader.create("ocean", true);
 		
-		let M = 64, w = 0.02 * (1 << 6), W = w * M / 2;
+		let M = 64, w = 0.005 * (1 << 8), W = w * M / 2;
 		let vertices = new VertexAttrs(["pos2"]);
 		let indices = [];
 		let pos2 = [];

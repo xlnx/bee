@@ -57,6 +57,7 @@ class Game {
 
 	private offscreen = new Offscreen();
 	private gaussBlur = new GaussBlur(5);
+	private worldBuffer = new Texture2D({ component: gl.RGB });
 	private screenBuffer = new Texture2D({ component: gl.RGB });
 
 	constructor() {
@@ -91,11 +92,22 @@ class Game {
 			}
 			const callbacks = {
 				"3d": () => {
-					this.engine3d.render(this.vessels);
+					this.engine3d.render(this.vessels, this.screenBuffer);
+					gl.disable(gl.DEPTH_TEST);
+					this.screenBuffer.use("Image");
+						this.defer.render();
+					this.screenBuffer.unuse();
 				},
 				"periscope": () => { 
-					this.engine3d.render(this.vessels, this.screenBuffer);
-					this.periscreen.render(this.screenBuffer);
+					this.engine3d.render(this.vessels, this.worldBuffer);
+					this.offscreen.bind();
+						this.offscreen.set(gl.COLOR_ATTACHMENT0, this.screenBuffer);
+						this.periscreen.render(this.worldBuffer);
+					this.offscreen.unbind();
+					gl.disable(gl.DEPTH_TEST);
+					this.screenBuffer.use("Image");
+						this.defer.render();
+					this.screenBuffer.unuse();
 				},
 				"menu": () => {
 					// this.engine3d.render(this.vessels); 
@@ -109,7 +121,7 @@ class Game {
 				"options": () => {
 					if (this.renderOption) {
 						this.renderOption = false;
-						this.engine3d.render(this.vessels, this.screenBuffer);
+						// this.engine3d.render(this.vessels, this.worldBuffer);
 						gl.disable(gl.DEPTH_TEST);
 						this.offscreen.bind();
 							this.offscreen.set(gl.COLOR_ATTACHMENT0, this.options.bg);
@@ -291,7 +303,7 @@ class Game {
 		this.battleMouses = Renderer.instance.dispatch("mousedown", (e: MouseEvent) => {
 			switch (this.displayMode) {
 				case "periscope": {
-					console.log(e.clientX, e.clientY);
+					// console.log(e.clientX, e.clientY);
 					if (inRect(e.clientX, e.clientY, 858, 572, 938, 612)) {
 						this.viewports.periscope.rise();
 						this.periscreen.periscopeState(1);
