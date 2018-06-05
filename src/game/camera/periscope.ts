@@ -37,8 +37,6 @@ class Periscope extends CameraBase {
 	}
 
 	getCameraPosition(): glm.vec3 {
-		// let p = 
-		// console.log(p.array);
 		return this.parent.getTrival()["*"](glm.vec4(super.getCameraPosition(), 1)).xyz;
 	}
 
@@ -63,7 +61,7 @@ class Periscope extends CameraBase {
 			this.isDragging = false;
 		});
 		this.mousedown = Renderer.instance.dispatch("mousedown", (e: MouseEvent) => {
-			if ((e.clientX - 425) * (e.clientX - 425) + (e.clientY - 374) * (e.clientY - 374)
+			if ((e.clientX - 425 - 14) * (e.clientX - 425 - 14) + (e.clientY - 374 - 42) * (e.clientY - 374 - 42)
 					<= 325 * 325) {
 				this.prevx = e.clientX;
 				this.isDragging = true;

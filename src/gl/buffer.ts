@@ -78,6 +78,39 @@ class RBO extends BufferBase {
 	}
 }
 
+class PDBO extends BufferBase {
+	constructor() {
+		if (!gl2) {
+			throw "webgl 2.0 is not supported";
+		}
+		super(gl2.createBuffer());
+	}
+	bind() {
+		gl2.bindBuffer(gl2.PIXEL_PACK_BUFFER, this.handle);
+	}
+	unbind() {
+		gl2.bindBuffer(gl2.PIXEL_PACK_BUFFER, null);
+	}
+	data(bytelength: number) {
+		gl.bufferData(gl2.PIXEL_PACK_BUFFER, bytelength, gl2.STATIC_READ);
+	}
+}
+
+class PUBO extends BufferBase {
+	constructor() {
+		if (!gl2) {
+			throw "webgl 2.0 is not supported";
+		}
+		super(gl2.createBuffer());
+	}
+	bind() {
+		gl2.bindBuffer(gl2.PIXEL_UNPACK_BUFFER, this.handle);
+	}
+	unbind() {
+		gl2.bindBuffer(gl2.PIXEL_UNPACK_BUFFER, null);
+	}
+}
+
 class TBO {
 	private handle1;
 	private handle0;
@@ -117,5 +150,7 @@ export {
 	EBO,
 	FBO,
 	RBO,
-	TBO
+	TBO,
+	PUBO,
+	PDBO
 }

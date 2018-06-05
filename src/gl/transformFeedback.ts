@@ -37,13 +37,17 @@ class TAO {
 		this.tbo.unbind();
 	}
 	draw();
-	draw(first: number, count: number); 
-	draw(first: number = undefined, count: number = undefined) {
-		gl2.beginTransformFeedback(gl.POINTS);
+	draw(mode: number);
+	draw(mode: number, first: number, count: number); 
+	draw(mode?: number, first: number = undefined, count: number = undefined) {
+		if (mode == undefined) {
+			mode = gl.POINTS;
+		}
+		gl2.beginTransformFeedback(mode);
 		if (first != undefined) {
-			gl.drawArrays(gl.POINTS, first, count);
+			gl.drawArrays(mode, first, count);
 		} else {
-			gl.drawArrays(gl.POINTS, 0, this.numVertices);
+			gl.drawArrays(mode, 0, this.numVertices);
 		}
 		gl2.endTransformFeedback();
 	}

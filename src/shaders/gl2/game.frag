@@ -13,14 +13,15 @@ uniform mat4 gV;
 uniform mat4 gP;
 
 #define RAYMARCH_MAX_ITER 16
-#define RAYMARCH_ITER_STEP 4e-2
+#define RAYMARCH_ITER_STEP 6e-2
 #define RAYMARCH_EPS .8e-2
 
 
 in vec2 Position0;
 in vec3 Incidence0;
 
-out vec4 FragColor;
+layout (location = 0) out vec4 FragColor;
+layout (location = 1) out float Stencial;
 
 const float whitecapBlend = .1;
 const float attenDist = 20.;
@@ -70,11 +71,15 @@ void main()
 	vec2 uv = Position0;
 	vec2 tex = uv * .5 + .5;
 	vec4 ch = texture(gImage, tex);
+	vec4 nt = texture(gNormalType, tex);
+	vec4 ex = texture(gExtra, tex);
+
 	float h = ch.w;
 	vec4 color = vec4(ch.xyz, 1.);
-	vec4 nt = texture(gNormalType, tex);
 	vec3 n = normalize(nt.xyz);
 	float type = nt.w;
+
+	Stencial = ex.w;
 
 	if (type == 2.)  // sea
 	{   // sea
@@ -83,7 +88,7 @@ void main()
 		vec3 r, t;
 		float R;
 		float whitecap = 0.;
-		vec4 pw = gV * vec4(texture(gExtra, tex).xyz, 1.);
+		vec4 pw = gV * vec4(ex.xyz, 1.);
 		
 		float f = dot(ve, n);
 		if (abs(f) < .03)
@@ -97,8 +102,7 @@ void main()
 
 			R = clamp(FresnelBiasAbove + FresnelScaleAbove * 
 				pow(1. + dot(r, n), FresnelPowerAbove), 0., 1.);
-			whitecap = texture(gExtra, uv * .5 + .5).w *
-				exp(- length(pw) * whitecapBlend);
+			whitecap = ex.w * exp(- length(pw) * whitecapBlend);
 		}
 		else
 		{
@@ -136,6 +140,7 @@ void main()
 
 		color = R * rcolor + (1.0 - R) * tcolor + whitecap;
 		// color = nt.xyzz;
+		Stencial = n.z < 0. ? 0. : 1.;
 	}
 	else if (type == 1.)   // vessel
 	{

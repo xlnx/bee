@@ -26,29 +26,29 @@ class PeriScreen {
 			}), 
 
 			new Rect({
-				left: 1090, top: 582, width: 60, height: 60,
+				left: 1090 + 14, top: 582 + 42, width: 60, height: 60,
 				tex: [0.477, 0.182, 0.528, 0.182, 0.528, 0.131, 0.477, 0.131]
 			}),
 			new Rect({
-				left: 1090 - 109, top: 582, width: 60, height: 60,
+				left: 1090 - 109 + 14, top: 582 + 42, width: 60, height: 60,
 				tex: [0.477, 0.182 + 0.051, 0.528, 0.182 + 0.051, 0.528, 0.131 + 0.051, 0.477, 0.131 + 0.051]
 			})
 		);
 		this.main = new Rect({
 			left: 0, top: 0, width: w, height: h, 
-			tex: [0.15, 1, 1.15, 1, 1.15, 0, 0.15, 0]
+			tex: [0.15, 0.95, 1.15, 0.95, 1.15, -0.05, 0.15, -0.05]
 		});
 		this.knobs = [
 			new Rect({
-				left: 858, top: 572, width: 80, height: 80,
+				left: 858 + 14, top: 572 + 42, width: 80, height: 80,
 				tex: [0.168, 0.103, 0.248, 0.103, 0.248, 0.033, 0.168, 0.033]
 			}),
 			new Rect({
-				left: 858, top: 572, width: 80, height: 80,
+				left: 858 + 14, top: 572 + 42, width: 80, height: 80,
 				tex: [0.168 + 0.086, 0.103, 0.248 + 0.086, 0.103, 0.248 + 0.086, 0.033, 0.168 + 0.086, 0.033]
 			}),
 			new Rect({
-				left: 858, top: 572, width: 80, height: 80,
+				left: 858 + 14, top: 572 + 42, width: 80, height: 80,
 				tex: [0.168 + 0.086 * 2, 0.103, 0.248 + 0.086 * 2, 0.103, 0.248 + 0.086 * 2, 0.033, 0.168 + 0.086 * 2, 0.033]
 			}),
 		];
@@ -62,18 +62,18 @@ class PeriScreen {
 			let dx = 0.04285 * +i;
 			if (uboat.torpedoLauncher[i].orient[1] > 0) {
 				this.launchers.push(new Rect({
-					left: 976 + 49 * iu++, top: 420, width: 47, height: 47,
+					left: 976 + 14 + 49 * iu++, top: 420 + 42, width: 47, height: 47,
 					tex: [0.168 + dx, 0.145, 0.21 + dx, 0.145, 0.21 + dx, 0.104, 0.168 + dx, 0.104]
 				}));
 			} else {
 				this.launchers.push(new Rect({
-					left: 976 + 49 * iv++, top: 420 + 47 + 26, width: 47, height: 47,
+					left: 976 + 14 + 49 * iv++, top: 420 + 47 + 26 + 42, width: 47, height: 47,
 					tex: [0.168 + dx, 0.145, 0.21 + dx, 0.145, 0.21 + dx, 0.104, 0.168 + dx, 0.104]
 				}));
 			}
 		}
 		this.indicator = new Rect({
-			left: 782, top: 508, width: 22, height: 32,
+			left: 780 + 14, top: 500 + 42, width: 22, height: 32,
 			tex: [0.459, 0.031, 0.48, 0.031, 0.48, 0, 0.459, 0]
 		});
 	}

@@ -24,9 +24,9 @@ class Observer extends CameraBase {
 
 	private R = glm.vec3(glm.radians(0), glm.radians(-15), glm.radians(0));
 
-	private dist: number = 4;
-	private minDist: number = 4 * 0.4;
-	private maxDist: number = 4 * 2;
+	private dist: number = 2;
+	private minDist: number = 2 * 1;
+	private maxDist: number = 2 * 2;
 
 	private mousewheel: RendererEvent;
 	private mousemove: RendererEvent;

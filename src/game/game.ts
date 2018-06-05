@@ -44,8 +44,11 @@ class Game {
 	private battleMousesUp: RendererEvent;
 	private prevDisplayMode: DisplayMode = undefined;
 	private displayMode: DisplayMode = "menu";
+	
 	private renderOption: boolean = false;
-	private inGame = false;
+	private inGame: boolean = false;
+	private blurTime: number = 0;
+	private prevr: number = 1;
 
 	private engine3d = new Engine3d();
 	private splash = new Splash("loading.png");
@@ -56,8 +59,9 @@ class Game {
 	private queryObjects: string[] = [];
 
 	private offscreen = new Offscreen();
-	private gaussBlur = new GaussBlur(5);
+	private gaussBlur = new GaussBlur();
 	private worldBuffer = new Texture2D({ component: gl.RGB });
+	private swapBuffer = new Texture2D({ component: gl.RGB });
 	private screenBuffer = new Texture2D({ component: gl.RGB });
 
 	constructor() {
@@ -98,9 +102,20 @@ class Game {
 						this.defer.render();
 					this.screenBuffer.unuse();
 				},
-				"periscope": () => { 
-					this.engine3d.render(this.vessels, this.worldBuffer);
+				"periscope": () => {
+					this.engine3d.render(this.vessels, this.worldBuffer, (r: number) => {
+						if (Math.abs(this.prevr - r) > 0.2) {
+							this.blurTime = 2.5;
+						}
+						this.prevr = r;
+					});
 					this.offscreen.bind();
+						if (this.blurTime > 0) {
+							let t = this.swapBuffer; this.swapBuffer = this.worldBuffer; this.worldBuffer = t;
+							this.gaussBlur.setRadius(8 * Math.sqrt(this.blurTime));
+							this.gaussBlur.render(this.swapBuffer, this.worldBuffer);
+							this.blurTime -= Renderer.dt;
+						}
 						this.offscreen.set(gl.COLOR_ATTACHMENT0, this.screenBuffer);
 						this.periscreen.render(this.worldBuffer);
 					this.offscreen.unbind();
@@ -124,10 +139,8 @@ class Game {
 						// this.engine3d.render(this.vessels, this.worldBuffer);
 						gl.disable(gl.DEPTH_TEST);
 						this.offscreen.bind();
-							this.offscreen.set(gl.COLOR_ATTACHMENT0, this.options.bg);
-							this.screenBuffer.use("Image");
-								this.gaussBlur.render();
-							this.screenBuffer.unuse();
+							this.gaussBlur.setRadius(10);
+							this.gaussBlur.render(this.screenBuffer, this.options.bg);
 						this.offscreen.unbind();
 					}
 					this.options.render();
@@ -304,10 +317,10 @@ class Game {
 			switch (this.displayMode) {
 				case "periscope": {
 					// console.log(e.clientX, e.clientY);
-					if (inRect(e.clientX, e.clientY, 858, 572, 938, 612)) {
+					if (inRect(e.clientX, e.clientY, 858 + 14, 572 + 42, 938 + 14, 612 + 42)) {
 						this.viewports.periscope.rise();
 						this.periscreen.periscopeState(1);
-					} else if (inRect(e.clientX, e.clientY, 858, 612, 938, 652)) {
+					} else if (inRect(e.clientX, e.clientY, 858 + 14, 612 + 42, 938 + 14, 652 + 42)) {
 						this.viewports.periscope.down();
 						this.periscreen.periscopeState(0);
 					}

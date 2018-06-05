@@ -7,6 +7,7 @@ import xhr from "../../util/xhr";
 import { Shader } from "../../gl/shader";
 import { Smoke } from "./smoke";
 import { Renderer } from "../../renderer/renderer";
+import { Foam } from "./foam";
 
 const m2screen = .1 * .5;
 const knots2mpers = 0.514444;
@@ -140,6 +141,7 @@ class Vessel extends VesselBase {
 	private model: Model;
 
 	public smokes: Smoke[] = [];
+	public foam: Foam;
 	
 	constructor(name: string)
 	constructor(name: string, callback: (v: Vessel) => void);
@@ -157,6 +159,11 @@ class Vessel extends VesselBase {
 				self.processProperty(data);
 			});
 		}
+		this.foam = new Foam({
+			lifetime: 5,
+			count: 50,
+			position: [0, -3.1]
+		}, this);
 		Vessel.shader = Vessel.shader || Shader.create("vessel", false);
 		if (callback == undefined) {
 			this.model = Model.create(Vessel.modelPath + name + "/", name + ".json");

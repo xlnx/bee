@@ -49,7 +49,7 @@ class Smoke extends Component {
 		this.texture = new Texture2D("./assets/" + opts.texture + ".png");
 		for (let i = 0; i != opts.count; ++i) {
 			attrs.push({
-				WorldPos: [this.origin.x, this.origin.y, this.origin.z, 1],
+				WorldPos: [1e8, 1e8, 0, 1],
 				Lifetime: [i / opts.count * this.lifetime],
 				Velocity: opts.velocity
 			});
@@ -77,7 +77,6 @@ class Smoke extends Component {
 		this.tao.unbind();
 		gl.bindTexture(gl.TEXTURE_2D, null);
 		Texture2D.restoreChannel(tex);
-		this.texture.unuse();
 		this.tao.swap();
 	}
 	

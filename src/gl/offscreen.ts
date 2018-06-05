@@ -1,5 +1,5 @@
-import { RBO, FBO } from "../gl/buffer";
-import { gl, Renderer } from "../renderer/renderer";
+import { RBO, FBO, PDBO } from "../gl/buffer";
+import { gl, Renderer, ext, gl2 } from "../renderer/renderer";
 import { Texture2D, TextureCube, Texture } from "../gl/texture";
 import { Viewport } from "../gl/viewport";
 import { glm } from "../util/glm"
@@ -54,6 +54,31 @@ class RenderBuffer {
 	}
 }
 
+class PixelRetriver {
+	public readonly type = "pixelRetriever";
+
+	public readonly pbo = new PDBO();
+
+	constructor(public readonly pixels: any) {
+		if (!Renderer.require("WEBGL_get_buffer_sub_data_async")) {
+			throw "extension WEBGL_get_buffer_sub_data_async not supported";
+		}
+		this.pbo.bind();
+		this.pbo.data(pixels.byteLength);
+	}
+	getData() {
+		gl2.getBufferSubData(gl2.PIXEL_PACK_BUFFER, 0, this.pixels, 0, 0);		
+	}
+	getDataAsync(callback: (buffer?) => void) {
+		// console.log(ext.getBufferSubDataAsync);
+		ext["WEBGL_get_buffer_sub_data_async"].getBufferSubDataAsync(gl2.PIXEL_PACK_BUFFER, 0, this.pixels, 0, 0).
+		then((buffer) => {
+			gl.deleteBuffer(this.pbo.handle);
+			callback(buffer);
+		});
+	}
+}
+
 class Offscreen {
 	private static offscreens = [];
 
@@ -102,5 +127,6 @@ class Offscreen {
 
 export {
 	RenderBuffer,
+	PixelRetriver,
 	Offscreen
 }

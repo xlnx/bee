@@ -1,6 +1,7 @@
 const electron = require('electron')
 const app = electron.app
 const BrowserWindow = electron.BrowserWindow
+const Menu = electron.Menu
 
 const path = require('path')
 const url = require('url')
@@ -9,11 +10,20 @@ let mainWindow
 
 function createWindow () {
   // app.commandLine.appendSwitch('--disable-gpu-vsync')
-  // app.commandLine.appendSwitch('--use-gl=desktop')
+  app.commandLine.appendSwitch('--use-gl=desktop')
+  app.commandLine.appendSwitch('--enable-webgl-draft-extensions')
 
-  mainWindow = new BrowserWindow({width: 1200, height: 900, 'web-preferences': {plugins: true}})
-
-  // mainWindow.webContents.openDevTools();
+  Menu.setApplicationMenu(null)
+  mainWindow = new BrowserWindow({
+    width: 1200, 
+    height: 900, 
+    frame: false, 
+    resizable: false,
+    'web-preferences': {
+      plugins: true
+    }
+  })
+  // mainWindow.webContents.openDevTools()
   mainWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'build/index.html'),
     protocol: 'file:',

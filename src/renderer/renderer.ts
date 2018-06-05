@@ -3,6 +3,7 @@ import { Event, EventList } from "./events"
 
 let gl: WebGLRenderingContext
 let gl2: WebGL2RenderingContext
+let ext: { [key: string]: any } = {}
 
 type RendererEventType = "render" | keyof DocumentEventMap
 
@@ -147,12 +148,30 @@ class Renderer {
 
 	static require(exts: string[]): boolean;
 	static require(exts: string): boolean;
-	static require(ext: any): boolean {
-		if (typeof ext == "string") {
-			return !!(Renderer.exts[ext] || (Renderer.exts[ext] = gl.getExtension(ext)));
+	static require(exts: any): boolean {
+		if (typeof exts == "string") {
+			if (!(exts in Renderer.exts)) {
+				if (Renderer.exts[exts] = gl.getExtension(exts)) {
+					ext[exts] = Renderer.exts[exts];
+					// for (let x in Renderer.exts[exts]) {
+					// 	ext[x] = Renderer.exts[exts][x];
+					// }
+				}
+			}
+			return !!Renderer.exts[exts];
 		} else {
-			for (let e of ext) {
-				if (!(Renderer.exts[e] || (Renderer.exts[e] = gl.getExtension(e)))) {
+			for (let e of exts) {
+				if (!(e in Renderer.exts)) {
+					if (Renderer.exts[e] = gl.getExtension(e)) {
+						ext[e] = Renderer.exts[e];
+						// for (let x in Renderer.exts[e]) {
+						// 	ext[x] = Renderer.exts[e][x];
+						// }
+					} else {
+						return false;
+					}
+				}
+				if (!Renderer.exts[e]) {
 					return false;
 				}
 			}
@@ -161,14 +180,15 @@ class Renderer {
 	}
 	require(exts: string[]): boolean;
 	require(exts: string): boolean;
-	require(ext: any): boolean {
-		return Renderer.require(ext);
+	require(exts: any): boolean {
+		return Renderer.require(exts);
 	}
 }
 
 export {
 	gl,
 	gl2,
+	ext,
 	RendererEvent,
 	Renderer
 }
