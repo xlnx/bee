@@ -10,6 +10,8 @@ import { VAO, VertexAttrs } from "../gl/vertexAttrs";
 class AmbientCube {
 	public readonly texture = new TextureCube({ component: gl.RGBA }, 
 		Renderer.instance.canvas.height / 2, Renderer.instance.canvas.height / 2);
+	private viewport = new Viewport(0, 0, 
+		Renderer.instance.canvas.height / 2, Renderer.instance.canvas.height / 2);
 
 	constructor() {
 		let vertices = new VertexAttrs(["pos2"]);
@@ -80,8 +82,6 @@ class AmbientCube {
 	private gTime: Uniform = Shader.uniform("float", "gTime");
 	
 	private shader = Shader.create("ambientCube", false);
-	private viewport = new Viewport(0, 0, 
-		Renderer.instance.canvas.height / 2, Renderer.instance.canvas.height / 2);
 	
 	private static spaceTrans = [
 		glm.mat4( 0, 0, -1, 0, 0, -1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1 ),

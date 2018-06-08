@@ -112,7 +112,7 @@ class Game {
 					this.offscreen.bind();
 						if (this.blurTime > 0) {
 							let t = this.swapBuffer; this.swapBuffer = this.worldBuffer; this.worldBuffer = t;
-							this.gaussBlur.setRadius(8 * Math.sqrt(this.blurTime));
+							this.gaussBlur.setRadius(12 * Math.sqrt(this.blurTime));
 							this.gaussBlur.render(this.swapBuffer, this.worldBuffer);
 							this.blurTime -= Renderer.dt;
 						}
