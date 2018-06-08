@@ -96,9 +96,9 @@ class Engine3d {
 		// reder ambient cube - offscreen
 		this.ambient.render();
 
-		this.gaussianImage.use("Gaussian");
-			this.fftWave.render();
-		this.gaussianImage.unuse();
+		// this.gaussianImage.use("Gaussian");
+		// 	this.fftWave.render();
+		// this.gaussianImage.unuse();
 
 		// render main image into mainImage
 		this.offscreen.bind();
@@ -107,17 +107,17 @@ class Engine3d {
 
 		gl.disable(gl.DEPTH_TEST);
 
-			this.suboffscreen.bind();
+			// this.suboffscreen.bind();
 
-				this.suboffscreen.set(gl.COLOR_ATTACHMENT0, this.perlinImage);
-				this.perlin.render();
+			// 	this.suboffscreen.set(gl.COLOR_ATTACHMENT0, this.perlinImage);
+			// 	this.perlin.render();
 
-				this.suboffscreen.set(gl.COLOR_ATTACHMENT0, this.normalJImage);
-				this.fftWave.texture.use("Displacement");
-				this.normal.render();
-				this.fftWave.texture.unuse();
+			// 	this.suboffscreen.set(gl.COLOR_ATTACHMENT0, this.normalJImage);
+			// 	this.fftWave.texture.use("Displacement");
+			// 	this.normal.render();
+			// 	this.fftWave.texture.unuse();
 
-			this.suboffscreen.unbind();
+			// this.suboffscreen.unbind();
 
 		gl.enable(gl.DEPTH_TEST);
 
@@ -138,29 +138,29 @@ class Engine3d {
 
 			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-			Vessel.bindShader();
-				vessels.visit((e: ulist_elem<Vessel>) => {
-					e.get().render(this.main.viewport);
-				});
-			Vessel.unbindShader();
+			// Vessel.bindShader();
+			// 	vessels.visit((e: ulist_elem<Vessel>) => {
+			// 		e.get().render(this.main.viewport);
+			// 	});
+			// Vessel.unbindShader();
 
-			gl2.drawBuffers([
-				gl2.NONE,
-				gl2.COLOR_ATTACHMENT1, 
-				gl2.COLOR_ATTACHMENT2
-			]);
+			// gl2.drawBuffers([
+			// 	gl2.NONE,
+			// 	gl2.COLOR_ATTACHMENT1, 
+			// 	gl2.COLOR_ATTACHMENT2
+			// ]);
 
-			this.fftWave.texture.use("Displacement");
-			this.normalJImage.use("NormalJ");
-			this.bumpImage.use("Bump");
-			this.perlinImage.use("Perlin");
-			this.ocean.bindShader();
-				this.ocean.render(this.main.viewport);
-			this.ocean.unbindShader();
-			this.perlinImage.unuse();
-			this.bumpImage.unuse();
-			this.normalJImage.unuse();
-			this.fftWave.texture.unuse();
+			// this.fftWave.texture.use("Displacement");
+			// this.normalJImage.use("NormalJ");
+			// this.bumpImage.use("Bump");
+			// this.perlinImage.use("Perlin");
+			// this.ocean.bindShader();
+			// 	this.ocean.render(this.main.viewport);
+			// this.ocean.unbindShader();
+			// this.perlinImage.unuse();
+			// this.bumpImage.unuse();
+			// this.normalJImage.unuse();
+			// this.fftWave.texture.unuse();
 
 			gl2.drawBuffers([
 				gl2.COLOR_ATTACHMENT0,
@@ -174,25 +174,25 @@ class Engine3d {
 			this.skybox.unbindShader();
 			this.ambient.texture.unuse();
 
-			this.offscreen.set(gl2.COLOR_ATTACHMENT0, this.smokeImage);
-			this.offscreen.set(gl2.COLOR_ATTACHMENT1, null);
-			this.offscreen.set(gl2.COLOR_ATTACHMENT2, null);
-			gl.clearColor(.0, .0, .0, .0);
-			gl.clear(gl.COLOR_BUFFER_BIT);
-			gl.enable(gl.BLEND);
-			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-			gl.depthMask(false);
-			this.transformFeedback.bind();
-			this.gaussianImage.use("Gaussian");
-			Smoke.bindShader();
-				vessels.visit((e: ulist_elem<Vessel>) => {
-					let parent = e.get();
-					for (let s of parent.smokes) {
-						s.render(this.main.viewport);
-					}
-				});
-			Smoke.unbindShader();
-			this.gaussianImage.unuse();
+			// this.offscreen.set(gl2.COLOR_ATTACHMENT0, this.smokeImage);
+			// this.offscreen.set(gl2.COLOR_ATTACHMENT1, null);
+			// this.offscreen.set(gl2.COLOR_ATTACHMENT2, null);
+			// gl.clearColor(.0, .0, .0, .0);
+			// gl.clear(gl.COLOR_BUFFER_BIT);
+			// gl.enable(gl.BLEND);
+			// gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+			// gl.depthMask(false);
+			// this.transformFeedback.bind();
+			// this.gaussianImage.use("Gaussian");
+			// Smoke.bindShader();
+			// 	vessels.visit((e: ulist_elem<Vessel>) => {
+			// 		let parent = e.get();
+			// 		for (let s of parent.smokes) {
+			// 			s.render(this.main.viewport);
+			// 		}
+			// 	});
+			// Smoke.unbindShader();
+			// this.gaussianImage.unuse();
 			// this.foamImage.use("Foam");
 			// Foam.bindShader();
 			// 	vessels.visit((e: ulist_elem<Vessel>) => {
@@ -200,9 +200,9 @@ class Engine3d {
 			// 	});
 			// Foam.unbindShader();
 			// this.foamImage.unuse();
-			this.transformFeedback.unbind();
-			gl.depthMask(true);
-			gl.disable(gl.BLEND);
+			// this.transformFeedback.unbind();
+			// gl.depthMask(true);
+			// gl.disable(gl.BLEND);
 
 		this.main.viewport.unuse();
 
@@ -236,25 +236,25 @@ class Engine3d {
 			this.normalTypeImage.unuse();
 			this.mainImage.unuse();
 
-			gl2.drawBuffers([
-				gl.COLOR_ATTACHMENT0
-			]);
+			// gl2.drawBuffers([
+			// 	gl.COLOR_ATTACHMENT0
+			// ]);
 
-			if (sample) {
-				let r = 300, t = 16;
-				gl2.readBuffer(gl2.COLOR_ATTACHMENT1);
-				asyncutil.retrieve(t, (i: number, collect: (data) => void) => {
-					let ret = new PixelRetriver(new Float32Array(1));
-					gl2.readPixels(
-						600 + r*Math.cos(2*Math.PI * i/t), 
-						450 + r*Math.sin(2*Math.PI * i/t), 
-						1, 1, gl2.RED, gl.FLOAT, 0
-					);
-					ret.getDataAsync((buffer) => collect(buffer[0]));
-				}, (samples: any[]) => {
-					let s = 0; for (let x of samples) s += x; sample(s / t);
-				});
-			}
+			// if (sample) {
+			// 	let r = 300, t = 16;
+			// 	gl2.readBuffer(gl2.COLOR_ATTACHMENT1);
+			// 	asyncutil.retrieve(t, (i: number, collect: (data) => void) => {
+			// 		let ret = new PixelRetriver(new Float32Array(1));
+			// 		gl2.readPixels(
+			// 			600 + r*Math.cos(2*Math.PI * i/t), 
+			// 			450 + r*Math.sin(2*Math.PI * i/t), 
+			// 			1, 1, gl2.RED, gl.FLOAT, 0
+			// 		);
+			// 		ret.getDataAsync((buffer) => collect(buffer[0]));
+			// 	}, (samples: any[]) => {
+			// 		let s = 0; for (let x of samples) s += x; sample(s / t);
+			// 	});
+			// }
 			
 			this.offscreen.set(gl2.COLOR_ATTACHMENT1, null);
 

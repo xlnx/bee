@@ -208,8 +208,11 @@ void main()
 		// vec2 p = -1.0 + 2.0*q;
 		// p.x *= iResolution.x / iResolution.y;
 		// float view_coef = 0.8;
-		// if (p.y < 0.0)
+
+		// if (sun.y < 0.0)
 		// {
+		// 	FragColor = vec4(sun * .5 + .5, 1.);
+		// 	// vec4(1.);
 		// 	return;
 		// }
 
