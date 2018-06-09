@@ -16,6 +16,9 @@ uniform mat4 gP;
 #define RAYMARCH_ITER_STEP 6e-2
 #define RAYMARCH_EPS .8e-2
 
+#define REFLECT_Z_EPS 1e-2
+#define CAMERA_Z_EPS 5e-2
+
 
 in vec2 Position0;
 in vec3 Incidence0;
@@ -95,7 +98,8 @@ void main()
 		{
 			f = sign(gCameraWorldPos.z);
 		}
-		if (f > 0.)
+		if (gCameraWorldPos.z > CAMERA_Z_EPS || 
+			gCameraWorldPos.z > -CAMERA_Z_EPS && f > 0.)
 		{
 			r = reflect(-ve, n); r.z = abs(r.z);
 			t = refract(-ve, n, 1.0 / 1.33);
@@ -125,7 +129,8 @@ void main()
 		}
 		else
 		{
-			rcolor = texture(gAmbient, r) * 1.2;
+			if (abs(r.z) < REFLECT_Z_EPS) r.z = sign(r.z) * REFLECT_Z_EPS;
+			rcolor = texture(gAmbient, r);// * 1.2;
 		}
 
 		// if (R < 1. - FresnelStep && gCameraWorldPos.z < 0. &&
@@ -139,6 +144,7 @@ void main()
 		}
 
 		color = R * rcolor + (1.0 - R) * tcolor + whitecap;
+		// color = vec4(n * .5 + .5, 1.);
 		// color = nt.xyzz;
 		Stencial = n.z < 0. ? 0. : 1.;
 	}
