@@ -44,6 +44,7 @@ const float FresnelPowerBelow = -48.;
 const float FresnelScaleBelow = 2e10;
 
 const vec4 waterSurface = vec4(.1, .15, .2, 1.);
+const vec4 shallowWaterColor = vec4(.24, .36, .43, 1.);
 
 bool RaymarchVessel(vec2 uv, vec4 pw, vec3 dir, out vec3 rgb)
 {
@@ -144,6 +145,10 @@ void main()
 		}
 
 		color = R * rcolor + (1.0 - R) * tcolor + whitecap;
+		if (gCameraWorldPos.z < 0.)
+		{
+			color = mix(color, shallowWaterColor, clamp(-pw.z * 1.2e-1, 0., 1.));
+		}
 		// color = vec4(n * .5 + .5, 1.);
 		// color = nt.xyzz;
 		Stencial = n.z < 0. ? 0. : 1.;
