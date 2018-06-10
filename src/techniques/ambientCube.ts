@@ -12,6 +12,7 @@ class AmbientCube {
 		Renderer.instance.canvas.height / 2, Renderer.instance.canvas.height / 2);
 	private viewport = new Viewport(0, 0, 
 		Renderer.instance.canvas.height / 2, Renderer.instance.canvas.height / 2);
+	private flightDir: glm.vec3;
 
 	constructor() {
 		let vertices = new VertexAttrs(["pos2"]);
@@ -49,6 +50,7 @@ class AmbientCube {
 
 							this.gTime.set(Renderer.time);
 							this.gSunPos.set(glm.vec3(Math.sin(alpha), 0, Math.cos(alpha)));
+							this.flightDir = glm.vec3(-Math.sin(alpha), 0, -Math.cos(alpha));
 
 							// for (let i = 0; i != 6; ++i) {
 							for (let i = prevRenderFace; i != Math.floor(this.currRenderFace); ++i) {
@@ -68,6 +70,10 @@ class AmbientCube {
 		}
 
 		this.currRenderFace %= 6;
+	}
+
+	get lightDir(): glm.vec3 {
+		return this.flightDir;
 	}
 
 	private offscreen = new Offscreen();
@@ -92,7 +98,7 @@ class AmbientCube {
 		glm.mat4( -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, -1, 1 )
 	];
 
-	private dayScale: number = 24 * 5.; //24;
+	private dayScale: number = 24;
 }
 
 export {

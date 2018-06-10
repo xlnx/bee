@@ -227,6 +227,7 @@ class Engine3d {
 			this.ambient.texture.use("Ambient");
 			this.smokeImage.use("Smoke");
 
+				this.main.setLightDir(this.ambient.lightDir);
 				this.main.render();
 				// this.uv.render();
 

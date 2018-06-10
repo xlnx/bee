@@ -13,14 +13,22 @@ class GameRenderer extends PostProcess {
 		this.gV.set(this.viewport.getView());
 		this.gIVP.set(glm.inverse(this.viewport.getTrans()));
 		this.gCameraWorldPos.set(this.viewport.getCameraPosition());
+		this.gLightDir.set(this.lightDir);
+	}
+
+	setLightDir(dir: glm.vec3) {
+		this.lightDir = dir;
 	}
 
 	private gP = Shader.uniform("mat4", "gP");
 	private gV = Shader.uniform("mat4", "gV");
 	private gIVP = Shader.uniform("mat4", "gIVP");
 	private gCameraWorldPos = Shader.uniform("vec3", "gCameraWorldPos");
+	private gLightDir = Shader.uniform("vec3", "gLightDir");
 
 	public viewport: CameraBase = null;
+
+	private lightDir: glm.vec3;
 }
 
 export {

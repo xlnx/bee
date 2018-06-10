@@ -8,6 +8,7 @@ uniform sampler2D gExtra;
 uniform sampler2D gSmoke;
 uniform samplerCube gAmbient;
 
+uniform vec3 gLightDir;
 uniform vec3 gCameraWorldPos;
 uniform mat4 gV;
 uniform mat4 gP;
@@ -19,6 +20,7 @@ uniform mat4 gP;
 #define REFLECT_Z_EPS 1e-2
 #define CAMERA_Z_EPS 5e-2
 
+#define PI_2 (3.141592654 * .5)
 
 in vec2 Position0;
 in vec3 Incidence0;
@@ -27,11 +29,7 @@ layout (location = 0) out vec4 FragColor;
 layout (location = 1) out float Stencial;
 
 const float whitecapBlend = .1;
-const float attenDist = 20.;
-
-// sampled from sh3
-const vec4 waterColor = vec4(.24, .36, .43, 1.);
-// const vec3 
+const float waterAtten = 2.5e-1;
 
 const float FresnelStep = .08;
 
@@ -44,7 +42,9 @@ const float FresnelPowerBelow = -48.;
 const float FresnelScaleBelow = 2e10;
 
 const vec4 waterSurface = vec4(.1, .15, .2, 1.);
+
 const vec4 shallowWaterColor = vec4(.24, .36, .43, 1.);
+const vec4 shallowWaterColorNight = vec4(.23, .28, .33, 1.);
 
 bool RaymarchVessel(vec2 uv, vec4 pw, vec3 dir, out vec3 rgb)
 {
@@ -82,6 +82,8 @@ void main()
 	vec4 color = vec4(ch.xyz, 1.);
 	vec3 n = normalize(nt.xyz);
 	float type = nt.w;
+
+	float ang = dot(-gLightDir, vec3(0, 0, 1));
 
 	Stencial = ex.w;
 
@@ -147,7 +149,8 @@ void main()
 		color = R * rcolor + (1.0 - R) * tcolor + whitecap;
 		if (gCameraWorldPos.z < 0.)
 		{
-			color = mix(color, shallowWaterColor, clamp(-pw.z * 1.2e-1, 0., 1.));
+			vec4 mixColor = mix(shallowWaterColorNight, shallowWaterColor, ang);
+			color = mix(color, mixColor, clamp(-pw.z * waterAtten, 0., 1.));
 		}
 		// color = vec4(n * .5 + .5, 1.);
 		// color = nt.xyzz;
@@ -158,16 +161,26 @@ void main()
 		vec3 ve = Incidence0;
 		vec3 r = reflect(-ve, n);
 		
-		const float c1 = 0.1;
-		vec4 amb = c1 * texture(gAmbient, r);
+		// const float c1 = .65;
+		const float difuamp = .85;
+		const float specamp = .3;
+		const float specpow = 5.;
 
-		if (gCameraWorldPos.z > 0.)
+		float c1 = sin(ang * PI_2) * difuamp;
+		vec4 amb = texture(gAmbient, r.z <= 0. ? r * vec3(1, 1, -1) : r);
+
+		float difu = max(dot(n, -gLightDir), 0.);
+
+		vec3 hv = (ve + -gLightDir) * .5;
+		float spec = specamp * pow(dot(hv, n), specpow);
+
+		color = mix(.25 * color, color, (.95 - c1) * difu + c1 * (amb.x + amb.y + amb.z) / 3.) + spec;
+
+
+		if (gCameraWorldPos.z < 0.)
 		{
-			color = amb + mix(color, amb, .2);
-		}
-		else
-		{
-			color = mix(color, waterColor, clamp(abs(h) / attenDist, .5, 1.));
+			vec4 mixColor = mix(shallowWaterColorNight, shallowWaterColor, ang);
+			color = mix(color, mixColor, clamp(sqrt((abs(h) + 1.) * waterAtten) - .5, .5, 1.));
 		}
 	}
 	vec4 smoke = texture(gSmoke, tex);

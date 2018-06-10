@@ -14,6 +14,9 @@ const float PI = 3.14159;
 const vec4 shallowWaterColor = vec4(.24, .36, .43, 1.);
 const vec4 deepWaterColor = vec4(.11, .17, .20, 1.);
 
+const vec4 shallowWaterColorNight = vec4(.23, .28, .33, 1.);
+const vec4 deepWaterColorNight = vec4(.08, .14, .16, 1.);
+
 vec3 hsv2rgb(vec3 c)
 {
 	vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
@@ -23,9 +26,9 @@ vec3 hsv2rgb(vec3 c)
 
 void main()
 {
+	vec3 sun = normalize(gSunPos);
 	if (WorldPos0.z > 0.0) 
 	{
-		vec3 sun = normalize(gSunPos);
 		vec3 p = normalize(WorldPos0);
 
 		vec3 color = vec3(0, 0, 0);
@@ -52,7 +55,10 @@ void main()
 	}
 	else
 	{
-		FragColor = mix(shallowWaterColor, deepWaterColor, clamp(-WorldPos0.z * 1.2, 0., 1.));
+		float ang = dot(sun, vec3(0, 0, 1));
+		vec4 dayColor = mix(shallowWaterColor, deepWaterColor, clamp(-WorldPos0.z * 1.2, 0., 1.));
+		vec4 nightColor = mix(shallowWaterColorNight, deepWaterColorNight, clamp(-WorldPos0.z * 1.2, 0., 1.));
+		FragColor = mix(nightColor, dayColor, ang);
 	}
 }
 
