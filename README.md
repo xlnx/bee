@@ -4,17 +4,23 @@ Koishi chan likes bee. \>w<
 
 # Img
 
-## NDD Clemson
+## NDD Clemson & North Atlantic
 
-![](docs/particle-smoke.png)
+![](docs/metal.png)
+
+![](docs/ambient.png)
 
 ## Periscope
 
 ![](docs/periscope.jpg)
 
-## Torpedo
+![](docs/explosion.png)
 
-![](docs/particle-torpedo.png)
+## Underwater
+
+![](docs/underwater.png)
+
+![](docs/gradient.png)
 
 ## Phillips Spectrum
 
@@ -77,7 +83,7 @@ Koishi chan likes bee. \>w<
 - [ ] AABB
 - [X] Dynamics
 - [ ] Beautiful Splash Screens \>w<
-- [ ] Periscope Blurring
+- [X] Periscope Blurring
 - [X] Torpedo / Vessel Tracks
 > - [ ] Make Them Pretty
 - [ ] Bow Wave
@@ -85,4 +91,4 @@ Koishi chan likes bee. \>w<
 - [ ] Seabed
 - [ ] Caustics!!!
 
-- [X] 60 FPS
+- [ ] 60 FPS

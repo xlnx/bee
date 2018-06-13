@@ -196,10 +196,10 @@ class Engine3d {
 				});
 			Smoke.unbindShader();
 
-			Explode.bindShader();
-				this.explode.setLightDir(this.ambient.lightDir);
-				this.explode.render(this.main.viewport);
-			Explode.unbindShader();
+			// Explode.bindShader();
+			// 	this.explode.setLightDir(this.ambient.lightDir);
+			// 	this.explode.render(this.main.viewport);
+			// Explode.unbindShader();
 			this.gaussianImage.unuse();
 
 			// this.foamImage.use("Foam");
