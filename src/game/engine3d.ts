@@ -26,6 +26,7 @@ import { Gaussian } from "../techniques/gaussian";
 import { Foam } from "./vessel/foam";
 import { PDBO } from "../gl/buffer";
 import asyncutil from "../util/async";
+import { Explode } from "./vessel/explode";
 
 class Engine3d {
 	private worldCom = new Communicators();
@@ -66,6 +67,8 @@ class Engine3d {
 
 	private skybox = new Skybox();
 	public readonly ocean = new Ocean();
+
+	private explode = new Explode(glm.vec2(0, 0));
 
 	constructor() {
 		gl.disable(gl.DEPTH_TEST);
@@ -180,7 +183,7 @@ class Engine3d {
 			gl.clearColor(.0, .0, .0, .0);
 			gl.clear(gl.COLOR_BUFFER_BIT);
 			gl.enable(gl.BLEND);
-			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+			gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
 			gl.depthMask(false);
 			this.transformFeedback.bind();
 			this.gaussianImage.use("Gaussian");
@@ -192,7 +195,13 @@ class Engine3d {
 					}
 				});
 			Smoke.unbindShader();
+
+			Explode.bindShader();
+				this.explode.setLightDir(this.ambient.lightDir);
+				this.explode.render(this.main.viewport);
+			Explode.unbindShader();
 			this.gaussianImage.unuse();
+
 			// this.foamImage.use("Foam");
 			// Foam.bindShader();
 			// 	vessels.visit((e: ulist_elem<Vessel>) => {
