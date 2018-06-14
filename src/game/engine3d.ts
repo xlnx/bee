@@ -196,7 +196,9 @@ class Engine3d {
 
 			Explode.bindShader();
 				explodes.visit((e: ulist_elem<Explode>) => {
-					e.get().render(this.main.viewport);
+					let f = e.get();
+					f.setLightDir(this.ambient.lightDir);
+					f.render(this.main.viewport);
 				});
 			Explode.unbindShader();
 			this.gaussianImage.unuse();

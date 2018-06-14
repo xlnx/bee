@@ -1,6 +1,6 @@
 import { glm } from "../../util/glm";
 import Obj from "../../object/object";
-import { Viewport } from "../../gl/viewport";
+import { Viewport, PerspectiveViewport } from "../../gl/viewport";
 import { Shader } from "../../gl/shader";
 import { TAO, TransformAttrs } from "../../gl/transformFeedback";
 import { gl, Renderer } from "../../renderer/renderer";
@@ -10,10 +10,10 @@ class Explode extends Obj {
 
 	private tao: TAO;
 	private pos: glm.vec3;
-	private speed: number = 1.8;
+	private speed: number = 2.0;
 	private lightdir: glm.vec3;
-	private lifetime: number = 13;
-	private time: number = 13 - 0.1;
+	private lifetime: number = 14;
+	private time: number = 14 - 0.1;
 	
 
 	constructor(position: glm.vec2) {
@@ -57,7 +57,7 @@ class Explode extends Obj {
 			size: 1
 		}]);
 		this.pos = glm.vec3(position, 0.01);
-		let ntracks = 8;
+		let ntracks = 16;
 		let nparticles = 10;
 		for (let i = 0; i != ntracks; ++i) {
 			for (let j = 0; j != nparticles; ++j) {
@@ -86,7 +86,7 @@ class Explode extends Obj {
 		this.gLifetime.set(this.lifetime);
 		this.gSpeed.set(this.speed);
 		this.gLightDir.set(this.lightdir);
-		this.gIVP.set(glm.inverse(viewport.getTrans()));
+		this.gIP.set(glm.inverse((<PerspectiveViewport>viewport).getPers()));
 		this.tao.bind();
 			this.tao.draw();
 		this.tao.unbind();
@@ -110,7 +110,7 @@ class Explode extends Obj {
 	private gLifetime = Shader.uniform("float", "gLifetime");
 	private gSpeed = Shader.uniform("float", "gSpeed");
 	private gLightDir = Shader.uniform("vec3", "gLightDir");
-	private gIVP = Shader.uniform("mat4", "gIVP");
+	private gIP = Shader.uniform("mat4", "gIP");
 }
 
 export {

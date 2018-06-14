@@ -1,10 +1,9 @@
 #version 300 es
 
 uniform mat4 gWorld;
-uniform mat4 gV;
-uniform mediump mat4 gVP;
+uniform mediump mat4 gV;
+uniform mat4 gVP;
 uniform float gDt;
-uniform float gTime;
 
 uniform mediump float gLifetime;
 uniform vec3 gOrigin;

@@ -41,7 +41,8 @@ class Smoke extends Component {
 		}]);
 		this.origin = glm.vec3(opts.position[0], opts.position[1], opts.position[2]);
 		this.lifetime = opts.lifetime;
-		this.velocity = glm.vec3(opts.velocity[0], opts.velocity[1], opts.velocity[2]);
+		this.velocity = parent.getTrans()["*"](
+				glm.vec4(opts.velocity[0], opts.velocity[1], opts.velocity[2], 0)).xyz;
 		this.up = glm.vec3(opts.up[0], opts.up[1], opts.up[2]);
 		this.scatter = opts.scatter;
 		this.color = glm.vec3(opts.color[0], opts.color[1], opts.color[2])["/"](255);
