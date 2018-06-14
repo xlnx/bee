@@ -80,7 +80,7 @@ Koishi chan likes bee. \>w<
 > - [X] FFT Waves
 > - [X] Optimize
 > - [X] Normals
-- [ ] AABB
+- [X] AABB
 - [X] Dynamics
 - [ ] Beautiful Splash Screens \>w<
 - [X] Periscope Blurring
