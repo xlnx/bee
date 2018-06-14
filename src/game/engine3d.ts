@@ -8,7 +8,7 @@ import { PerlinWave } from "../techniques/perlinWave";
 import { AmbientCube } from "../techniques/ambientCube";
 import { TestScreen } from "../techniques/offscreenTest";
 import { Skybox } from "../object/skybox";
-import { Communicators } from "../gl/communicator";
+import { Communicators, Communicator } from "../gl/communicator";
 import { GameRenderer } from "./render";
 import { Vessel } from "./vessel/vessel";
 import { Shader } from "../gl/shader";
@@ -29,8 +29,8 @@ import asyncutil from "../util/async";
 import { Explode } from "./vessel/explode";
 
 class Engine3d {
-	private worldCom = new Communicators();
-	private renderCom = new Communicators();
+	private communicators = new Communicators();
+	private global = new Communicator("Global", false);
 	
 	private mainImage = new Texture2D({ component: gl.RGBA, type: gl.FLOAT });
 	private bumpImage = new Texture2D("./assets/bump.jpg");
@@ -84,6 +84,14 @@ class Engine3d {
 			this.gaussian.render();
 		this.offscreen.unbind();
 
+		this.global.init({
+			LightDir: {
+				type: "vec3",
+				init: glm.vec3(0, 0, 1)
+			}
+		});
+		this.communicators.add(this.global);
+
 		if (!gl2) {
 			throw "webgl 2.0 required.";
 		}
@@ -122,7 +130,8 @@ class Engine3d {
 
 		gl.enable(gl.DEPTH_TEST);
 
-		this.worldCom.use();
+		this.communicators.use();
+		this.global.set("LightDir", this.ambient.lightDir);
 
 		this.main.viewport.use();
 
@@ -197,13 +206,10 @@ class Engine3d {
 			Explode.bindShader();
 				explodes.visit((e: ulist_elem<Explode>) => {
 					let f = e.get();
-					f.setLightDir(this.ambient.lightDir);
 					f.render(this.main.viewport);
 				});
 			Explode.unbindShader();
 			this.gaussianImage.unuse();
-			// 	this.explode.setLightDir(this.ambient.lightDir);
-			// 	this.explode.render(this.main.viewport);
 
 			// this.foamImage.use("Foam");
 			// Foam.bindShader();
@@ -218,12 +224,8 @@ class Engine3d {
 
 		this.main.viewport.unuse();
 
-		this.worldCom.unuse();
-
 		// end world pass
 		gl.disable(gl.DEPTH_TEST);
-		
-		this.renderCom.use();
 			
 			this.offscreen.set(gl.COLOR_ATTACHMENT0, target);
 			this.offscreen.set(gl2.COLOR_ATTACHMENT1, this.stencialBuffer);
@@ -239,7 +241,6 @@ class Engine3d {
 			this.ambient.texture.use("Ambient");
 			this.smokeImage.use("Smoke");
 
-				this.main.setLightDir(this.ambient.lightDir);
 				this.main.render();
 				// this.uv.render();
 
@@ -275,7 +276,7 @@ class Engine3d {
 			// this.debugWindow(this.normalTypeImage, true, 1);
 			// this.debugWindow(this.extraImage, false, 2);
 		
-		this.renderCom.unuse();
+		this.communicators.unuse();
 		this.offscreen.unbind();
 	}
 

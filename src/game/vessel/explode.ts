@@ -11,7 +11,6 @@ class Explode extends Obj {
 	private tao: TAO;
 	private pos: glm.vec3;
 	private speed: number = 2.0;
-	private lightdir: glm.vec3;
 	private lifetime: number = 14;
 	private time: number = 14 - 0.1;
 	
@@ -74,10 +73,6 @@ class Explode extends Obj {
 		}
 		this.tao = new TAO(attrs);
 	}
-
-	setLightDir(dir: glm.vec3) {
-		this.lightdir = dir;
-	}
 	
 	render(viewport: Viewport) {
 		this.setBasicUniforms(viewport);
@@ -85,7 +80,6 @@ class Explode extends Obj {
 		this.gOrigin.set(this.pos);
 		this.gLifetime.set(this.lifetime);
 		this.gSpeed.set(this.speed);
-		this.gLightDir.set(this.lightdir);
 		this.gIP.set(glm.inverse((<PerspectiveViewport>viewport).getPers()));
 		this.tao.bind();
 			this.tao.draw();
@@ -109,7 +103,6 @@ class Explode extends Obj {
 	private gOrigin = Shader.uniform("vec3", "gOrigin");
 	private gLifetime = Shader.uniform("float", "gLifetime");
 	private gSpeed = Shader.uniform("float", "gSpeed");
-	private gLightDir = Shader.uniform("vec3", "gLightDir");
 	private gIP = Shader.uniform("mat4", "gIP");
 }
 

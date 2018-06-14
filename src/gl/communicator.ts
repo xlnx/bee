@@ -47,7 +47,7 @@ class Communicator {
 			throw "communicator key does not match any: " + key;
 		}
 	}
-	protected init(uniforms: { [name: string]: { 
+	init(uniforms: { [name: string]: { 
 			type: UniformType, 
 			init: any, 
 			set?: (value: any) => any } 

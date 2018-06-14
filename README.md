@@ -82,6 +82,7 @@ Koishi chan likes bee. \>w<
 > - [X] Normals
 - [X] AABB
 - [X] Dynamics
+- [X] Explosion
 - [ ] Beautiful Splash Screens \>w<
 - [X] Periscope Blurring
 - [X] Torpedo / Vessel Tracks

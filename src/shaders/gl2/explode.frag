@@ -95,7 +95,7 @@ void main()
 	float amb = .3;
 	FragColor = //vec4(vi * .5 + .5, 1);
 	InstanceId_next == 9. || InstanceId_next < 3. ? 
-	vec4(fire, den)
+	vec4((difu + amb) * fire, den)
 	:
 	vec4((difu + amb) * water, den);
 	// vec4((difu + amb) * water, den);
