@@ -27,6 +27,11 @@ class Torpedo extends Vessel {
 	get lifetime(): number {
 		return this.flifeTime;
 	}
+
+	checkRange(): boolean {
+		this.flifeTime -= Renderer.dt;
+		return this.flifeTime > 0;
+	}
 }
 
 export {

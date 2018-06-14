@@ -10,9 +10,11 @@ class Explode extends Obj {
 
 	private tao: TAO;
 	private pos: glm.vec3;
-	private lifetime: number = 9;
 	private speed: number = 1.8;
 	private lightdir: glm.vec3;
+	private lifetime: number = 9;
+	private time: number = 9;
+	
 
 	constructor(position: glm.vec2) {
 		super();
@@ -89,6 +91,11 @@ class Explode extends Obj {
 			this.tao.draw();
 		this.tao.unbind();
 		this.tao.swap();
+	}
+
+	checkRange(): boolean {
+		this.time -= Renderer.dt;
+		return this.time > 0;
 	}
 
 	static bindShader() {

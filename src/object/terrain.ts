@@ -8,8 +8,6 @@ import { gl } from "../renderer/renderer";
 abstract class Terrain extends Obj {
 	protected mesh: VAO;
 
-	public readonly isTerrain = true;
-
 	constructor(C: number, M: number, w0: number) {
 		super();
 		let vertices = new VertexAttrs(["pos2"]);

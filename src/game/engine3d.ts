@@ -68,8 +68,6 @@ class Engine3d {
 	private skybox = new Skybox();
 	public readonly ocean = new Ocean();
 
-	private explode = new Explode(glm.vec2(0, 0));
-
 	constructor() {
 		gl.disable(gl.DEPTH_TEST);
 		gl.viewport(0, 0, this.phillipsImage.width, this.phillipsImage.height);
@@ -91,7 +89,7 @@ class Engine3d {
 		}
 	}
 
-	render(vessels: ulist<Vessel>, target: Texture2D, sample?: (r: number) => void) {
+	render(vessels: ulist<Vessel>, explodes: ulist<Explode>, target: Texture2D, sample?: (r: number) => void) {
 		// set gl state
 		gl.clearColor(0, 0, 0, 0);
 		gl.clearDepth(1);
@@ -196,11 +194,14 @@ class Engine3d {
 				});
 			Smoke.unbindShader();
 
-			// Explode.bindShader();
+			Explode.bindShader();
+				explodes.visit((e: ulist_elem<Explode>) => {
+					e.get().render(this.main.viewport);
+				});
+			Explode.unbindShader();
+			this.gaussianImage.unuse();
 			// 	this.explode.setLightDir(this.ambient.lightDir);
 			// 	this.explode.render(this.main.viewport);
-			// Explode.unbindShader();
-			this.gaussianImage.unuse();
 
 			// this.foamImage.use("Foam");
 			// Foam.bindShader();

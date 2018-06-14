@@ -17,6 +17,7 @@ import { Periscope } from "./camera/periscope";
 import { Torpedo } from "./vessel/torpedo";
 import { DeferImage } from "../techniques/deferImage";
 import { PeriScreen } from "./2d/periscreen";
+import { Explode } from "./vessel/explode";
 
 type CameraMode = "observe" | "follow" | "free" | "periscope"
 
@@ -36,6 +37,7 @@ class Game {
 	};
 
 	private vessels = new ulist<Vessel>();
+	private explodes = new ulist<Explode>();
 	private uboat: Submarine;
 
 	private battleKeys: RendererEvent;
@@ -92,18 +94,23 @@ class Game {
 			if (this.inGame && this.displayMode != "options") {
 				let d = this.viewports.periscope.update();
 				this.periscreen.indicatorState(d);
+				this.explodes.visit((e: ulist_elem<Explode>) => {
+					if (!e.get().checkRange()) {
+						e.remove();
+					}
+				});
 				this.updateVessels();
 			}
 			const callbacks = {
 				"3d": () => {
-					this.engine3d.render(this.vessels, this.screenBuffer);
+					this.engine3d.render(this.vessels, this.explodes, this.screenBuffer);
 					gl.disable(gl.DEPTH_TEST);
 					this.screenBuffer.use("Image");
 						this.defer.render();
 					this.screenBuffer.unuse();
 				},
 				"periscope": () => {
-					this.engine3d.render(this.vessels, this.worldBuffer, (r: number) => {
+					this.engine3d.render(this.vessels, this.explodes, this.worldBuffer, (r: number) => {
 						if (Math.abs(this.prevr - r) > 0.2) {
 							this.blurTime = 2.5;
 						}
@@ -154,7 +161,31 @@ class Game {
 
 	updateVessels() {
 		this.vessels.visit((e: ulist_elem<Vessel>) => {
-			e.get().update();
+			let v = e.get();
+			if (v instanceof Torpedo) {
+				let torpedo = v;
+				let ves = null;
+				this.vessels.visit((e: ulist_elem<Vessel>) => {
+					let v = e.get();
+					if (v instanceof Vessel && !(v instanceof Torpedo) 
+						&& !(v instanceof Submarine)) {
+						// if (hit(torpedo, v)) {
+						// 	ves = v;
+						// }
+					}
+				});
+				// if (ves) {
+				if (1) {
+					this.explodes.push(new Explode(torpedo.position.xy));
+					e.remove();
+				} else if (torpedo.checkRange()) {
+					v.update();
+				} else {
+					e.remove();
+				}
+			} else {
+				v.update();
+			}
 		});
 	}
 
@@ -240,6 +271,7 @@ class Game {
 		this.queryObjects = [];
 		// this.spawnVessel("torpedo");
 		// this.spawnTorpedo("TII_G7e", 0);
+		// this.spawnVessel("clemson");
 		this.spawnVessel("clemson");
 		// this.spawnVessel("fiji");
 		this.resetUboat("7c");
