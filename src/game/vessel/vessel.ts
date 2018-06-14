@@ -8,6 +8,7 @@ import { Shader } from "../../gl/shader";
 import { Smoke } from "./smoke";
 import { Renderer } from "../../renderer/renderer";
 import { Foam } from "./foam";
+import { VAO, VertexAttrs } from "../../gl/vertexAttrs";
 
 const m2screen = .1 * .5;
 const knots2mpers = 0.514444;
@@ -137,10 +138,14 @@ abstract class VesselBase extends Obj {
 class Vessel extends VesselBase {
 	private static modelPath = "./assets/";
 	private static shader: Shader;
+	private static wrapper: Shader;
 	private static properties: { [key: string]: any } = {};
 	private model: Model;
 
+	// private wao: VAO;
+
 	public smokes: Smoke[] = [];
+	public collider: number[] = [];
 	public foam: Foam;
 	
 	constructor(name: string)
@@ -165,6 +170,7 @@ class Vessel extends VesselBase {
 			position: [0, -3.1]
 		}, this);
 		Vessel.shader = Vessel.shader || Shader.create("vessel", false);
+		Vessel.wrapper = Vessel.wrapper || Shader.create("wrapper", false);
 		if (callback == undefined) {
 			this.model = Model.create(Vessel.modelPath + name + "/", name + ".json");
 		} else {
@@ -190,11 +196,93 @@ class Vessel extends VesselBase {
 				this.smokes.push(new Smoke(emitter, this));
 			}
 		}
+		if ("collider" in data) {
+			this.collider = data.collider;
+			// let attrs = new VertexAttrs(["pos3"]);
+			// for (let i = 0; i < data.collider.length - 2; i += 2) {
+			// 	attrs.push({ pos3: [
+			// 		data.collider[i], 
+			// 		data.collider[i + 1],
+			// 		0.25
+			// 	] });
+			// 	attrs.push({ pos3: [
+			// 		data.collider[i], 
+			// 		data.collider[i + 1],
+			// 		-0.25
+			// 	] });
+			// 	attrs.push({ pos3: [
+			// 		data.collider[i + 2], 
+			// 		data.collider[i + 3],
+			// 		0.25
+			// 	] });
+
+			// 	attrs.push({ pos3: [
+			// 		data.collider[i], 
+			// 		data.collider[i + 1],
+			// 		-0.25
+			// 	] });
+			// 	attrs.push({ pos3: [
+			// 		data.collider[i + 2], 
+			// 		data.collider[i + 3],
+			// 		0.25
+			// 	] });
+			// 	attrs.push({ pos3: [
+			// 		data.collider[i + 2], 
+			// 		data.collider[i + 3],
+			// 		-0.25
+			// 	] });
+
+			// 	attrs.push({ pos3: [
+			// 		-data.collider[i], 
+			// 		data.collider[i + 1],
+			// 		0.25
+			// 	] });
+			// 	attrs.push({ pos3: [
+			// 		-data.collider[i], 
+			// 		data.collider[i + 1],
+			// 		-0.25
+			// 	] });
+			// 	attrs.push({ pos3: [
+			// 		-data.collider[i + 2], 
+			// 		data.collider[i + 3],
+			// 		0.25
+			// 	] });
+
+			// 	attrs.push({ pos3: [
+			// 		-data.collider[i], 
+			// 		data.collider[i + 1],
+			// 		-0.25
+			// 	] });
+			// 	attrs.push({ pos3: [
+			// 		-data.collider[i + 2], 
+			// 		data.collider[i + 3],
+			// 		0.25
+			// 	] });
+			// 	attrs.push({ pos3: [
+			// 		-data.collider[i + 2], 
+			// 		data.collider[i + 3],
+			// 		-0.25
+			// 	] });
+			// }
+			// this.wao = new VAO(attrs);
+		}
 	}
 
 	render(viewport: Viewport) {
 		this.setBasicUniforms(viewport);
 		this.model.render();
+		// Vessel.unbindShader();
+		// !Vessel.wrapper || (() => {
+		// 	Vessel.wrapper.use();
+		// 	this.setBasicUniforms(viewport);
+		// 	if (this.wao) {
+		// 		this.wao.bind();
+		// 			this.wao.draw();
+		// 		this.wao.unbind();
+		// 	}
+		// 	Vessel.wrapper.unuse();
+		// }) ();
+		// Vessel.bindShader();
 	}
 	
 	static bindShader() {

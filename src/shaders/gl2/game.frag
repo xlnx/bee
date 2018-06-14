@@ -15,7 +15,7 @@ uniform mat4 gP;
 
 #define RAYMARCH_MAX_ITER 24
 #define RAYMARCH_ITER_STEP 6e-2
-#define RAYMARCH_EPS .3e-2
+#define RAYMARCH_EPS .1e-2
 
 #define REFLECT_Z_EPS 1e-2
 #define CAMERA_Z_EPS 5e-2

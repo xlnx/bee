@@ -12,8 +12,8 @@ class Explode extends Obj {
 	private pos: glm.vec3;
 	private speed: number = 1.8;
 	private lightdir: glm.vec3;
-	private lifetime: number = 9;
-	private time: number = 9;
+	private lifetime: number = 13;
+	private time: number = 13 - 0.1;
 	
 
 	constructor(position: glm.vec2) {

@@ -27,6 +27,31 @@ function inRect(x: number, y: number, x0: number, y0: number, x1: number, y1: nu
 	return x >= x0 && x < x1 && y >= y0 && y < y1;
 }
 
+function hit(t: glm.vec4, v: Vessel) {
+	let x = glm.inverse(v.getTrans())["*"](t).xy;
+	if (x.y < v.collider[1] || 
+		x.y > v.collider[v.collider.length - 1]) {
+		return false;
+	}
+	let l = 0, r = (v.collider.length >> 1) - 1;
+	while (r - l > 1) {
+		let m = (l + r) >> 1;
+		if (x.y >= v.collider[(m << 1) | 1]) {
+			l = m;
+		} else {
+			r = m;
+		}
+	}
+	if (l == (v.collider.length >> 1) - 1) {
+		l -= 1;
+	}
+	let lam = (x.y - v.collider[(l << 1) + 1]) / 
+		( v.collider[(l << 1) + 3] - v.collider[(l << 1) + 1] );
+	let z = (1 - lam) * v.collider[(l << 1) + 0] + 
+		lam * v.collider[(l << 1) + 2];
+	return Math.abs(x.x) <= z;
+}
+
 class Game {
 	private renderer = new Renderer(document.body);
 	
@@ -91,16 +116,6 @@ class Game {
 
 	start() {
 		this.renderer.dispatch("render", () => {
-			if (this.inGame && this.displayMode != "options") {
-				let d = this.viewports.periscope.update();
-				this.periscreen.indicatorState(d);
-				this.explodes.visit((e: ulist_elem<Explode>) => {
-					if (!e.get().checkRange()) {
-						e.remove();
-					}
-				});
-				this.updateVessels();
-			}
 			const callbacks = {
 				"3d": () => {
 					this.engine3d.render(this.vessels, this.explodes, this.screenBuffer);
@@ -154,6 +169,16 @@ class Game {
 				}
 			};
 			callbacks[this.displayMode] ();
+			if (this.inGame && this.displayMode != "options") {
+				let d = this.viewports.periscope.update();
+				this.periscreen.indicatorState(d);
+				this.explodes.visit((e: ulist_elem<Explode>) => {
+					if (!e.get().checkRange()) {
+						e.remove();
+					}
+				});
+				this.updateVessels();
+			}
 		});
 
 		this.renderer.start();
@@ -164,18 +189,18 @@ class Game {
 			let v = e.get();
 			if (v instanceof Torpedo) {
 				let torpedo = v;
+				let tpos = torpedo.getTrans()["*"](glm.vec4(0, torpedo.collider[3], 0, 1));
 				let ves = null;
 				this.vessels.visit((e: ulist_elem<Vessel>) => {
 					let v = e.get();
 					if (v instanceof Vessel && !(v instanceof Torpedo) 
 						&& !(v instanceof Submarine)) {
-						// if (hit(torpedo, v)) {
-						// 	ves = v;
-						// }
+						if (hit(tpos, v)) {
+							ves = v;
+						}
 					}
 				});
-				// if (ves) {
-				if (1) {
+				if (ves) {
 					this.explodes.push(new Explode(torpedo.position.xy));
 					e.remove();
 				} else if (torpedo.checkRange()) {

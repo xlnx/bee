@@ -14,10 +14,14 @@ uniform vec3 gCameraWorldPos;
 uniform float gLifetime;
 
 in vec4 WorldPos_next;
+in float InstanceId_next;
 in float GroupId_next;
 in float Lifetime_next;
 
 out vec4 FragColor;
+
+const vec3 fire = vec3(.5, .15, .05);
+const vec3 water = vec3(1.);
 
 float hash( float n )
 {
@@ -75,13 +79,13 @@ void main()
 	// FragColor = vec4(1., 0., 0., 1.);
 	vec2 pp = gl_FragCoord.xy / vec2(1200, 900) * 2. - 1.;
 	vec3 i = normalize(- (gIVP * vec4(pp, 1, 1)).xyz);
-	float t = 1. - Lifetime_next / gLifetime;
 	vec2 p0 = gl_PointCoord.xy * 2. - 1.;
 	float l = length(p0);
+	float t = Lifetime_next / gLifetime;
 	vec3 p = vec3(p0, -1.);
 	float den = t * -log(t) * 3.;
-	den = pow(den, .5);
-	den *= (1. - fbm(p)) * sqrt(1. - l * l);
+
+	den *= (1. - fbm(p)) * (1. - l * l);
 	den = WorldPos_next.z > 0. ? den : 0.;
 	vec3 n = normalize(-vec3(dFdx(den), dFdy(den), -.01));
 	vec3 vi = normalize(- (gVP * vec4(gLightDir, 0)).xyz);
@@ -89,7 +93,10 @@ void main()
 	float difu = max(dot(h, n), 0.) * .5;
 	float amb = .4;
 	FragColor = //vec4(vi * .5 + .5, 1);
-	vec4(vec3(difu + amb), den);
+	InstanceId_next == 9. || InstanceId_next < 3. ? 
+	vec4(fire, den)
+	:
+	vec4((difu + amb) * water, den);
 	// vec4(vec3(6.), den);
 	
 	// vec4(raymarchDepth(p));
