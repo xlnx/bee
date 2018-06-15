@@ -44,7 +44,7 @@ class Engine3d {
 	private gaussianImage = new Texture2D({ component: gl2.RGBA, type: gl.FLOAT, filter: gl.NEAREST, wrap: gl.REPEAT });
 	private stencialBuffer = new Texture2D({ component: gl2.RED, type: gl.FLOAT, filter: gl.NEAREST, wrap: gl.CLAMP_TO_EDGE });
 	// private stencialBuffer = new RenderBuffer(gl.UNSIGNED_BYTE);
-	// private foamImage = new Texture2D("./assets/foam01.png");
+	private foamImage = new Texture2D("./assets/foam01.png");
 
 	private channel: Texture2D;
 
@@ -202,7 +202,7 @@ class Engine3d {
 					}
 				});
 			Smoke.unbindShader();
-
+			
 			Explode.bindShader();
 				explodes.visit((e: ulist_elem<Explode>) => {
 					let f = e.get();
@@ -210,7 +210,8 @@ class Engine3d {
 				});
 			Explode.unbindShader();
 			this.gaussianImage.unuse();
-
+			
+			// gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 			// this.foamImage.use("Foam");
 			// Foam.bindShader();
 			// 	vessels.visit((e: ulist_elem<Vessel>) => {
@@ -218,6 +219,7 @@ class Engine3d {
 			// 	});
 			// Foam.unbindShader();
 			// this.foamImage.unuse();
+
 			this.transformFeedback.unbind();
 			gl.depthMask(true);
 			gl.disable(gl.BLEND);

@@ -3,7 +3,7 @@
 uniform mediump float gDt;
 uniform mat4 gWorld;
 uniform mat4 gVP;
-uniform float gTime;
+uniform mediump float gTime;
 uniform mediump float gLifetime;
 uniform vec2 gOrigin;
 

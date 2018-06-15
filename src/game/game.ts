@@ -4,7 +4,7 @@ import { Ocean } from "../object/ocean";
 import { ulist_elem, ulist } from "../util/ulist";
 import { Observer } from "./camera/observer";
 import { CameraBase } from "./camera/cameraBase";
-import { Vessel } from "./vessel/vessel";
+import { Vessel, m2screen } from "./vessel/vessel";
 import { Submarine } from "./vessel/submarine";
 import { Engine3d } from "./engine3d";
 import { Splash } from "./2d/splash";
@@ -18,6 +18,7 @@ import { Torpedo } from "./vessel/torpedo";
 import { DeferImage } from "../techniques/deferImage";
 import { PeriScreen } from "./2d/periscreen";
 import { Explode } from "./vessel/explode";
+import { missions } from "./mission";
 
 type CameraMode = "observe" | "follow" | "free" | "periscope"
 
@@ -94,24 +95,7 @@ class Game {
 	constructor() {
 		new Communicators().use();
 
-		// this.mainViewport.rotate(glm.vec3(0, 0, glm.radians(180)));
-
-		// Renderer.instance.dispatch("keydown", (e: KeyboardEvent) => {
-		// 	const lookup = {
-		// 		"1": this.mainImage,
-		// 		"2": this.normalDepthImage,
-		// 		"3": this.depthDecodeImage,
-		// 		"4": this.uvImage,
-		// 		"5": this.noiseImage,
-		// 	};
-		// 	if (e.key.toLowerCase() in lookup) {
-		// 		this.channel = lookup[e.key.toLowerCase()];
-		// 	}
-		// });
-
-		// this.channel = this.mainImage;
-
-		this.beginBattle();
+		this.beginBattle(missions[".narvik"]);
 	}
 
 	start() {
@@ -219,6 +203,16 @@ class Game {
 		let self = this;
 		new Vessel(className, (v: Vessel) => {
 			self.vessels.push(v);
+			// console.log(opt);
+			if ("position" in opt) {
+				v.position = glm.vec3(-opt.position[0], -opt.position[1], 0)["*"](m2screen);
+			}
+			if ("target" in opt) {
+				v.speedAngle = opt.target;
+			}
+			if ("speed" in opt) {
+				v.initSpeed = opt.speed;
+			}
 			self.queryObjects.splice(self.queryObjects.indexOf(className), 1);
 			self.checkLoadingFinish();
 		});
@@ -231,6 +225,15 @@ class Game {
 		new Submarine(className, (v: Submarine) => {
 			self.uboat = v;
 			self.vessels.push(self.uboat);
+			if ("depth" in opt) {
+				v.position = v.position["+"](glm.vec3(0, 0, -opt.depth)["*"](m2screen));
+			}
+			if ("target" in opt) {
+				v.speedAngle = opt.target;
+			}
+			if ("speed" in opt) {
+				v.initSpeed = opt.speed;
+			}
 			self.queryObjects.splice(self.queryObjects.indexOf(className), 1);
 			self.checkLoadingFinish();
 			self.viewports.periscope.configureUboat(v);
@@ -292,17 +295,23 @@ class Game {
 
 	beginBattle(opt: { [key: string]: any } = {}) {
 		this.displayMode = "splash";
-		
 		this.queryObjects = [];
-		// this.spawnVessel("torpedo");
-		// this.spawnTorpedo("TII_G7e", 0);
-		// this.spawnVessel("clemson");
-		this.spawnVessel("clemson");
-		// this.spawnVessel("fiji");
-		this.resetUboat("7c");
+
+		for (let x of opt.sea) {
+			this.spawnVessel(x.className, {
+				position: x.position,
+				target: x.target,
+				speed: x.speed
+			});
+		} 
+		this.resetUboat(opt.uboat.className, {
+			target: opt.uboat.target,
+			speed: opt.uboat.speed,
+			depth: opt.uboat.depth
+		});
 
 		Renderer.timescale = 1;
-		this.engine3d.ambient.setTime(6);
+		this.engine3d.ambient.setTime(opt.ambient.time);
 	}
 
 	finishLoading() {

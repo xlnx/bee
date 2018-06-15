@@ -122,28 +122,21 @@ void main()
 				pow(1. + dot(r, n), FresnelPowerBelow), 0., 1.);
 		}
 
+		float deye = dot(-gLightDir, r);
+		float spec = pow(max(deye, 0.), 120.) * 1.6;
 		vec3 vessel;
-		vec4 rcolor, tcolor;
+		vec4 rcolor = vec4(spec); 
+		vec4 tcolor = texture(gAmbient, t);
 
 		if (R > FresnelStep && gCameraWorldPos.z >= 0. &&
 			RaymarchVessel(uv, pw, (gV * vec4(r, 0.)).xyz, vessel))
 		{
-			rcolor = mix(vec4(-.1), vec4(vessel, 1.), .6);
+			rcolor += mix(vec4(-.1), vec4(vessel, 1.), .6);
 		}
 		else
 		{
 			if (abs(r.z) < REFLECT_Z_EPS) r.z = sign(r.z) * REFLECT_Z_EPS;
-			rcolor = texture(gAmbient, r);// * 1.2;
-		}
-
-		// if (R < 1. - FresnelStep && gCameraWorldPos.z < 0. &&
-		// 	RaymarchVessel(uv, pw, (gV * vec4(t, 0.)).xyz, vessel))
-		// {
-		// 	tcolor = mix(waterSurface, waterSurface + vec4(vessel, 1.), 0.8);
-		// }
-		// else
-		{
-			tcolor = texture(gAmbient, t);
+			rcolor += texture(gAmbient, r);// * 1.2;
 		}
 
 		color = R * rcolor + (1.0 - R) * tcolor + whitecap;

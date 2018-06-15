@@ -40,6 +40,8 @@ abstract class VesselBase extends Obj {
 	set speedAngle(degree: number) {
 		this.fspeedAngle = glm.radians(degree);
 		this.fspeedVec = glm.vec2(Math.cos(this.fspeedAngle), Math.sin(this.fspeedAngle));
+		this.rotateIdentity();
+		this.rotate(glm.vec3(0, 0, glm.radians(degree - 90)));
 	}
 
 	set speed(knots: number) {
@@ -47,6 +49,10 @@ abstract class VesselBase extends Obj {
 	}
 	get speed(): number {
 		return this.fspeed / knots2mpers / m2screen;
+	}
+
+	set initSpeed(perc: number) {
+		this.foriginalSpeed = this.ftargetSpeed = this.fspeed = perc * this.fmaxSpeed;
 	}
 
 	set targetSpeed(perc: number) {

@@ -26,7 +26,7 @@ class Observer extends CameraBase {
 
 	private dist: number = 2;
 	private minDist: number = 2 * 1;
-	private maxDist: number = 2 * 4;
+	private maxDist: number = 2 * 2;
 
 	private mousewheel: RendererEvent;
 	private mousemove: RendererEvent;
