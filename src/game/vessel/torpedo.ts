@@ -7,7 +7,7 @@ class Torpedo extends Vessel {
 
 	set orient(velocity: glm.vec2) {
 		this.fspeedVec = velocity;
-		this.rotate(glm.vec3(0, 0, -Math.acos(velocity.y)));
+		this.rotate(glm.vec3(0, 0, - Math.PI*.5 + Math.atan2(velocity.y, velocity.x)));
 	}
 
 	protected processProperty(data: { [key: string]: any}) {
