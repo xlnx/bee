@@ -10,9 +10,18 @@ Koishi chan likes bee. \>w<
 
 ![](docs/ambient.png)
 
+## Sea
+![](docs/sea.png)
+
 ## Periscope
 
 ![](docs/periscope.jpg)
+
+![](docs/lens-blur.png)
+
+## Torpedo
+
+![](docs/torpedo.png)
 
 ![](docs/explosion.png)
 
@@ -21,6 +30,10 @@ Koishi chan likes bee. \>w<
 ![](docs/underwater.png)
 
 ![](docs/gradient.png)
+
+## Beautiful Splash Screen \>w<
+
+![](docs/splash.png)
 
 ## Phillips Spectrum
 
@@ -83,8 +96,8 @@ Koishi chan likes bee. \>w<
 - [X] AABB
 - [X] Dynamics
 - [X] Explosion
-- [ ] Beautiful Splash Screens \>w<
-- [X] Periscope Blurring
+- [X] Beautiful Splash Screens \>w<
+- [X] Periscope Lens Blurring
 - [X] Torpedo / Vessel Tracks
 > - [ ] Make Them Pretty
 - [ ] Bow Wave
