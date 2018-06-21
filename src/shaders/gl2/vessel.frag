@@ -7,7 +7,7 @@ uniform sampler2D gMatDiffuse;
 
 
 in vec2 TexCoord0;
-// in vec3 WorldPos0;
+in vec3 WorldPos0;
 in vec3 Normal0;
 in float Depth0;
 
@@ -19,5 +19,5 @@ void main()
 {
 	FragColor = vec4(texture(gMatDiffuse, TexCoord0).xyz, Depth0);
 	NormalType = vec4(Normal0, 1.); // vessel
-	Extra.w = 1.;
+	Extra = vec4(WorldPos0, WorldPos0.z < 0. ? 0. : 1.);
 }

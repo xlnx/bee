@@ -82,9 +82,9 @@ const missions = {
 		}],
 		uboat: {
 			className: "7c",
-			target: 90,
+			target: 91,
 			speed: 0,
-			dive: 0
+			depth: 0
 		},
 		ambient: {
 			time: 8
@@ -104,16 +104,6 @@ const missions = {
 		}, {
 			className: "clemson",
 			position: [800, -150],
-			target: 180,
-			speed: 0.2
-		}, {
-			className: "clemson",
-			position: [-100, -650],
-			target: 183,
-			speed: 0.2
-		}, {
-			className: "clemson",
-			position: [-750, -300],
 			target: 180,
 			speed: 0.2
 		}],

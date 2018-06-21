@@ -29,7 +29,7 @@ layout (location = 0) out vec4 FragColor;
 layout (location = 1) out float Stencial;
 
 const float whitecapBlend = .1;
-const float waterAtten = 2.5e-1;
+const float waterAtten = 2.0e-1;
 
 const float FresnelStep = .08;
 
@@ -84,6 +84,9 @@ void main()
 	float type = nt.w;
 
 	float ang = dot(-gLightDir, vec3(0, 0, 1));
+
+	vec4 mixColor = mix(shallowWaterColorNight, shallowWaterColor, ang);
+	float waterBlend = clamp(sqrt((abs(h) + 1.) * waterAtten) - .5, .5, 1.);
 
 	Stencial = ex.w;
 
@@ -169,11 +172,9 @@ void main()
 
 		color = mix(.25 * color, color, (.95 - c1) * difu + c1 * (amb.x + amb.y + amb.z) / 3.) + spec;
 
-
-		if (gCameraWorldPos.z < 0.)
+		if (Stencial == 0. || gCameraWorldPos.z < -CAMERA_Z_EPS)
 		{
-			vec4 mixColor = mix(shallowWaterColorNight, shallowWaterColor, ang);
-			color = mix(color, mixColor, clamp(sqrt((abs(h) + 1.) * waterAtten) - .5, .5, 1.));
+			color = mix(color, mixColor, waterBlend);
 		}
 	}
 	vec4 smoke = texture(gSmoke, tex);
