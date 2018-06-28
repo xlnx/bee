@@ -274,7 +274,7 @@ class Engine3d {
 			
 			this.offscreen.set(gl2.COLOR_ATTACHMENT1, null);
 
-			// this.debugWindow(this.stencialBuffer, false, 0);
+			// this.debugWindow(this.extraImage, false);
 			// this.debugWindow(this.normalTypeImage, true, 1);
 			// this.debugWindow(this.extraImage, false, 2);
 		
@@ -282,16 +282,23 @@ class Engine3d {
 		this.offscreen.unbind();
 	}
 
-	debugWindow(texture: Texture2D, normalize: boolean, index: number)
+	debugWindow(texture: Texture2D, normalize: boolean, index: number = -1)
 	{
-		let w = index % 3;
-		let h = Math.floor(index / 3);
-		gl.viewport(
-			Renderer.instance.canvas.width/3 * w, 
-			Renderer.instance.canvas.height/3 * h, 
-			Renderer.instance.canvas.width/3, 
-			Renderer.instance.canvas.height/3
-		);
+		if (index != -1)
+		{
+			let w = index % 3;
+			let h = Math.floor(index / 3);
+			gl.viewport(
+				Renderer.instance.canvas.width/3 * w, 
+				Renderer.instance.canvas.height/3 * h, 
+				Renderer.instance.canvas.width/3, 
+				Renderer.instance.canvas.height/3
+			);
+		}
+		else
+		{
+			gl.viewport(0, 0, Renderer.instance.canvas.width, Renderer.instance.canvas.height);
+		}
 		texture.use("Image");
 		if (normalize) this.decode.render();
 		else this.defer.render();

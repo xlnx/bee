@@ -126,7 +126,7 @@ void main()
 		}
 
 		float deye = dot(-gLightDir, r);
-		float spec = pow(max(deye, 0.), 120.) * 1.6;
+		float spec = pow(max(deye, 0.), 450.) * 3.2;
 		vec3 vessel;
 		vec4 rcolor = vec4(spec); 
 		vec4 tcolor = texture(gAmbient, t);
@@ -148,6 +148,9 @@ void main()
 			vec4 mixColor = mix(shallowWaterColorNight, shallowWaterColor, ang);
 			color = mix(color, mixColor, clamp(-pw.z * waterAtten, 0., 1.));
 		}
+
+		// color = vec4(spec > 1. ? spec : 0.);
+		// color = vec4(spec);
 		// color = vec4(n * .5 + .5, 1.);
 		// color = nt.xyzz;
 		Stencial = n.z < 0. ? 0. : 1.;

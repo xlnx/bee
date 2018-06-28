@@ -2,6 +2,8 @@
 
 #define PI 3.141592654
 
+#define EPS 0.2
+
 #define RAYMARCH_ITER_STEP .004
 #define RAYMARCH_MAX_ITER 20
 
@@ -75,6 +77,16 @@ float raymarchDepth(vec3 p)
 	return z.r * .5;
 }
 
+bool lt(float a, float b)
+{
+	return a - b < EPS;
+}
+
+bool eql(float a, float b)
+{
+	return abs(a - b) < EPS;
+}
+
 void main()
 {
 	// FragColor = vec4(1., 0., 0., 1.);
@@ -94,7 +106,7 @@ void main()
 	float difu = max(dot(h, n), 0.) * .5;
 	float amb = .3;
 	FragColor = //vec4(vi * .5 + .5, 1);
-	InstanceId_next == 9. || InstanceId_next < 3. ? 
+	eql(InstanceId_next, 9.) || lt(InstanceId_next, 3.) ? 
 	vec4((difu + amb) * fire, den)
 	:
 	vec4((difu + amb) * water, den);

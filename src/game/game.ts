@@ -110,7 +110,7 @@ class Game {
 				},
 				"periscope": () => {
 					this.engine3d.render(this.vessels, this.explodes, this.worldBuffer, (r: number) => {
-						if (Math.abs(this.prevr - r) > 0.2) {
+						if (Math.abs(this.prevr - r) > 0.1) {
 							this.blurTime = 2.5;
 						}
 						this.prevr = r;
